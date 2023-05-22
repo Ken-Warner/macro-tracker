@@ -1,0 +1,49 @@
+.buttons {
+  position: relative;
+  text-align: center;
+  z-index: 2;
+  font-size: 2em;
+  border: 1px solid black;
+  border-radius: 15px;
+  color: var(--text-secondary);
+  background: linear-gradient(180deg, var(--cta-one), 80%, var(--cta-two));
+  margin-top: 3px;
+}
+.buttons a {
+  text-decoration: inherit;
+  color: inherit;
+  display: inline-block;
+  width: 100%;
+  height: 100%;
+}
+
+.dialog-buttons {
+  width: 75vw;
+}
+
+.buttons:active {
+  background: linear-gradient(180deg, var(--cta-two), 20%, var(--cta-one));
+}
+
+#deleteMealButton, #deleteMealConfirm {
+  background: linear-gradient(180deg, var(--error-color), 80%, var(--error-accent-color));
+}
+#deleteMealButton:active, #deleteMealConfirm:active {
+  background: linear-gradient(180deg, var(--error-accent-color), 20%, var(--error-color));
+}
+
+dialog {
+  z-index: 10;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  padding: 10px;
+  border-radius: 5px;
+  background-color: #141418;
+  border-color: #33A7D6;
+  outline: none;
+}
+
+dialog::backdrop {
+  background-color: rgba(255, 255, 255, .2);
+}

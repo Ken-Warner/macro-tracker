@@ -1,0 +1,14 @@
+<div id="deleteMealButton" class="buttons">Delete Meal</div>
+
+<dialog id="deleteMealDialog">
+  {{#if meals}}
+    {{#each meals}}
+      <div data-meal-id="{{this.id}}" class="delete-meal-dialog-item buttons dialog-buttons">{{this.name}}</div>
+    {{/each}}
+  {{/if}}
+  <div id="cancelDeleteMeal" class="buttons">Cancel</div>
+</dialog>
+<dialog id="deleteDialogConfirm">
+  <div id="deleteMealConfirm" class="buttons dialog-buttons">Delete meal</div>
+  <div id="cancelDeleteMealConfirm" class="buttons dialog-buttons">Cancel</div>
+</dialog>

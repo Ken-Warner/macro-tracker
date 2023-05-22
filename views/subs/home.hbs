@@ -1,0 +1,40 @@
+{{#if message}}
+<div class="toast-message">{{message}}</div>
+{{/if}}
+<div class="calorie-count"><span id="total-calories">?</span>cal</div>
+<div class="macro-count">
+  <div class="macro-item">
+    <span id="total-protein" class="macro-item-count">?</span>
+    <span class="macro-item-label">Protein</span>
+  </div>
+  <div class="macro-item">
+    <span id="total-carbs" class="macro-item-count">?</span>
+    <span class="macro-item-label">Carbs</span>
+  </div>
+  <div class="macro-item">
+    <span id="total-fats" class="macro-item-count">?</span>
+    <span class="macro-item-label">Fats</span>
+  </div>
+</div>
+<div id="createMealButton" class="meal-buttons"><a href="/meals/createNewMeal">Create New Meal</a></div>
+<div id="addMealButton" class="meal-buttons">Add Meal</div>
+<div id="addMealDropdown" class="meal-dropdown">
+  <div id="addSingleMealButton" class="meal-buttons"><a href="/meals/createSingleMeal">Add Singular Meal</a></div>
+  <input type="text" name="mealSearchBox" id="mealSearchBox" placeholder="Search">
+  <div id="mealContainer" class="meal-container">
+    
+  </div>
+</div>
+<div class="list-container">
+
+</div>
+<div class="add-meal-modal">
+  <div class="modal-meal-name"></div>
+  <div class="modal-meal-desc"></div>
+  <div class="modal-form">
+    <label>Number of Servings:</label>
+    <input id="mealServingSize" type="number" name="numberOfServings" max="100" required>
+  </div>
+  <div id="modalCancelButton" class="modal-button cancel-button">Cancel</div>
+  <div id="modalOkButton" class="modal-button ok-button">OK</div>
+</div>

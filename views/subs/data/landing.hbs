@@ -1,0 +1,23 @@
+<h1>Welcome to the data page</h1>
+
+<script>
+  window.onload = async () => {
+    const result = await fetch('/data/getMealDataForDateRange', {
+      method: 'POST',
+      headers: { "Content-Type":"application/json" },
+      body: JSON.stringify({
+        fromDate: '2023-04-08',
+        toDate: '2023-04-09'
+      })
+    });
+    if (result.status == 200) {
+      console.log('success');
+      const data = await result.json();
+      console.log(data);
+    } else if (result.status == 204) {
+      console.log('no content');
+    } else {
+      console.log('error');
+    }
+  };
+</script>
