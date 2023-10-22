@@ -1,7 +1,6 @@
 {
-  "name": "macro-tracker",
+  "name": "macrotracker",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -16,9 +15,9 @@
     "express": "^4.18.2",
     "express-session": "^1.17.3",
     "hbs": "^4.2.0",
-    "pg": "^8.9.0"
+    "nodemon": "^3.0.1",
+    "pg": "^8.11.3"
   },
-  "devDependencies": {
-    "nodemon": "^2.0.20"
-  }
+  "devDependencies": {},
+  "description": ""
 }
