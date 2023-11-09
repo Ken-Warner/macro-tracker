@@ -39,24 +39,50 @@ async function createIngredientRaw(userid, ingredient) {
   }
 }
 
-async function createIngredientFromComponents(userid, components) {
+async function createIngredientFromComponents(userid, name, description, components) {
   //select all components with the provided ids
   let getComponentsQuery = {
     text: `SELECT id, calories, protein, carbohydrates, fats
             FROM ingredients
-            WHERE id = ANY($1::int[])
-            AND user_id = $2;`,
+            WHERE user_id = $1
+            AND id IN (${components.map((component, idx) => '$' + (idx + 2)).join(',')});`,
     params: [
-      components.map(component => component.id),
       userid,
+      ...components.map(component => component.ingredientId),
     ],
   };
 
-  const componentsForNewIngredient = await query(getComponentsQuery);
-  console.log(componentsForNewIngredient);
-  //using the portion size, tally up all the macros into a new ingredient
-  //use create ingredient raw to create the new ingredient??
-    //else just do a new query
+  let newIngredient = {};
+
+  try {
+    const componentsForNewIngredient = await query(getComponentsQuery);
+
+    if (componentsForNewIngredient.rowCount != components.length)
+      throw new Error('Ingredient not retrieved with ID');
+
+    newIngredient = {
+      name,
+      description,
+      calories: 0,
+      protein: 0,
+      carbohydrates: 0,
+      fats: 0,
+    };
+
+    componentsForNewIngredient.rows.forEach(row => {
+      const portionSize = components.find(el => el.ingredientId == row.id).portionSize;
+      
+      newIngredient.calories += (row.calories * portionSize);
+      newIngredient.protein += (row.protein * portionSize);
+      newIngredient.carbohydrates += (row.carbohydrates * portionSize);
+      newIngredient.fats += (row.fats * portionSize);
+    });
+
+  } catch (e) {
+    throw new Error('unable to retrieve component ingredients');
+  }
+
+  return await createIngredientRaw(userid, newIngredient);
 }
 
 async function deleteIngredientById(userId, ingredientId) {

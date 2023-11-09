@@ -23,7 +23,10 @@ async function createNewIngredient(req, res) {
         return;
       }
 
-      const newIngredient = await createIngredientFromComponents(req.session.userid, req.body.components);
+      const newIngredient = await createIngredientFromComponents(req.session.userid,
+                                                                 req.body.ingredient.name,
+                                                                 req.body.ingredient.description,
+                                                                 req.body.components);
 
       res.status(201).send(JSON.stringify(newIngredient));
 
