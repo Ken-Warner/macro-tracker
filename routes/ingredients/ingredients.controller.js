@@ -61,7 +61,7 @@ async function deleteIngredient(req, res) {
 
     res.status(200).send();
   } catch (e) {
-    res.status(400).send(e.message);
+    res.status(400).send(JSON.stringify({ error: `An error occured: ${e.message}` }));
   }
 }
 
@@ -77,7 +77,7 @@ async function getIngredients(req, res) {
     res.status(200)
       .send(JSON.stringify(result.rows));
   } catch (e) {
-    res.status(400).send(e.message);
+    res.status(400).send(JSON.stringify({ error: e.message }));
   }
 }
 
