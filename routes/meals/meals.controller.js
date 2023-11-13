@@ -1,7 +1,7 @@
 const {
   createMeal,
   createMealRaw,
-  getMealsAfterAge,
+  getMealsFromDay,
   getMealHistoryWithRange,
 } = require('../../models/meals.model');
 
@@ -37,7 +37,12 @@ async function createNewMealRaw(req, res) {
       time: req.body.time,
     };
 
+    console.log(newMeal);
+
     newMeal = await createMealRaw(req.session.userid, newMeal);
+
+    //The pg module returns a Date object for dates, so it must be reformatted
+    newMeal.date = newMeal.date.toISOString().split('T')[0];
 
     res.status(201).send(JSON.stringify(newMeal));
     return;
@@ -64,13 +69,10 @@ async function getMeals(req, res) {
     return;
   }
 
-  if (!req.query.daysAgo) {
-    res.status(400).send();
-    return;
-  }
+  const daysAgo = req.query.daysAgo || 0;
 
   try {
-    const meals = await getMealsAfterAge(req.session.userid, req.query.daysAgo);
+    const meals = await getMealsFromDay(req.session.userid, daysAgo);
 
     res.status(200).send(JSON.stringify(meals));
   } catch (e) {
