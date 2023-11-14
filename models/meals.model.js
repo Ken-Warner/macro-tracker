@@ -78,7 +78,26 @@ async function getMealsFromDay(userid, daysAgo) {
 }
 
 async function getMealHistoryWithRange(userid, fromDate, toDate) {
+  let getMealHistoryQuery = {
+    text: `SELECT *
+            FROM meals
+            WHERE user_id = $1
+              AND date >= $2
+              AND date <= $3;`,
+    params: [
+      userid,
+      fromDate,
+      toDate
+    ]
+  };
 
+  try {
+    const result = await query(getMealHistoryQuery);
+
+    return result.rows;
+  } catch (e) {
+    throw new Error('Unable to perform query');
+  }
 }
 
 module.exports = {

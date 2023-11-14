@@ -58,9 +58,29 @@ async function getMealHistory(req, res) {
     res.status(401).send();
     return;
   }
-  console.log(req.query);
-  res.status(200).send();
-  return;
+
+  const dateRegex = /\d{4}-\d{2}-\d{2}/;
+
+  if (!dateRegex.test(req.query.fromDate) || !dateRegex.test(req.query.toDate)) {
+    res.status(400).send(JSON.stringify({ error: 'You must provide a date range with values fromDate and toDate in the format YYYY-MM-DD' }));
+    return;
+  }
+
+  console.log(req.query.fromDate);
+  console.log(req.query.toDate);
+
+  try {
+
+    const mealHistory = await getMealHistoryWithRange(req.session.userid,
+                                                      req.query.fromDate,
+                                                      req.query.toDate);
+
+    console.log(mealHistory);
+    res.status(200).send(JSON.stringify(mealHistory));
+    return;
+  } catch (e) {
+    res.status(500).send(JSON.stringify({ error: `An error occurred: ${e.message}` }));
+  }
 }
 
 async function getMeals(req, res) {
@@ -70,6 +90,11 @@ async function getMeals(req, res) {
   }
 
   const daysAgo = req.query.daysAgo || 0;
+  const validationRegex = /\d+/;
+  if (!validationRegex.test(daysAgo) || daysAgo < 0) {
+    res.status(400).send(JSON.stringify({ error: 'You must provide a numerical offset, day greater than 0, from today as daysAgo' }));
+    return;
+  }
 
   try {
     const meals = await getMealsFromDay(req.session.userid, daysAgo);
