@@ -30,12 +30,6 @@ async function createNewIngredient(req, res) {
 
     } else if (req.body.ingredient && req.body.ingredient.name != '') {
 
-      //make sure all names are populated (FOR BATCH VALIDATION)
-      // if (req.body.ingredients.some(ingredient => ingredient.name == '')) {
-      //   res.status(400).send(JSON.stringify({ error: "An ingredient name must be provided." }));
-      //   return;
-      // }
-
       const newIngredient = await createIngredientRaw(req.session.userid, req.body.ingredient);
 
       res.status(201).send(JSON.stringify(newIngredient));

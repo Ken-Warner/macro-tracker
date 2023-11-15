@@ -10,8 +10,35 @@ async function createNewMeal(req, res) {
     res.status(401).send();
     return;
   }
-  res.status(200).send();
-  return;
+
+  let meal = req.body;
+
+  if (!meal.name) {
+    res.status(400).send(JSON.stringify({ error: 'You must provide a meal name' }));
+    return;
+  }
+  if (!meal.ingredients || meal.ingredients.length < 1) {
+    res.status(400).send(JSON.stringify({ error: 'You must provide at least one ingredient' }));
+    return;
+  }
+  if (!meal.ingredients || meal.ingredients.some(ingredient => ingredient.ingredientId <= 0)) {
+    res.status(400).send(JSON.stringify({ error: '1 or more of the ingredient IDs is invalid' }));
+    return;
+  }
+  if (!meal.ingredients || meal.ingredients.some(ingredient => ingredient.portionSize <= 0)) {
+    res.status(400).send(JSON.stringify({ error: '1 or more of the ingredients portion sizes are invalid' }));
+    return;
+  }
+
+  try {
+
+    const newMeal = await createMeal(req.session.userid, meal);
+    res.status(201).send(JSON.stringify(newMeal));
+
+  } catch (e) {
+    res.status(500).send(JSON.stringify({ error: `An error has occurred: ${e.message}` }));
+    return;
+  }
 }
 
 async function createNewMealRaw(req, res) {
