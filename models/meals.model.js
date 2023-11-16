@@ -6,8 +6,56 @@ const {
 
 async function createMeal(userid, meal) {
 
-  throw new Error('not yet implemented');
+  // throw new Error('not yet implemented');
 
+  console.log(meal);
+
+  let getIngredientsQuery = {
+    text: `SELECT id, calories, protein, carbohydrates, fats
+            FROM ingredients
+            WHERE user_id = $1
+              AND id IN (${meal.ingredients.map((ingredient, idx) => '$' + (idx + 2)).join(',')});`,
+    params: [
+      userid,
+      ...meal.ingredients.map(ingredient => ingredient.ingredientId)
+    ]
+  };
+
+  console.log(getIngredientsQuery);
+  let ingredientResult;
+
+  try {
+    ingredientsResult = await query(getIngredientsQuery);
+    console.log(ingredientsResult);
+    if (ingredientsResult.rowCount <= 0)
+      throw new Error();
+  } catch (e) {
+    throw new Error('Unable to select the provided ingredients');
+  }
+
+  let newMeal = {
+    name: meal.name,
+    description: meal.description,
+    date: meal.date,
+    time: meal.time,
+    calories: 0,
+    protein: 0,
+    carbohydrates: 0,
+    fats: 0
+  };
+
+  ingredientsResult.rows.forEach(ingredient => {
+    const portionSize = meal.ingredients.find(el => el.ingredientId == ingredient.id).portionSize;
+
+    newMeal.calories += (ingredient.calories * portionSize);
+    newMeal.protein += (ingredient.protein * portionSize);
+    newMeal.carbohydrates += (ingredient.carbohydrates * portionSize);
+    newMeal.fats += (ingredient.fats * portionSize);
+  });
+
+  console.log(newMeal);
+
+  return await createMealRaw(userid, newMeal);
 }
 
 async function createMealRaw(userid, meal) {

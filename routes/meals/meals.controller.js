@@ -93,9 +93,6 @@ async function getMealHistory(req, res) {
     return;
   }
 
-  console.log(req.query.fromDate);
-  console.log(req.query.toDate);
-
   try {
 
     const mealHistory = await getMealHistoryWithRange(req.session.userid,
