@@ -6,10 +6,6 @@ const {
 
 async function createMeal(userid, meal) {
 
-  // throw new Error('not yet implemented');
-
-  console.log(meal);
-
   let getIngredientsQuery = {
     text: `SELECT id, calories, protein, carbohydrates, fats
             FROM ingredients
@@ -21,14 +17,17 @@ async function createMeal(userid, meal) {
     ]
   };
 
-  console.log(getIngredientsQuery);
   let ingredientResult;
+  let mealRecipe = new Array();
 
   try {
     ingredientsResult = await query(getIngredientsQuery);
-    console.log(ingredientsResult);
+
+    //a recipe needs to be added for this ingredient stack
+
     if (ingredientsResult.rowCount <= 0)
       throw new Error();
+
   } catch (e) {
     throw new Error('Unable to select the provided ingredients');
   }
@@ -47,15 +46,25 @@ async function createMeal(userid, meal) {
   ingredientsResult.rows.forEach(ingredient => {
     const portionSize = meal.ingredients.find(el => el.ingredientId == ingredient.id).portionSize;
 
+    const recipeAssociation = {
+      ingredientId: ingredient.id,
+      portionSize: portionSize
+    };
+
+    mealRecipe.push(recipeAssociation);
+
     newMeal.calories += (ingredient.calories * portionSize);
     newMeal.protein += (ingredient.protein * portionSize);
     newMeal.carbohydrates += (ingredient.carbohydrates * portionSize);
     newMeal.fats += (ingredient.fats * portionSize);
   });
 
-  console.log(newMeal);
+  const finalNewMeal = await createMealRaw(userid, newMeal);
 
-  return await createMealRaw(userid, newMeal);
+  mealRecipe.forEach(component => component.mealId = finalNewMeal.id);
+  await insertMealRecipe(mealRecipe);
+
+  return finalNewMeal;
 }
 
 async function createMealRaw(userid, meal) {
@@ -148,6 +157,19 @@ async function getMealHistoryWithRange(userid, fromDate, toDate) {
   } catch (e) {
     throw new Error('Unable to perform query');
   }
+}
+
+async function insertMealRecipe(mealRecipe) {
+  let mealRecipeQuery = {
+    text: `INSERT INTO meal_ingredients (meal_id, ingredient_id, portion_size)
+            VALUES ${mealRecipe.map((el, idx) => {
+              const firstIdx = (3 * idx) + 1;
+              return `($${firstIdx},$${firstIdx + 1},$${firstIdx +2 })`
+            }).join(',')};`,
+    params: mealRecipe.map(el=> [el.mealId, el.ingredientId, el.portionSize]).flat(),
+  };
+
+  return await query(mealRecipeQuery);
 }
 
 module.exports = {

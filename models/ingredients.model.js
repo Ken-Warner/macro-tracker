@@ -1,18 +1,6 @@
 const { query } = require('./pool');
 
 async function createIngredientRaw(userid, ingredient) {
-  //For batch input
-  // let createIngredientQuery = {
-  //   text: `INSERT INTO ingredients
-  //             (user_id, name, description, calories, protein, carbohydrates, fats)
-  //             VALUES ${ingredients.map(ingredient => {
-  //     return `($1,'${ingredient.name}','${ingredient.description || ''}',${ingredient.calories || 0},${ingredient.protein || 0},${ingredient.carbohydrates || 0},${ingredient.fats || 0})`;
-  //   }).join(',')}
-  //             RETURNING *;`,
-  //   params: [
-  //     userid
-  //   ],
-  // };
   let createIngredientQuery = {
     text: `INSERT INTO ingredients
             (user_id, name, description, calories, protein, carbohydrates, fats)
@@ -53,9 +41,11 @@ async function createIngredientFromComponents(userid, name, description, compone
   };
 
   let newIngredient = {};
+  let componentsForNewIngredient;
+  let recipeAssociations = new Array();
 
   try {
-    const componentsForNewIngredient = await query(getComponentsQuery);
+    componentsForNewIngredient = await query(getComponentsQuery);
 
     if (componentsForNewIngredient.rowCount != components.length)
       throw new Error('Ingredient not retrieved with ID');
@@ -71,7 +61,15 @@ async function createIngredientFromComponents(userid, name, description, compone
 
     componentsForNewIngredient.rows.forEach(row => {
       const portionSize = components.find(el => el.ingredientId == row.id).portionSize;
+
+      const recipe = {
+        componentIngredientId: row.id,
+        portionSize: portionSize,
+      };
       
+      //also build recipe associations to create new recipe
+      recipeAssociations.push(recipe);
+
       newIngredient.calories += (row.calories * portionSize);
       newIngredient.protein += (row.protein * portionSize);
       newIngredient.carbohydrates += (row.carbohydrates * portionSize);
@@ -82,7 +80,16 @@ async function createIngredientFromComponents(userid, name, description, compone
     throw new Error('unable to retrieve component ingredients');
   }
 
-  return await createIngredientRaw(userid, newIngredient);
+  //before returning the ingredient, the new ingredient's recipe must be saved in the recipes table
+  const finalNewIngredient = await createIngredientRaw(userid, newIngredient);
+
+  recipeAssociations.forEach(ingredient => {
+    ingredient.parentIngredientId = finalNewIngredient.id;
+  });
+
+  await insertRecipeComponents(recipeAssociations);
+
+  return finalNewIngredient;
 }
 
 async function deleteIngredientById(userId, ingredientId) {
@@ -120,6 +127,20 @@ async function getIngredientsByUserId(userId) {
     return result;
   else
     throw new Error('No Ingredients found');
+}
+
+async function insertRecipeComponents(recipeComponents) {
+  let insertRecipeQuery = {
+    text: `INSERT INTO recipes (parent_ingredient_id, component_ingredient_id, portion_size)
+            VALUES ${recipeComponents.map((el, idx) => {
+              const firstidx = (3 * idx) + 1;
+              return `($${firstidx},$${firstidx + 1}, $${firstidx + 2})`;
+            }).join(',')};`,
+
+    params: recipeComponents.map(el => [el.parentIngredientId, el.componentIngredientId, el.portionSize]).flat()
+  };
+
+  return await query(insertRecipeQuery);
 }
 
 module.exports = {
