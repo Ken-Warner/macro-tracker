@@ -9,12 +9,29 @@ async function getWeighInData(req, res) {
     return;
   }
 
-  //validate dates from query string
+  const dateRegex = /\d{4}-\d{2}-\d{2}/;
 
-  //call model to get data
+  if (!req.query.fromDate || !dateRegex.test(req.query.fromDate)) {
+    res.status(400).send(JSON.stringify({ error: `fromDate must be supplied in the format YYYY-MM-DD` }));
+    return;
+  }
 
-  res.status(200).send();
-  return;
+  if (!req.query.toDate || !dateRegex.test(req.query.toDate)) {
+    res.status(400).send(JSON.stringify({ error: `toDate must be supplied in the format YYYY-MM-DD` }));
+    return;
+  }
+
+  try {
+    let weighInData = await selectWeighInDataForDateRange(req.session.userid, req.query.fromDate, req.query.toDate);
+    weighInData = weighInData.map(el => {
+        return { date: el.date.toISOString().split('T')[0],
+                 weight: el.weight }
+    });
+
+    res.status(200).send(JSON.stringify(weighInData));
+  } catch (e) {
+    res.status(500).send(JSON.stringify({ error: `An unexpected error occurred: ${e.message}` }));
+  }
 }
 
 async function postWeighInData(req, res) {

@@ -29,7 +29,22 @@ async function insertWeighInData(userid, weighInData) {
 }
 
 async function selectWeighInDataForDateRange(userid, fromDate, toDate) {
+  let weighInDataQuery = {
+    text: `SELECT date, weight
+            FROM user_weights
+            WHERE user_id = $1
+              AND date >= $2
+              AND date <= $3;`,
+    params: [
+      userid,
+      fromDate,
+      toDate
+    ]
+  };
 
+  const result = await query(weighInDataQuery);
+
+  return result.rows;
 }
 
 module.exports = {

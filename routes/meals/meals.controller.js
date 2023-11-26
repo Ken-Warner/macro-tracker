@@ -99,7 +99,6 @@ async function getMealHistory(req, res) {
                                                       req.query.fromDate,
                                                       req.query.toDate);
 
-    console.log(mealHistory);
     res.status(200).send(JSON.stringify(mealHistory));
     return;
   } catch (e) {
