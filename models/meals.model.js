@@ -106,6 +106,9 @@ async function createMealRaw(userid, meal) {
     const result = await query(createMealQuery);
 
     if (result.rowCount == 1) {
+
+      await updateMacroTotals(result.rows[0]);
+
       return result.rows[0];
     } else {
       throw new Error('Unale to create new meal');
@@ -142,7 +145,8 @@ async function getMealHistoryWithRange(userid, fromDate, toDate) {
             FROM meals
             WHERE user_id = $1
               AND date >= $2
-              AND date <= $3;`,
+              AND date <= $3
+            ORDER BY date DESC;`,
     params: [
       userid,
       fromDate,
@@ -170,6 +174,10 @@ async function insertMealRecipe(mealRecipe) {
   };
 
   return await query(mealRecipeQuery);
+}
+
+async function updateMacroTotals(meal) {
+  //create/update macro_totals with macros from meal
 }
 
 module.exports = {
