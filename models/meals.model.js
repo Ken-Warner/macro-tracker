@@ -107,7 +107,7 @@ async function createMealRaw(userid, meal) {
 
     if (result.rowCount == 1) {
 
-      await updateMacroTotals(result.rows[0]);
+      await updateMacroTotals(userid, result.rows[0]);
 
       return result.rows[0];
     } else {
@@ -176,8 +176,66 @@ async function insertMealRecipe(mealRecipe) {
   return await query(mealRecipeQuery);
 }
 
-async function updateMacroTotals(meal) {
-  //create/update macro_totals with macros from meal
+async function updateMacroTotals(userid, meal) {
+  //I'm sure there is some sort of UPSERT method you can use on postgresql
+  //that will do this all on the database side, this is a temporary implementation
+  //until I research how to do that.
+
+  //get current macro totals
+  let getMacroTotalsQuery = {
+    text: `SELECT date, calories, protein, carbohydrates, fats
+            FROM macro_totals
+            WHERE user_id = $1
+              AND date = CURRENT_DATE;`,
+    params: [ userid ]
+  };
+
+  let result = await query(getMacroTotalsQuery);
+  let upsertQuery = {
+    text: ``,
+    params: []
+  };
+
+  //if they exist
+  if (result.rowCount == 1) {
+    let macroTotals = result.rows[0];
+
+    macroTotals.calories += meal.calories;
+    macroTotals.protein += meal.protien;
+    macroTotals.carbohydrates += meal.carbohydrates;
+    macroTotals.fats += meal.fats;
+
+    upsertQuery = {
+      text: `UPDATE macro_totals
+              SET (calories, protein, carbohydrates, fats)
+                = ($1, $2, $3, $4)
+              WHERE user_id = $5
+                AND date = $6;`,
+      params: [
+        macroTotals.calories,
+        macroTotals.protein,
+        macroTotals.carbohydrates,
+        macroTotals.fats,
+        userid,
+        macroTotals.date
+      ]
+    };
+  //if they don't
+  } else {
+    upsertQuery = {
+      text: `INSERT INTO macro_totals (user_id, calories, protein, carbohydrates, fats)
+              VALUES ($1, $2, $3, $4, $5);`,
+      params: [
+        userid,
+        meal.calories,
+        meal.protein,
+        meal.carbohydrates,
+        meal.fats
+      ]
+    };
+  }
+
+  await query(upsertQuery);
 }
 
 module.exports = {
