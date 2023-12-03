@@ -32,7 +32,8 @@ async function createNewMeal(req, res) {
 
   try {
 
-    const newMeal = await createMeal(req.session.userid, meal);
+    let newMeal = await createMeal(req.session.userid, meal);
+
     res.status(201).send(JSON.stringify(newMeal));
 
   } catch (e) {
@@ -67,9 +68,6 @@ async function createNewMealRaw(req, res) {
     console.log(newMeal);
 
     newMeal = await createMealRaw(req.session.userid, newMeal);
-
-    //The pg module returns a Date object for dates, so it must be reformatted
-    newMeal.date = newMeal.date.toISOString().split('T')[0];
 
     res.status(201).send(JSON.stringify(newMeal));
     return;

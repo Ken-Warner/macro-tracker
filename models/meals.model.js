@@ -107,14 +107,21 @@ async function createMealRaw(userid, meal) {
 
     if (result.rowCount == 1) {
 
-      await updateMacroTotals(userid, result.rows[0]);
+      let resultMeal = result.rows[0];
 
-      return result.rows[0];
+      //pg returns a date object instead of an ISO string, so it must be converted
+      //to get the YYYY-MM-DD part of the date
+      resultMeal.date = resultMeal.date.toISOString().split('T')[0];
+      //same with the time string
+      resultMeal.time = resultMeal.time.split('.')[0];
+
+      await updateMacroTotals(userid, resultMeal);
+
+      return resultMeal;
     } else {
       throw new Error('Unale to create new meal');
     }
   } catch (e) {
-    console.log(e);
     throw new Error('Invalid query to create new meal');
   }
 }
@@ -186,11 +193,15 @@ async function updateMacroTotals(userid, meal) {
     text: `SELECT date, calories, protein, carbohydrates, fats
             FROM macro_totals
             WHERE user_id = $1
-              AND date = CURRENT_DATE;`,
-    params: [ userid ]
+              AND date = $2;`,
+    params: [
+      userid,
+      meal.date
+    ]
   };
 
   let result = await query(getMacroTotalsQuery);
+
   let upsertQuery = {
     text: ``,
     params: []
@@ -201,7 +212,7 @@ async function updateMacroTotals(userid, meal) {
     let macroTotals = result.rows[0];
 
     macroTotals.calories += meal.calories;
-    macroTotals.protein += meal.protien;
+    macroTotals.protein += meal.protein;
     macroTotals.carbohydrates += meal.carbohydrates;
     macroTotals.fats += meal.fats;
 
@@ -217,16 +228,17 @@ async function updateMacroTotals(userid, meal) {
         macroTotals.carbohydrates,
         macroTotals.fats,
         userid,
-        macroTotals.date
+        macroTotals.date.toISOString().split('T')[0]
       ]
     };
   //if they don't
   } else {
     upsertQuery = {
-      text: `INSERT INTO macro_totals (user_id, calories, protein, carbohydrates, fats)
-              VALUES ($1, $2, $3, $4, $5);`,
+      text: `INSERT INTO macro_totals (user_id, date, calories, protein, carbohydrates, fats)
+              VALUES ($1, $2, $3, $4, $5, $6);`,
       params: [
         userid,
+        meal.date,
         meal.calories,
         meal.protein,
         meal.carbohydrates,
