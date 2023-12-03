@@ -3,6 +3,7 @@ const {
   createMealRaw,
   getMealsFromDay,
   getMealHistoryWithRange,
+  deleteMeal,
 } = require('../../models/meals.model');
 
 async function createNewMeal(req, res) {
@@ -126,9 +127,26 @@ async function getMeals(req, res) {
   }
 }
 
+async function deleteMealById(req, res) {
+  if (!req.session.userid || !req.session.username) {
+    res.status(401).send();
+    return;
+  }
+
+  try {
+    await deleteMeal(req.session.userid, req.params.id);
+
+    res.status(200).send();
+
+  } catch (e) {
+    res.status(500).send(JSON.stringify({ error: `An Error occurred: ${e.message}` }));
+  }
+}
+
 module.exports = {
   createNewMeal,
   createNewMealRaw,
   getMealHistory,
-  getMeals
+  getMeals,
+  deleteMealById
 };

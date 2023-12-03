@@ -146,6 +146,34 @@ async function getMealsFromDay(userid, daysAgo) {
   }
 }
 
+async function deleteMeal(userid, mealId) {
+  let deleteMealQuery = {
+    text: `DELETE FROM meals
+            WHERE user_id = $1
+              AND id = $2
+            RETURNING *;`,
+    params: [
+      userid,
+      mealId
+    ]
+  };
+
+  const result = await query(deleteMealQuery);
+
+  if (result.rowCount == 1) {
+    let deletedMeal = result.rows[0];
+
+    //update macro totals but with negative macros
+    deletedMeal.calories *= -1;
+    deletedMeal.protein *= -1;
+    deletedMeal.carbohydrates *= -1;
+    deletedMeal.fats *= -1;
+    deletedMeal.date = deletedMeal.date.toISOString().split('T')[0];
+
+    await updateMacroTotals(userid, deletedMeal);
+  }
+}
+
 async function getMealHistoryWithRange(userid, fromDate, toDate) {
   let getMealHistoryQuery = {
     text: `SELECT *
@@ -255,4 +283,5 @@ module.exports = {
   createMealRaw,
   getMealsFromDay,
   getMealHistoryWithRange,
+  deleteMeal
 };
