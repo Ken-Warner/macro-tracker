@@ -17,13 +17,10 @@ async function createMeal(userid, meal) {
     ]
   };
 
-  let ingredientResult;
   let mealRecipe = new Array();
 
   try {
     ingredientsResult = await query(getIngredientsQuery);
-
-    //a recipe needs to be added for this ingredient stack
 
     if (ingredientsResult.rowCount <= 0)
       throw new Error();

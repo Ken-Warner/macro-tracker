@@ -3,20 +3,20 @@ const {
   selectWeighInDataForDateRange,
 } = require('../../models/weighIn.model');
 
+const validator = require('../../Utilities/validator');
+
 async function getWeighInData(req, res) {
   if(!req.session.userid || !req.session.username) {
     res.status(401).send();
     return;
   }
 
-  const dateRegex = /\d{4}-\d{2}-\d{2}/;
-
-  if (!req.query.fromDate || !dateRegex.test(req.query.fromDate)) {
+  if (!req.query.fromDate || !validator.isValidDate(req.query.fromDate)) {
     res.status(400).send(JSON.stringify({ error: `fromDate must be supplied in the format YYYY-MM-DD` }));
     return;
   }
 
-  if (!req.query.toDate || !dateRegex.test(req.query.toDate)) {
+  if (!req.query.toDate || !validator.isValidDate(req.query.toDate)) {
     res.status(400).send(JSON.stringify({ error: `toDate must be supplied in the format YYYY-MM-DD` }));
     return;
   }
