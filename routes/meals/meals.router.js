@@ -16,9 +16,4 @@ mealsRouter.post('/', createNewMeal);
 mealsRouter.delete('/:id', deleteMealById);
 mealsRouter.get('/', getMeals);
 
-mealsRouter.all('/*', (req, res, next) => {
-  res.status(404).send();
-  return;
-});
-
 module.exports = mealsRouter;

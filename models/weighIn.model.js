@@ -4,10 +4,19 @@ const {
   buildInsert,
  } = require('./pool');
 
-async function insertWeighInData(userid, weighInData) {
+async function insertWeighInData(userId, weighInData) {
 
-  const fields = [ 'user_id', 'weight', 'date' ];
-  const values = [ userid, weighInData.weight, weighInData.date || DEFAULT ];
+  const fields = [
+    'user_id',
+    'weight',
+    'date'
+  ];
+
+  const values = [ 
+    userId,
+    weighInData.weight,
+    weighInData.date || DEFAULT
+  ];
 
   [
     queryFields,
@@ -28,7 +37,7 @@ async function insertWeighInData(userid, weighInData) {
     throw new Error('Unable to insert new weight');
 }
 
-async function selectWeighInDataForDateRange(userid, fromDate, toDate) {
+async function selectWeighInDataForDateRange(userId, fromDate, toDate) {
   let weighInDataQuery = {
     text: `SELECT date, weight
             FROM user_weights
@@ -36,7 +45,7 @@ async function selectWeighInDataForDateRange(userid, fromDate, toDate) {
               AND date >= $2
               AND date <= $3;`,
     params: [
-      userid,
+      userId,
       fromDate,
       toDate
     ]

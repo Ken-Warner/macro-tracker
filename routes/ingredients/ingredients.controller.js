@@ -6,7 +6,7 @@ const {
 } = require('../../models/ingredients.model');
 
 async function createNewIngredient(req, res) {
-  if (!req.session.userid || !req.session.username) {
+  if (!req.session.userId || !req.session.username) {
     res.status(401).send();
     return;
   }
@@ -21,7 +21,7 @@ async function createNewIngredient(req, res) {
         return;
       }
 
-      const newIngredient = await createIngredientFromComponents(req.session.userid,
+      const newIngredient = await createIngredientFromComponents(req.session.userId,
                                                                  req.body.ingredient.name,
                                                                  req.body.ingredient.description,
                                                                  req.body.components);
@@ -30,10 +30,9 @@ async function createNewIngredient(req, res) {
 
     } else if (req.body.ingredient && req.body.ingredient.name != '') {
 
-      const newIngredient = await createIngredientRaw(req.session.userid, req.body.ingredient);
+      const newIngredient = await createIngredientRaw(req.session.userId, req.body.ingredient);
 
       res.status(201).send(JSON.stringify(newIngredient));
-      return;
     } else {
       res.status(400).send(JSON.stringify({ error: "Invalid Input" }));
     }
@@ -44,14 +43,14 @@ async function createNewIngredient(req, res) {
 }
 
 async function deleteIngredient(req, res) {
-  if (!req.session.userid || !req.session.username) {
+  if (!req.session.userId || !req.session.username) {
     res.status(401).send();
     return;
   }
 
   try {
     const result = await deleteIngredientById(req.session.userid,
-      req.params.ingredientId);
+                                              req.params.ingredientId);
 
     res.status(200).send();
   } catch (e) {
@@ -60,13 +59,13 @@ async function deleteIngredient(req, res) {
 }
 
 async function getIngredients(req, res) {
-  if (!req.session.userid || !req.session.username) {
+  if (!req.session.userId || !req.session.username) {
     res.status(401).send();
     return;
   }
 
   try {
-    const result = await getIngredientsByUserId(req.session.userid);
+    const result = await getIngredientsByUserId(req.session.userId);
 
     res.status(200)
       .send(JSON.stringify(result.rows));

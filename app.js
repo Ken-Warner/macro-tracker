@@ -34,8 +34,8 @@ app.use(cookieParser());
 app.use('/api', apiRouter);
 // Frontend server routes
 
-app.get('/*', (req, res) => {
-    res.status(200).send("Hello World"); //error page
+app.all('/*', (req, res) => {
+    res.status(404).send(JSON.stringify({ error: `The resource you were looking for could not be found.` }));
 });
 
 module.exports = app;

@@ -14,9 +14,4 @@ apiRouter.use('/meals', mealsRouter);
 apiRouter.use('/weighIn', weighInRouter);
 apiRouter.use('/macros', macrosRouter);
 
-usersRouter.all('/*', (req, res, next) => {
-    res.status(404).send();
-    return;
-});
-
 module.exports = apiRouter;

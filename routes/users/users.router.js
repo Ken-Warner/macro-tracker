@@ -12,9 +12,4 @@ usersRouter.post('/create', createNewUser);
 usersRouter.post('/login', logUserIn);
 usersRouter.get('/logout', logUserOut);
 
-usersRouter.get('/*', (req, res) => {
-    res.status(404).send();
-    return;
-});
-
 module.exports = usersRouter;

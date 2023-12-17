@@ -2,7 +2,7 @@ const {
   query
 } = require('./pool');
 
-async function selectMacrosFromDateRange(userid, fromDate, toDate) {
+async function selectMacrosFromDateRange(userId, fromDate, toDate) {
   let selectMacrosQuery = {
     text: `SELECT date, calories, protein, carbohydrates, fats
             FROM macro_totals
@@ -11,7 +11,7 @@ async function selectMacrosFromDateRange(userid, fromDate, toDate) {
               AND date <= $3
             ORDER BY date DESC;`,
     params: [
-      userid,
+      userId,
       fromDate,
       toDate
     ]

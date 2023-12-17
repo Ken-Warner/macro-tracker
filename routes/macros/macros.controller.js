@@ -2,20 +2,20 @@ const {
   selectMacrosFromDateRange,
 } = require('../../models/macros.model');
 
+const validator = require('../../Utilities/validator');
+
 async function getMacrosFromDateRange(req, res) {
-  if (!req.session.userid || !req.session.username) {
+  if (!req.session.userId || !req.session.username) {
     res.status(401).send();
     return;
   }
 
-  const dateRegex = /\d{4}-\d{2}-\d{2}/;
-
-  if (!req.query.fromDate || !dateRegex.test(req.query.fromDate)) {
+  if (!req.query.fromDate || !validator.isValidDate(req.query.fromDate)) {
     res.status(400).send(JSON.stringify({ error:`You must provide a fromDate in the format YYYY-MM-DD` }));
     return;
   }
 
-  if (!req.query.toDate || !dateRegex.test(req.query.toDate)) {
+  if (!req.query.toDate || !validator.isValidDate(req.query.toDate)) {
     res.status(400).send(JSON.stringify({ error:`You must provide a toDate in the format YYYY-MM-DD` }));
     return;
   }

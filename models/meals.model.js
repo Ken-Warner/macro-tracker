@@ -4,7 +4,7 @@ const {
   DEFAULT,
  } = require('./pool');
 
-async function createMeal(userid, meal) {
+async function createMeal(userId, meal) {
 
   let getIngredientsQuery = {
     text: `SELECT id, calories, protein, carbohydrates, fats
@@ -12,7 +12,7 @@ async function createMeal(userid, meal) {
             WHERE user_id = $1
               AND id IN (${meal.ingredients.map((ingredient, idx) => '$' + (idx + 2)).join(',')});`,
     params: [
-      userid,
+      userId,
       ...meal.ingredients.map(ingredient => ingredient.ingredientId)
     ]
   };
@@ -64,7 +64,7 @@ async function createMeal(userid, meal) {
   return finalNewMeal;
 }
 
-async function createMealRaw(userid, meal) {
+async function createMealRaw(userId, meal) {
 
   let fields = [
     'user_id',
@@ -79,7 +79,7 @@ async function createMealRaw(userid, meal) {
   ];
 
   let values = [
-    userid,
+    userId,
     meal.name,
     meal.description,
     meal.date || DEFAULT,
@@ -123,14 +123,14 @@ async function createMealRaw(userid, meal) {
   }
 }
 
-async function getMealsFromDay(userid, daysAgo) {
+async function getMealsFromDay(userId, daysAgo) {
   let getMealsQuery = {
     text: `SELECT *
             FROM meals
             WHERE user_id = $1
             AND (current_date - date) = $2;`,
     params: [
-      userid,
+      userId,
       daysAgo
     ]
   };
@@ -143,14 +143,14 @@ async function getMealsFromDay(userid, daysAgo) {
   }
 }
 
-async function deleteMeal(userid, mealId) {
+async function deleteMeal(userId, mealId) {
   let deleteMealQuery = {
     text: `DELETE FROM meals
             WHERE user_id = $1
               AND id = $2
             RETURNING *;`,
     params: [
-      userid,
+      userId,
       mealId
     ]
   };
@@ -171,7 +171,7 @@ async function deleteMeal(userid, mealId) {
   }
 }
 
-async function getMealHistoryWithRange(userid, fromDate, toDate) {
+async function getMealHistoryWithRange(userId, fromDate, toDate) {
   let getMealHistoryQuery = {
     text: `SELECT *
             FROM meals
@@ -180,7 +180,7 @@ async function getMealHistoryWithRange(userid, fromDate, toDate) {
               AND date <= $3
             ORDER BY date DESC;`,
     params: [
-      userid,
+      userId,
       fromDate,
       toDate
     ]
@@ -208,7 +208,7 @@ async function insertMealRecipe(mealRecipe) {
   return await query(mealRecipeQuery);
 }
 
-async function updateMacroTotals(userid, meal) {
+async function updateMacroTotals(userId, meal) {
   //I'm sure there is some sort of UPSERT method you can use on postgresql
   //that will do this all on the database side, this is a temporary implementation
   //until I research how to do that.
@@ -220,7 +220,7 @@ async function updateMacroTotals(userid, meal) {
             WHERE user_id = $1
               AND date = $2;`,
     params: [
-      userid,
+      userId,
       meal.date
     ]
   };
@@ -252,7 +252,7 @@ async function updateMacroTotals(userid, meal) {
         macroTotals.protein,
         macroTotals.carbohydrates,
         macroTotals.fats,
-        userid,
+        userId,
         macroTotals.date.toISOString().split('T')[0]
       ]
     };
@@ -262,7 +262,7 @@ async function updateMacroTotals(userid, meal) {
       text: `INSERT INTO macro_totals (user_id, date, calories, protein, carbohydrates, fats)
               VALUES ($1, $2, $3, $4, $5, $6);`,
       params: [
-        userid,
+        userId,
         meal.date,
         meal.calories,
         meal.protein,

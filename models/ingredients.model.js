@@ -1,13 +1,13 @@
 const { query } = require('./pool');
 
-async function createIngredientRaw(userid, ingredient) {
+async function createIngredientRaw(userId, ingredient) {
   let createIngredientQuery = {
     text: `INSERT INTO ingredients
             (user_id, name, description, calories, protein, carbohydrates, fats)
             VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING *;`,
     params: [
-      userid,
+      userId,
       ingredient.name,
       ingredient.description || '',
       ingredient.calories || 0,
@@ -27,7 +27,7 @@ async function createIngredientRaw(userid, ingredient) {
   }
 }
 
-async function createIngredientFromComponents(userid, name, description, components) {
+async function createIngredientFromComponents(userId, name, description, components) {
   //select all components with the provided ids
   let getComponentsQuery = {
     text: `SELECT id, calories, protein, carbohydrates, fats
@@ -35,7 +35,7 @@ async function createIngredientFromComponents(userid, name, description, compone
             WHERE user_id = $1
             AND id IN (${components.map((component, idx) => '$' + (idx + 2)).join(',')});`,
     params: [
-      userid,
+      userId,
       ...components.map(component => component.ingredientId),
     ],
   };
@@ -59,6 +59,7 @@ async function createIngredientFromComponents(userid, name, description, compone
       fats: 0,
     };
 
+    //tally up the macros for each of the component ingredients
     componentsForNewIngredient.rows.forEach(row => {
       const portionSize = components.find(el => el.ingredientId == row.id).portionSize;
 
@@ -81,7 +82,7 @@ async function createIngredientFromComponents(userid, name, description, compone
   }
 
   //before returning the ingredient, the new ingredient's recipe must be saved in the recipes table
-  const finalNewIngredient = await createIngredientRaw(userid, newIngredient);
+  const finalNewIngredient = await createIngredientRaw(userId, newIngredient);
 
   recipeAssociations.forEach(ingredient => {
     ingredient.parentIngredientId = finalNewIngredient.id;

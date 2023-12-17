@@ -6,8 +6,10 @@ const {
   deleteMeal,
 } = require('../../models/meals.model');
 
+const validator = require('../../Utilities/validator');
+
 async function createNewMeal(req, res) {
-  if (!req.session.userid || !req.session.username) {
+  if (!req.session.userId || !req.session.username) {
     res.status(401).send();
     return;
   }
@@ -32,19 +34,16 @@ async function createNewMeal(req, res) {
   }
 
   try {
-
-    let newMeal = await createMeal(req.session.userid, meal);
+    let newMeal = await createMeal(req.session.userId, meal);
 
     res.status(201).send(JSON.stringify(newMeal));
-
   } catch (e) {
     res.status(500).send(JSON.stringify({ error: `An error has occurred: ${e.message}` }));
-    return;
   }
 }
 
 async function createNewMealRaw(req, res) {
-  if (!req.session.userid || !req.session.username) {
+  if (!req.session.userId || !req.session.username) {
     res.status(401).send();
     return;
   }
@@ -66,54 +65,45 @@ async function createNewMealRaw(req, res) {
       time: req.body.time,
     };
 
-    console.log(newMeal);
-
-    newMeal = await createMealRaw(req.session.userid, newMeal);
+    newMeal = await createMealRaw(req.session.userId, newMeal);
 
     res.status(201).send(JSON.stringify(newMeal));
-    return;
-
   } catch (e) {
     res.status(500).send(JSON.stringify({ error: `An error occurred: ${e.message}` }));
-    return;
   }
 }
 
 async function getMealHistory(req, res) {
-  if (!req.session.userid || !req.session.username) {
+  if (!req.session.userId || !req.session.username) {
     res.status(401).send();
     return;
   }
 
-  const dateRegex = /\d{4}-\d{2}-\d{2}/;
-
-  if (!dateRegex.test(req.query.fromDate) || !dateRegex.test(req.query.toDate)) {
+  if (!validator.isValidDate(req.query.fromDate) || !validator.isValidDate(req.query.toDate)) {
     res.status(400).send(JSON.stringify({ error: 'You must provide a date range with values fromDate and toDate in the format YYYY-MM-DD' }));
     return;
   }
 
   try {
-
-    const mealHistory = await getMealHistoryWithRange(req.session.userid,
+    const mealHistory = await getMealHistoryWithRange(req.session.userId,
                                                       req.query.fromDate,
                                                       req.query.toDate);
 
     res.status(200).send(JSON.stringify(mealHistory));
-    return;
   } catch (e) {
     res.status(500).send(JSON.stringify({ error: `An error occurred: ${e.message}` }));
   }
 }
 
 async function getMeals(req, res) {
-  if (!req.session.userid || !req.session.username) {
+  if (!req.session.userId || !req.session.username) {
     res.status(401).send();
     return;
   }
 
   const daysAgo = req.query.daysAgo || 0;
-  const validationRegex = /\d+/;
-  if (!validationRegex.test(daysAgo) || daysAgo < 0) {
+
+  if (!validator.isNumberGEZero(daysAgo)) {
     res.status(400).send(JSON.stringify({ error: 'You must provide a numerical offset, day greater than 0, from today as daysAgo' }));
     return;
   }
@@ -128,7 +118,7 @@ async function getMeals(req, res) {
 }
 
 async function deleteMealById(req, res) {
-  if (!req.session.userid || !req.session.username) {
+  if (!req.session.userId || !req.session.username) {
     res.status(401).send();
     return;
   }
@@ -137,7 +127,6 @@ async function deleteMealById(req, res) {
     await deleteMeal(req.session.userid, req.params.id);
 
     res.status(200).send();
-
   } catch (e) {
     res.status(500).send(JSON.stringify({ error: `An Error occurred: ${e.message}` }));
   }

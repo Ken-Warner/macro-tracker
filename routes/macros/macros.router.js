@@ -8,9 +8,4 @@ const macrosRouter = express.Router();
 
 macrosRouter.get('/', getMacrosFromDateRange);
 
-macrosRouter.all('/*', (req, res, next) => {
-  res.status(404).send();
-  return;
-});
-
 module.exports = macrosRouter;

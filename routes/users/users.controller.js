@@ -3,17 +3,41 @@ const {
   createUser,
 } = require('../../models/users.model');
 
+const validator = require('../../Utilities/validator');
+
 async function createNewUser(req, res) {
+  if (req.session.userId && req.session.username) {
+    res.status(400).send(JSON.stringify({ error: `User already logged in. ` }));
+    return;
+  }
+
   if (req.body.password !== req.body.passwordConfirm) {
     res.status(400);
     return;
   }
 
   try {
-    const result = await createUser(req.body);
+    if (!validator.isValidUsername(req.body.username)) {
+      res.status(400).send(JSON.stringify({ error: `Invalid username format.` }));
+      return;
+    }
+
+    if (!validator.isValidPassword(req.body.password)) {
+      res.status(400).send(JSON.stringify({ error: `Invalid password format.` }));
+      return;
+    }
+
+    if (!validator.isValidEmail(req.body.emailAddress)) {
+      res.status(400).send(JSON.stringify({ error: `Invalid Email Address.` }));
+      return;
+    }
+
+    const result = await createUser(req.body.username,
+                                    req.body.password,
+                                    req.body.emailAddress);
 
     req.session.username = req.body.username;
-    req.session.userid = result;
+    req.session.userId = result;
 
     res.status(201).send(JSON.stringify({ userId: result, username: req.body.username }));
   } catch (e) {
@@ -22,11 +46,11 @@ async function createNewUser(req, res) {
 }
 
 async function logUserIn(req, res) {
-  if (req.session.userid && req.session.username) {
+  if (req.session.userId && req.session.username) {
     res.status(200).send(
       JSON.stringify(
         {
-          userId: req.session.userid,
+          userId: req.session.userId,
           username: req.session.username,
         }));
     return;
@@ -35,7 +59,7 @@ async function logUserIn(req, res) {
   try {
     const user = await getUser(req.body.username, req.body.password);
 
-    req.session.userid = user.id;
+    req.session.userId = user.id;
     req.session.username = user.username;
 
     res.status(200).send(JSON.stringify(user));
@@ -46,7 +70,7 @@ async function logUserIn(req, res) {
 
 async function logUserOut(req, res) {
   req.session.destroy();
-  res.redirect('/');
+  res.status(200).send();
 }
 
 module.exports = {

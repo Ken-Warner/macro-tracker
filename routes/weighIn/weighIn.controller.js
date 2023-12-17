@@ -6,7 +6,7 @@ const {
 const validator = require('../../Utilities/validator');
 
 async function getWeighInData(req, res) {
-  if(!req.session.userid || !req.session.username) {
+  if (!req.session.userId || !req.session.username) {
     res.status(401).send();
     return;
   }
@@ -24,8 +24,10 @@ async function getWeighInData(req, res) {
   try {
     let weighInData = await selectWeighInDataForDateRange(req.session.userid, req.query.fromDate, req.query.toDate);
     weighInData = weighInData.map(el => {
-        return { date: el.date.toISOString().split('T')[0],
-                 weight: el.weight }
+      return {
+        date: el.date.toISOString().split('T')[0],
+        weight: el.weight
+      }
     });
 
     res.status(200).send(JSON.stringify(weighInData));
@@ -35,25 +37,21 @@ async function getWeighInData(req, res) {
 }
 
 async function postWeighInData(req, res) {
-  if(!req.session.userid || !req.session.username) {
+  if (!req.session.userId || !req.session.username) {
     res.status(401).send();
     return;
   }
 
   let weighInData = {};
 
-  if (!req.body.weight || req.body.weight <= 0) {
+  if (!req.body.weight || !validator.isNumberGEZero(req.body.weight)) {
     res.status(400).send(JSON.stringify({ error: `Please provide a valid weight.` }));
     return;
   }
 
-  if (req.body.date) {
-    const dateRegex = /\d{4}-\d{2}-\d{2}/;
-
-    if (!dateRegex.test(req.body.date)) {
-      res.status(400).send(JSON.stringify({ error: `Please provide a date in the format YYYY-MM-DD` }));
-      return;
-    }
+  if (req.body.date && !validator.isValidDate(req.body.date)) {
+    res.status(400).send(JSON.stringify({ error: `Please provide a date in the format YYYY-MM-DD` }));
+    return;
   }
 
   weighInData = {
