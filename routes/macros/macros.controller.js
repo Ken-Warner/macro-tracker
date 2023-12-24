@@ -11,7 +11,7 @@ async function getMacrosFromDateRange(req, res) {
   }
 
   if (!req.query.fromDate || !validator.isValidDate(req.query.fromDate)) {
-    res.status(400).send(JSON.stringify({ error:`You must provide a fromDate in the format YYYY-MM-DD` }));
+    res.status(400).send(JSON.stringify({ uuid: errorUuid, error:`You must provide a fromDate in the format YYYY-MM-DD` }));
     return;
   }
 
