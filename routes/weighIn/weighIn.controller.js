@@ -5,6 +5,12 @@ const {
 
 const validator = require('../../Utilities/validator');
 
+const {
+  loggingLevels,
+  formatResponse,
+  log
+} = require('../../Utilities/logger');
+
 async function getWeighInData(req, res) {
   if (!req.session.userId || !req.session.username) {
     res.status(401).send();
@@ -22,7 +28,8 @@ async function getWeighInData(req, res) {
   }
 
   try {
-    let weighInData = await selectWeighInDataForDateRange(req.session.userid, req.query.fromDate, req.query.toDate);
+    console.log('selecting weigh in data');
+    let weighInData = await selectWeighInDataForDateRange(req.session.userId, req.query.fromDate, req.query.toDate);
     weighInData = weighInData.map(el => {
       return {
         date: el.date.toISOString().split('T')[0],
@@ -30,9 +37,14 @@ async function getWeighInData(req, res) {
       }
     });
 
+    console.log(weighInData);
+
     res.status(200).send(JSON.stringify(weighInData));
   } catch (e) {
-    res.status(500).send(JSON.stringify({ error: `An unexpected error occurred: ${e.message}` }));
+    const uuid = await log(loggingLevels.ERROR,
+                            `getWeighInData: ${e.message}`,
+                            req.query);
+    res.status(500).send(formatResponse(uuid));
   }
 }
 
@@ -60,11 +72,14 @@ async function postWeighInData(req, res) {
   };
 
   try {
-    await insertWeighInData(req.session.userid, weighInData);
+    await insertWeighInData(req.session.userId, weighInData);
 
     res.status(200).send();
   } catch (e) {
-    res.status(500).send(JSON.stringify({ error: `An unexpected error occurred: ${e.message}` }));
+    const uuid = await log(loggingLevels.ERROR,
+                            `postWeighInData: ${e.message}`,
+                            req.body);
+    res.status(500).send(formatResponse(uuid));
   }
 }
 

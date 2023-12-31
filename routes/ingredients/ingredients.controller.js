@@ -5,6 +5,14 @@ const {
   getIngredientsByUserId,
 } = require('../../models/ingredients.model');
 
+const {
+  log,
+  loggingLevels,
+  formatResponse
+} = require('../../Utilities/logger');
+
+const validator = require('../../Utilities/validator');
+
 async function createNewIngredient(req, res) {
   if (!req.session.userId || !req.session.username) {
     res.status(401).send();
@@ -37,8 +45,10 @@ async function createNewIngredient(req, res) {
       res.status(400).send(JSON.stringify({ error: "Invalid Input" }));
     }
   } catch (e) {
-    res.status(500).send(JSON.stringify({ error: `An error occured: ${e.message}` }));
-    return;
+    const uuid = await log(loggingLevels.ERROR,
+                            `createNewIngredient: ${e.message}`,
+                            req.body);
+    res.status(500).send(formatResponse(uuid));
   }
 }
 
@@ -48,13 +58,26 @@ async function deleteIngredient(req, res) {
     return;
   }
 
+  if (!validator.isNumberGEZero(req.params.ingredientId)) {
+    res.status(400).send(JSON.stringify({ error: `A numeric ingredient ID must be provided.` }));
+    return;
+  }
+
   try {
-    const result = await deleteIngredientById(req.session.userid,
+    const result = await deleteIngredientById(req.session.userId,
                                               req.params.ingredientId);
+
+    if (result == 0)
+      await log (loggingLevels.INFO,
+                 'deleteIngredient: ID not found.',
+                 req.params);
 
     res.status(200).send();
   } catch (e) {
-    res.status(400).send(JSON.stringify({ error: `An error occured: ${e.message}` }));
+    const uuid = await log(loggingLevels.ERROR,
+                            `deleteIngredient: ${e.message}`,
+                            req.params);
+    res.status(500).send(formatResponse(uuid));
   }
 }
 
@@ -67,10 +90,12 @@ async function getIngredients(req, res) {
   try {
     const result = await getIngredientsByUserId(req.session.userId);
 
-    res.status(200)
-      .send(JSON.stringify(result.rows));
+    res.status(200).send(JSON.stringify(result.rows));
   } catch (e) {
-    res.status(400).send(JSON.stringify({ error: e.message }));
+    const uuid = await log(loggingLevels.ERROR,
+                            `getIngredients: ${e.message}`,
+                            req.session.userId);
+    res.status(500).send(formatResponse(uuid));
   }
 }
 

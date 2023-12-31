@@ -51,6 +51,8 @@ async function selectWeighInDataForDateRange(userId, fromDate, toDate) {
     ]
   };
 
+  console.log(weighInDataQuery);
+
   const result = await query(weighInDataQuery);
 
   return result.rows;

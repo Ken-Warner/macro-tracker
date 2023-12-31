@@ -3,6 +3,11 @@ const {
 } = require('../../models/macros.model');
 
 const validator = require('../../Utilities/validator');
+const {
+  log,
+  loggingLevels,
+  formatResponse
+} = require('../../Utilities/logger');
 
 async function getMacrosFromDateRange(req, res) {
   if (!req.session.userId || !req.session.username) {
@@ -11,7 +16,7 @@ async function getMacrosFromDateRange(req, res) {
   }
 
   if (!req.query.fromDate || !validator.isValidDate(req.query.fromDate)) {
-    res.status(400).send(JSON.stringify({ uuid: errorUuid, error:`You must provide a fromDate in the format YYYY-MM-DD` }));
+    res.status(400).send(JSON.stringify({ error:`You must provide a fromDate in the format YYYY-MM-DD` }));
     return;
   }
 
@@ -21,7 +26,7 @@ async function getMacrosFromDateRange(req, res) {
   }
 
   try {
-    let macroData = await selectMacrosFromDateRange(req.session.userid,
+    let macroData = await selectMacrosFromDateRange(req.session.userId,
                                                     req.query.fromDate,
                                                     req.query.toDate);
 
@@ -37,7 +42,10 @@ async function getMacrosFromDateRange(req, res) {
     
     res.status(200).send(JSON.stringify(macroData));
   } catch (e) {
-    res.status(500).send(JSON.stringify({ error: `Unable to get data: ${e.message}` }));
+    const uuid = await log(loggingLevels.ERROR,
+                            `getMacrosFromDateRange: ${e.message}`,
+                            req.query);
+    res.status(500).send(formatResponse(uuid));
   }
 }
 

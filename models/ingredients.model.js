@@ -17,14 +17,10 @@ async function createIngredientRaw(userId, ingredient) {
     ],
   };
 
-  try {
-    const result = await query(createIngredientQuery);
+  const result = await query(createIngredientQuery);
 
-    if (result.rowCount == 1)
-      return result.rows[0];
-  } catch (e) {
-    throw new Error('Could not create new ingredient:' + e.message);
-  }
+  if (result.rowCount == 1)
+    return result.rows[0];
 }
 
 async function createIngredientFromComponents(userId, name, description, components) {
@@ -44,42 +40,37 @@ async function createIngredientFromComponents(userId, name, description, compone
   let componentsForNewIngredient;
   let recipeAssociations = new Array();
 
-  try {
-    componentsForNewIngredient = await query(getComponentsQuery);
+  componentsForNewIngredient = await query(getComponentsQuery);
 
-    if (componentsForNewIngredient.rowCount != components.length)
-      throw new Error('Ingredient not retrieved with ID');
+  if (componentsForNewIngredient.rowCount != components.length)
+    throw new Error('Ingredient not retrieved with ID');
 
-    newIngredient = {
-      name,
-      description,
-      calories: 0,
-      protein: 0,
-      carbohydrates: 0,
-      fats: 0,
+  newIngredient = {
+    name,
+    description,
+    calories: 0,
+    protein: 0,
+    carbohydrates: 0,
+    fats: 0,
+  };
+
+  //tally up the macros for each of the component ingredients
+  componentsForNewIngredient.rows.forEach(row => {
+    const portionSize = components.find(el => el.ingredientId == row.id).portionSize;
+
+    const recipe = {
+      componentIngredientId: row.id,
+      portionSize: portionSize,
     };
 
-    //tally up the macros for each of the component ingredients
-    componentsForNewIngredient.rows.forEach(row => {
-      const portionSize = components.find(el => el.ingredientId == row.id).portionSize;
+    //also build recipe associations to create new recipe
+    recipeAssociations.push(recipe);
 
-      const recipe = {
-        componentIngredientId: row.id,
-        portionSize: portionSize,
-      };
-      
-      //also build recipe associations to create new recipe
-      recipeAssociations.push(recipe);
-
-      newIngredient.calories += (row.calories * portionSize);
-      newIngredient.protein += (row.protein * portionSize);
-      newIngredient.carbohydrates += (row.carbohydrates * portionSize);
-      newIngredient.fats += (row.fats * portionSize);
-    });
-
-  } catch (e) {
-    throw new Error('unable to retrieve component ingredients');
-  }
+    newIngredient.calories += (row.calories * portionSize);
+    newIngredient.protein += (row.protein * portionSize);
+    newIngredient.carbohydrates += (row.carbohydrates * portionSize);
+    newIngredient.fats += (row.fats * portionSize);
+  });
 
   //before returning the ingredient, the new ingredient's recipe must be saved in the recipes table
   const finalNewIngredient = await createIngredientRaw(userId, newIngredient);
@@ -106,10 +97,7 @@ async function deleteIngredientById(userId, ingredientId) {
 
   const result = await query(deleteIngredientQuery);
 
-  if (result.rowCount == 1)
-    return;
-  else
-    throw new Error('No Ingredient Found with that ID');
+  return result.rowCount;
 }
 
 async function getIngredientsByUserId(userId) {
@@ -122,21 +110,16 @@ async function getIngredientsByUserId(userId) {
     ],
   };
 
-  const result = await query(selectIngredientsQuery);
-
-  if (result.rowCount > 0)
-    return result;
-  else
-    throw new Error('No Ingredients found');
+  return await query(selectIngredientsQuery);
 }
 
 async function insertRecipeComponents(recipeComponents) {
   let insertRecipeQuery = {
     text: `INSERT INTO recipes (parent_ingredient_id, component_ingredient_id, portion_size)
             VALUES ${recipeComponents.map((el, idx) => {
-              const firstidx = (3 * idx) + 1;
-              return `($${firstidx},$${firstidx + 1}, $${firstidx + 2})`;
-            }).join(',')};`,
+      const firstidx = (3 * idx) + 1;
+      return `($${firstidx},$${firstidx + 1}, $${firstidx + 2})`;
+    }).join(',')};`,
 
     params: recipeComponents.map(el => [el.parentIngredientId, el.componentIngredientId, el.portionSize]).flat()
   };

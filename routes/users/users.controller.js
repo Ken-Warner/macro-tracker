@@ -5,6 +5,12 @@ const {
 
 const validator = require('../../Utilities/validator');
 
+const {
+  log,
+  loggingLevels,
+  formatResponse
+} = require('../../Utilities/logger');
+
 async function createNewUser(req, res) {
   if (req.session.userId && req.session.username) {
     res.status(400).send(JSON.stringify({ error: `User already logged in. ` }));
@@ -41,7 +47,10 @@ async function createNewUser(req, res) {
 
     res.status(201).send(JSON.stringify({ userId: result, username: req.body.username }));
   } catch (e) {
-    res.status(400).send(e.message);
+    const uuid = await log(loggingLevels.ERROR,
+                            `createNewUser: ${e.message}`,
+                            req.body);
+    res.status(500).send(formatResponse(uuid));
   }
 }
 
@@ -64,7 +73,10 @@ async function logUserIn(req, res) {
 
     res.status(200).send(JSON.stringify(user));
   } catch (e) {
-    res.status(400).send(e.message);
+    const uuid = await log(loggingLevels.ERROR,
+                            `logUserIn: ${e.message}`,
+                            req.body);
+    res.status(500).send(formatResponse(uuid));
   }
 }
 

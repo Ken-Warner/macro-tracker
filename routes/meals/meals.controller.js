@@ -8,6 +8,12 @@ const {
 
 const validator = require('../../Utilities/validator');
 
+const {
+  log,
+  loggingLevels,
+  formatResponse
+} = require('../../Utilities/logger');
+
 async function createNewMeal(req, res) {
   if (!req.session.userId || !req.session.username) {
     res.status(401).send();
@@ -38,7 +44,10 @@ async function createNewMeal(req, res) {
 
     res.status(201).send(JSON.stringify(newMeal));
   } catch (e) {
-    res.status(500).send(JSON.stringify({ error: `An error has occurred: ${e.message}` }));
+    const uuid = await log(loggingLevels.ERROR,
+                            `createNewMeal: ${e.message}`,
+                            req.body);
+    res.status(500).send(formatResponse(uuid));
   }
 }
 
@@ -69,7 +78,10 @@ async function createNewMealRaw(req, res) {
 
     res.status(201).send(JSON.stringify(newMeal));
   } catch (e) {
-    res.status(500).send(JSON.stringify({ error: `An error occurred: ${e.message}` }));
+    const uuid = await log(loggingLevels.ERROR,
+                            `createNewMealRaw: ${e.message}`,
+                            req.body);
+    res.status(500).send(formatResponse(uuid));
   }
 }
 
@@ -91,7 +103,10 @@ async function getMealHistory(req, res) {
 
     res.status(200).send(JSON.stringify(mealHistory));
   } catch (e) {
-    res.status(500).send(JSON.stringify({ error: `An error occurred: ${e.message}` }));
+    const uuid = await log(loggingLevels.ERROR,
+                            `getMealHistory: ${e.message}`,
+                            req.query);
+    res.status(500).send(formatResponse(uuid));
   }
 }
 
@@ -113,7 +128,10 @@ async function getMeals(req, res) {
 
     res.status(200).send(JSON.stringify(meals));
   } catch (e) {
-    res.status(500).send(JSON.stringify({ error: `An error occured: ${e.message}` }))
+    const uuid = await log(loggingLevels.ERROR,
+                            `getMeals: ${e.message}`,
+                            req.query);
+    res.status(500).send(formatResponse(uuid));
   }
 }
 
@@ -123,12 +141,20 @@ async function deleteMealById(req, res) {
     return;
   }
 
+  if (!validator.isNumberGEZero(req.params.id)) {
+    res.status(400).send(JSON.stringify({ error: `A numeric meal ID must be provided.` }));
+    return;
+  }
+
   try {
-    await deleteMeal(req.session.userid, req.params.id);
+    await deleteMeal(req.session.userId, req.params.id);
 
     res.status(200).send();
   } catch (e) {
-    res.status(500).send(JSON.stringify({ error: `An Error occurred: ${e.message}` }));
+    const uuid = await log(loggingLevels.ERROR,
+                            `deleteMealById: ${e.message}`,
+                            { userId: req.session.userId, requestParamaters: req.params });
+    res.status(500).send(formatResponse(uuid));
   }
 }
 

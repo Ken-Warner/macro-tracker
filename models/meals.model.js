@@ -1,8 +1,8 @@
-const { 
+const {
   query,
   buildInsert,
   DEFAULT,
- } = require('./pool');
+} = require('./pool');
 
 async function createMeal(userId, meal) {
 
@@ -19,15 +19,10 @@ async function createMeal(userId, meal) {
 
   let mealRecipe = new Array();
 
-  try {
-    ingredientsResult = await query(getIngredientsQuery);
+  ingredientsResult = await query(getIngredientsQuery);
 
-    if (ingredientsResult.rowCount <= 0)
-      throw new Error();
-
-  } catch (e) {
-    throw new Error('Unable to select the provided ingredients');
-  }
+  if (ingredientsResult.rowCount <= 0)
+    throw new Error('No results for provided Ingredients.');
 
   let newMeal = {
     name: meal.name,
@@ -56,7 +51,7 @@ async function createMeal(userId, meal) {
     newMeal.fats += (ingredient.fats * portionSize);
   });
 
-  const finalNewMeal = await createMealRaw(userid, newMeal);
+  const finalNewMeal = await createMealRaw(userId, newMeal);
 
   mealRecipe.forEach(component => component.mealId = finalNewMeal.id);
   await insertMealRecipe(mealRecipe);
@@ -90,7 +85,7 @@ async function createMealRaw(userId, meal) {
     meal.fats
   ];
 
-  [ queryFields, queryValues, queryParams ] = buildInsert(fields, values);
+  [queryFields, queryValues, queryParams] = buildInsert(fields, values);
 
   let createMealQuery = {
     text: `INSERT INTO meals ${queryFields}
@@ -99,28 +94,19 @@ async function createMealRaw(userId, meal) {
     params: queryParams,
   }
 
-  try {
-    const result = await query(createMealQuery);
+  const result = await query(createMealQuery);
 
-    if (result.rowCount == 1) {
+  let resultMeal = result.rows[0];
 
-      let resultMeal = result.rows[0];
+  //pg returns a date object instead of an ISO string, so it must be converted
+  //to get the YYYY-MM-DD part of the date
+  resultMeal.date = resultMeal.date.toISOString().split('T')[0];
+  //same with the time string
+  resultMeal.time = resultMeal.time.split('.')[0];
 
-      //pg returns a date object instead of an ISO string, so it must be converted
-      //to get the YYYY-MM-DD part of the date
-      resultMeal.date = resultMeal.date.toISOString().split('T')[0];
-      //same with the time string
-      resultMeal.time = resultMeal.time.split('.')[0];
+  await updateMacroTotals(userId, resultMeal);
 
-      await updateMacroTotals(userid, resultMeal);
-
-      return resultMeal;
-    } else {
-      throw new Error('Unale to create new meal');
-    }
-  } catch (e) {
-    throw new Error('Invalid query to create new meal');
-  }
+  return resultMeal;
 }
 
 async function getMealsFromDay(userId, daysAgo) {
@@ -167,7 +153,7 @@ async function deleteMeal(userId, mealId) {
     deletedMeal.fats *= -1;
     deletedMeal.date = deletedMeal.date.toISOString().split('T')[0];
 
-    await updateMacroTotals(userid, deletedMeal);
+    await updateMacroTotals(userId, deletedMeal);
   }
 }
 
@@ -186,23 +172,19 @@ async function getMealHistoryWithRange(userId, fromDate, toDate) {
     ]
   };
 
-  try {
-    const result = await query(getMealHistoryQuery);
+  const result = await query(getMealHistoryQuery);
 
-    return result.rows;
-  } catch (e) {
-    throw new Error('Unable to perform query');
-  }
+  return result.rows;
 }
 
 async function insertMealRecipe(mealRecipe) {
   let mealRecipeQuery = {
     text: `INSERT INTO meal_ingredients (meal_id, ingredient_id, portion_size)
             VALUES ${mealRecipe.map((el, idx) => {
-              const firstIdx = (3 * idx) + 1;
-              return `($${firstIdx},$${firstIdx + 1},$${firstIdx +2 })`
-            }).join(',')};`,
-    params: mealRecipe.map(el=> [el.mealId, el.ingredientId, el.portionSize]).flat(),
+      const firstIdx = (3 * idx) + 1;
+      return `($${firstIdx},$${firstIdx + 1},$${firstIdx + 2})`
+    }).join(',')};`,
+    params: mealRecipe.map(el => [el.mealId, el.ingredientId, el.portionSize]).flat(),
   };
 
   return await query(mealRecipeQuery);
@@ -256,7 +238,7 @@ async function updateMacroTotals(userId, meal) {
         macroTotals.date.toISOString().split('T')[0]
       ]
     };
-  //if they don't
+    //if they don't
   } else {
     upsertQuery = {
       text: `INSERT INTO macro_totals (user_id, date, calories, protein, carbohydrates, fats)

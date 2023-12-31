@@ -12,7 +12,7 @@ async function log(level, message, payload) {
   return await insertLog(level.name, message, JSON.stringify(payload));
 }
 
-function formatResponse(errorCode, errorMessage) {
+function formatResponse(errorCode, errorMessage = 'An unexpected error has occured') {
   return JSON.stringify({
     errorCode,
     errorMessage
