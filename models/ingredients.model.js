@@ -86,9 +86,10 @@ async function createIngredientFromComponents(userId, name, description, compone
 
 async function deleteIngredientById(userId, ingredientId) {
   let deleteIngredientQuery = {
-    text: `DELETE FROM ingredients
-                WHERE user_id = $1
-                AND id = $2;`,
+    text: `UPDATE ingredients
+            SET is_deleted = TRUE
+            WHERE user_id = $1
+              AND id = $2;`,
     params: [
       userId,
       ingredientId,
