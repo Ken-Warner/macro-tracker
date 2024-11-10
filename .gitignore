@@ -2,3 +2,4 @@ node_modules/
 DB/
 .dockerignore
 dockerfile
+.env
