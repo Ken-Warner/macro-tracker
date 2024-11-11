@@ -6,8 +6,6 @@ const cookieParser = require('cookie-parser');
 
 const apiRouter = require('./routes/api.router');
 
-require('dotenv').config();
-
 const app = express();
 
 //set up handlebars
