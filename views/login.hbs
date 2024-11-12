@@ -1,0 +1,15 @@
+{{#if message}}
+  <div class="message-container">{{message}}</div>
+{{/if}}
+<form method="post" name="loginForm" action="/api/users/login">
+  <label>Username</label>
+  <input type="text" 
+  pattern="^[A-Za-z0-9_]{5,20}$" required
+  name="username"
+    title="Alphanumeric characters and underscores up to 20 characters in length.">
+  <label>Password</label>
+  <input type="password"
+  pattern="^.{5,20}$" required
+  name="password" title="Must be between 5 and 20 characters in length.">
+  <input type="submit" value="Log In">
+</form>

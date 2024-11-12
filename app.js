@@ -5,6 +5,7 @@ const sessions = require('express-session');
 const cookieParser = require('cookie-parser');
 
 const apiRouter = require('./routes/api.router');
+const uiRouter = require('./routes/tmpui/ui.router');
 
 const app = express();
 
@@ -32,7 +33,7 @@ app.use(sessions({
 app.use(cookieParser());
 
 app.use('/api', apiRouter);
-// Frontend server routes
+app.use('', uiRouter);
 
 app.all('/*', (req, res) => {
     res.status(404).send(JSON.stringify({ error: `The resource you were looking for could not be found.` }));
