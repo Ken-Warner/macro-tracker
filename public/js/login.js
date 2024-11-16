@@ -23,7 +23,7 @@ submitButton.addEventListener('click', async (e) => {
     if (response.status == 200) {
       window.location.replace(`/${result.username}/home`);
     } else {
-      console.log('log in failed');
+      makeToast('Login Unsuccessful');
     }
   } catch (error) {
     console.log(error);

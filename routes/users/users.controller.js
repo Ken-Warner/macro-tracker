@@ -82,7 +82,7 @@ async function logUserIn(req, res) {
 
 async function logUserOut(req, res) {
   req.session.destroy();
-  res.status(200).send();
+  res.redirect('/login');
 }
 
 module.exports = {

@@ -1,0 +1,45 @@
+nav {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  padding: 0;
+  margin: 0;
+}
+
+nav > ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: linear-gradient(#444 60%, #111)
+}
+
+nav > ul > li {
+  display: inline-block;
+  color: white;
+  text-align: center;
+  padding: 10px;
+}
+
+.nav-content {
+  float: left; 
+}
+
+.nav-link {
+  float: right;
+}
+
+.nav-link:hover {
+  background-color: #111;
+}
+
+.nav-link a {
+  display: block;
+  color: white;
+  text-decoration: none;
+}
+
+div.content {
+  margin-top: 3em;
+}
