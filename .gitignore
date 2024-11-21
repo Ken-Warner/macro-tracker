@@ -1,4 +1,5 @@
 node_modules/
+macro-tracker-client/node_modules/
 DB/
 .dockerignore
 dockerfile
