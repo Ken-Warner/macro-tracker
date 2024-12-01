@@ -5,7 +5,6 @@ const sessions = require("express-session");
 const cookieParser = require("cookie-parser");
 
 const apiRouter = require("./routes/api.router");
-const uiRouter = require("./routes/tmpui/ui.router");
 
 const app = express();
 

@@ -4,3 +4,4 @@ DB/
 .dockerignore
 dockerfile
 .env
+public/*

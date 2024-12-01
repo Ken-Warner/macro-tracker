@@ -1,0 +1,67 @@
+:root {
+  --bg-color: #222;
+}
+
+*,
+*::after,
+*::before {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  overflow: hidden;
+}
+
+/* Banner */
+.header-banner {
+  background-color: #555;
+  padding: 50px;
+  text-align: center;
+}
+
+/* navbar */
+nav {
+  padding: 10px 0;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+
+/* Footer */
+.footer-banner {
+  background-color: #555;
+  padding: 50px;
+  text-align: center;
+}
+
+/* Container */
+.container {
+  border: 2px solid black;
+  display: grid;
+  gap: 5px;
+  justify-items: center;
+  grid-template-areas:
+    "userInfo dailyMacros"
+    ". macroHistory";
+}
+
+.macro-history {
+  grid-area: macroHistory;
+}
+.user-info {
+  grid-area: userInfo;
+}
+.daily-macros {
+  grid-area: dailyMacros;
+}
+
+@media only screen and (max-width: 600px) {
+  .container {
+    grid-template-areas:
+      "userInfo"
+      "dailyMacros"
+      "macroHistory";
+  }
+}
