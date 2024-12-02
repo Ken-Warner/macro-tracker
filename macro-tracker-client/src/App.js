@@ -26,9 +26,25 @@ export default function App() {
             <span>Link</span>
           </Nav>
           <Container>
-            <div className="user-info">User Info</div>
-            <div className="macro-history">Macro History</div>
-            <div className="daily-macros">Daily Macros</div>
+            <div className="container-box user-info">
+              <div className="header">User Info</div>
+              <p>This is just some text that goes inside of the container.</p>
+            </div>
+            <div className="container-box macro-history">
+              <div className="header">Macro History</div>
+              <p>
+                This is just some more text that is supposed to go inside of
+                this card bro.
+              </p>
+              <button>Test</button>
+            </div>
+            <div className="container-box daily-macros">
+              <div className="header">Daily Macros</div>
+              <p>
+                This is just some more text that is supposed to go inside of
+                this card bro.
+              </p>
+            </div>
           </Container>
         </div>
       ) : (

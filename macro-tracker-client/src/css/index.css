@@ -1,5 +1,16 @@
 :root {
-  --bg-color: #222;
+  /* Dominant */
+  --bg-primary: #575757;
+  --bg-header: #1c1c1c;
+  --bg-body: #404040;
+  --font-color: #dcdbd5;
+  /* Complement */
+  --complement: #000;
+  --complement-light: #000;
+  --complement-font: #000;
+  /* Accent */
+  --call-to-action: #000;
+  --call-to-action-highlight: #000;
 }
 
 *,
@@ -16,35 +27,72 @@ body {
 
 /* Banner */
 .header-banner {
-  background-color: #555;
+  background-color: var(--bg-header);
   padding: 50px;
+  color: var(--font-color);
   text-align: center;
 }
 
 /* navbar */
 nav {
-  padding: 10px 0;
+  background: linear-gradient(var(--bg-body) 70%, var(--bg-header));
   display: flex;
   flex-direction: row;
   gap: 10px;
 }
 
+nav * {
+  padding: 10px 10px;
+  display: inline-block;
+  color: var(--font-color);
+  width: 50px;
+}
+
+nav *:hover {
+  background: linear-gradient(var(--bg-body) 70%, var(--bg-primary));
+}
+
 /* Footer */
 .footer-banner {
-  background-color: #555;
+  background-color: var(--bg-header);
   padding: 50px;
+  color: var(--font-color);
   text-align: center;
 }
 
 /* Container */
 .container {
-  border: 2px solid black;
   display: grid;
+  padding: 5px;
   gap: 5px;
-  justify-items: center;
+  justify-content: center;
+  grid-template-columns: auto auto;
   grid-template-areas:
     "userInfo dailyMacros"
     ". macroHistory";
+}
+
+.container-box {
+  background-color: var(--bg-body);
+  border-radius: 5px;
+  color: var(--font-color);
+}
+
+.container-box p {
+  padding: 5px;
+}
+
+.container-box button {
+  padding: 10px;
+  border-radius: 10px;
+  background-color: var(--call-to-action);
+  border: 2px solid var(--call-to-action-highlight);
+}
+
+.header {
+  border-radius: 5px 5px 0 0;
+  padding: 5px;
+  background-color: var(--bg-header);
 }
 
 .macro-history {
