@@ -12,8 +12,13 @@ const tempUser = {
 };
 
 export default function App() {
-  const [user, setUser] = useState(tempUser);
+  const [error, setError] = useState("");
+  const [user, setUser] = useState({});
   const isUserLoggedIn = user.userId !== undefined;
+
+  function handleLogUserIn(user) {
+    setUser(user);
+  }
 
   return (
     <>
@@ -63,7 +68,7 @@ export default function App() {
           </Container>
         </div>
       ) : (
-        <Login />
+        <Login onUserLogin={handleLogUserIn} onError={setError} />
       )}
       <Footer />
     </>
