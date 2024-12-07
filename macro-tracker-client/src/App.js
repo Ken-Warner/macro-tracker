@@ -17,7 +17,13 @@ export default function App() {
   const isUserLoggedIn = user.userId !== undefined;
 
   function handleLogUserIn(user) {
+    console.log("user login handler called");
+    console.log(user);
     setUser(user);
+  }
+  function handleLogUserOut() {
+    //this needs to be an API call to destroy the session
+    setUser({});
   }
 
   return (
@@ -32,14 +38,13 @@ export default function App() {
           </Nav>
           <Container>
             <ContainerItem gridArea="user-info" itemHeader="User Info">
-              This is just some text that goes inside of the container. This is
-              just some text that goes inside of the container. This is just
-              some text that goes inside of the container. This is just some
-              text that goes inside of the container. This is just some text
-              that goes inside of the container. This is just some text that
-              goes inside of the container. This is just some text that goes
-              inside of the container. This is just some text that goes inside
-              of the container.
+              <p>
+                Logged in as {user.username}. (
+                <span className="link" onClick={handleLogUserOut}>
+                  Logout
+                </span>
+                )
+              </p>
             </ContainerItem>
             <ContainerItem gridArea="macro-history" itemHeader="Macro History">
               This is just some more text that is supposed to go inside of this

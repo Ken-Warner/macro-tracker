@@ -165,11 +165,10 @@ form label {
   margin: 5px auto;
 }
 
-a {
+.link {
   color: var(--complement-light);
-}
-a:visited {
-  color: var(--complement);
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 /* Loader */
