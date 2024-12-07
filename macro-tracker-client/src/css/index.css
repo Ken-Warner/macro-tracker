@@ -172,6 +172,26 @@ a:visited {
   color: var(--complement);
 }
 
+/* Loader */
+.loader {
+  margin: 20px auto;
+  width: 50px;
+  height: 50px;
+  border: 10px solid var(--bg-primary);
+  border-bottom: 5px solid var(--call-to-action);
+  border-radius: 50%;
+  animation: loader 1.5s linear 0s infinite forwards;
+}
+
+@keyframes loader {
+  from {
+    rotate: 0deg;
+  }
+  to {
+    rotate: 360deg;
+  }
+}
+
 @media only screen and (max-width: 600px) {
   .container {
     grid-template-columns: 1fr;

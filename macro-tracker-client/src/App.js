@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import Container from "./components/Container";
+import ContainerItem from "./components/ContainerItem";
 import Footer from "./components/Footer";
 import Banner from "./components/Banner";
 import Nav from "./components/Nav";
 import Login from "./components/Login";
-import ContainerBox from "./components/ContainerBox";
 
 const tempUser = {
   userId: 1,
@@ -31,40 +31,30 @@ export default function App() {
             <span>Link</span>
           </Nav>
           <Container>
-            <div className="container-item user-info">
-              <div className="container-item-header">User Info</div>
-              <div className="container-item-body">
-                This is just some text that goes inside of the container. This
-                is just some text that goes inside of the container. This is
-                just some text that goes inside of the container. This is just
-                some text that goes inside of the container. This is just some
-                text that goes inside of the container. This is just some text
-                that goes inside of the container. This is just some text that
-                goes inside of the container. This is just some text that goes
-                inside of the container.
-              </div>
-            </div>
-            <div className="container-item macro-history">
-              <div className="container-item-header">Macro History</div>
-              <div className="container-item-body">
-                This is just some more text that is supposed to go inside of
-                this card bro.
-              </div>
+            <ContainerItem gridArea="user-info" itemHeader="User Info">
+              This is just some text that goes inside of the container. This is
+              just some text that goes inside of the container. This is just
+              some text that goes inside of the container. This is just some
+              text that goes inside of the container. This is just some text
+              that goes inside of the container. This is just some text that
+              goes inside of the container. This is just some text that goes
+              inside of the container. This is just some text that goes inside
+              of the container.
+            </ContainerItem>
+            <ContainerItem gridArea="macro-history" itemHeader="Macro History">
+              This is just some more text that is supposed to go inside of this
+              card bro.
               <button className="button">Test</button>
-            </div>
-            <div className="container-item daily-macros">
-              <div className="container-item-header">Daily Macros</div>
-              <div className="container-item-body">
-                This is just some more text that is supposed to go inside of
-                this card bro.This is just some more text that is supposed to go
-                inside of this card bro.This is just some more text that is
-                supposed to go inside of this card bro.This is just some more
-                text that is supposed to go inside of this card bro.This is just
-                some more text that is supposed to go inside of this card
-                bro.This is just some more text that is supposed to go inside of
-                this card bro.
-              </div>
-            </div>
+            </ContainerItem>
+            <ContainerItem gridArea="daily-macros" itemHeader="Daily Macros">
+              This is just some more text that is supposed to go inside of this
+              card bro.This is just some more text that is supposed to go inside
+              of this card bro.This is just some more text that is supposed to
+              go inside of this card bro.This is just some more text that is
+              supposed to go inside of this card bro.This is just some more text
+              that is supposed to go inside of this card bro.This is just some
+              more text that is supposed to go inside of this card bro.
+            </ContainerItem>
           </Container>
         </div>
       ) : (

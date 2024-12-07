@@ -1,4 +1,7 @@
 import { useState } from "react";
+import Loader from "./Loader";
+import Container from "./Container";
+import ContainerItem from "./ContainerItem";
 
 export default function Login({ onUserLogin, onError }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -39,34 +42,37 @@ export default function Login({ onUserLogin, onError }) {
 
   //add loading component if isLoading = true
   return (
-    <div className="container">
-      <div className="container-item login-form-container">
-        <div className="container-item-header">Login</div>
-        <div className="container-item-body">
-          <form className="form" onSubmit={handleSubmit}>
-            <label for="username">Username</label>
-            <input
-              name="username"
-              id="username"
-              className="input"
-              type="text"
-              required
-            />
-            <label for="password">Password</label>
-            <input
-              name="password"
-              id="password"
-              className="input"
-              type="password"
-              required
-            />
-            <input className="button submit" type="submit" value="Login" />
-          </form>
-          <p>
-            Not tracking your macros? <a href="#">Start Now!</a>
-          </p>
-        </div>
-      </div>
-    </div>
+    <Container>
+      <ContainerItem gridArea="login-form-container" itemHeader="Login">
+        {isLoading ? (
+          <Loader />
+        ) : (
+          <>
+            <form className="form" onSubmit={handleSubmit}>
+              <label for="username">Username</label>
+              <input
+                name="username"
+                id="username"
+                className="input"
+                type="text"
+                required
+              />
+              <label for="password">Password</label>
+              <input
+                name="password"
+                id="password"
+                className="input"
+                type="password"
+                required
+              />
+              <input className="button submit" type="submit" value="Login" />
+            </form>
+            <p>
+              Not tracking your macros? <a href="#">Start Now!</a>
+            </p>
+          </>
+        )}
+      </ContainerItem>
+    </Container>
   );
 }
