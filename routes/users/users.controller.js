@@ -1,15 +1,12 @@
-const {
-  getUser,
-  createUser,
-} = require('../../models/users.model');
+const { getUser, createUser } = require("../../models/users.model");
 
-const validator = require('../../Utilities/validator');
+const validator = require("../../Utilities/validator");
 
 const {
   log,
   loggingLevels,
-  formatResponse
-} = require('../../Utilities/logger');
+  formatResponse,
+} = require("../../Utilities/logger");
 
 async function createNewUser(req, res) {
   if (req.session.userId && req.session.username) {
@@ -24,12 +21,16 @@ async function createNewUser(req, res) {
 
   try {
     if (!validator.isValidUsername(req.body.username)) {
-      res.status(400).send(JSON.stringify({ error: `Invalid username format.` }));
+      res
+        .status(400)
+        .send(JSON.stringify({ error: `Invalid username format.` }));
       return;
     }
 
     if (!validator.isValidPassword(req.body.password)) {
-      res.status(400).send(JSON.stringify({ error: `Invalid password format.` }));
+      res
+        .status(400)
+        .send(JSON.stringify({ error: `Invalid password format.` }));
       return;
     }
 
@@ -38,18 +39,24 @@ async function createNewUser(req, res) {
       return;
     }
 
-    const result = await createUser(req.body.username,
-                                    req.body.password,
-                                    req.body.emailAddress);
+    const result = await createUser(
+      req.body.username,
+      req.body.password,
+      req.body.emailAddress
+    );
 
     req.session.username = req.body.username;
     req.session.userId = result;
 
-    res.status(201).send(JSON.stringify({ userId: result, username: req.body.username }));
+    res
+      .status(201)
+      .send(JSON.stringify({ userId: result, username: req.body.username }));
   } catch (e) {
-    const uuid = await log(loggingLevels.ERROR,
-                            `createNewUser: ${e.message}`,
-                            req.body);
+    const uuid = await log(
+      loggingLevels.ERROR,
+      `createNewUser: ${e.message}`,
+      req.body
+    );
     res.status(500).send(formatResponse(uuid));
   }
 }
@@ -57,11 +64,11 @@ async function createNewUser(req, res) {
 async function logUserIn(req, res) {
   if (req.session.userId && req.session.username) {
     res.status(200).send(
-      JSON.stringify(
-        {
-          userId: req.session.userId,
-          username: req.session.username,
-        }));
+      JSON.stringify({
+        userId: req.session.userId,
+        username: req.session.username,
+      })
+    );
     return;
   }
 
@@ -71,22 +78,26 @@ async function logUserIn(req, res) {
     req.session.userId = user.id;
     req.session.username = user.username;
 
-    res.status(200).send(JSON.stringify(user));
+    res
+      .status(200)
+      .send(JSON.stringify({ userId: user.id, username: user.username }));
   } catch (e) {
-    const uuid = await log(loggingLevels.ERROR,
-                            `logUserIn: ${e.message}`,
-                            req.body);
+    const uuid = await log(
+      loggingLevels.ERROR,
+      `logUserIn: ${e.message}`,
+      req.body
+    );
     res.status(500).send(formatResponse(uuid));
   }
 }
 
 async function logUserOut(req, res) {
   req.session.destroy();
-  res.redirect('/login');
+  res.status(200).send();
 }
 
 module.exports = {
   logUserIn,
   logUserOut,
   createNewUser,
-}
+};

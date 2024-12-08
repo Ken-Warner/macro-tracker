@@ -29,20 +29,16 @@ export default function Login({ onUserLogin, onError }) {
         const jsonResult = await apiResult.json();
 
         if (apiResult.ok) {
-          console.log(jsonResult);
           onUserLogin(jsonResult);
         } else if (apiResult.status === 400) {
           onError(jsonResult.errorMessage);
         }
-
-        console.log("create user fetch ended");
       } catch (e) {
         console.log(e); //this needs to be changed to something else
       } finally {
         setIsLoading(false);
       }
     }
-    console.log("create user fetch");
     fetchCreateUser();
   }
 
@@ -66,20 +62,16 @@ export default function Login({ onUserLogin, onError }) {
         const jsonResult = await apiResult.json();
 
         if (apiResult.ok) {
-          console.log(jsonResult);
           onUserLogin(jsonResult);
         } else if (apiResult.status === 400) {
           onError(jsonResult.errorMessage);
         }
-
-        console.log("login fetch ended");
       } catch (e) {
         console.log(e); // this needs to be changed to something else
       } finally {
         setIsLoading(false);
       }
     }
-    console.log("login fetch");
     fetchLogin();
   }
 

@@ -17,12 +17,14 @@ export default function App() {
   const isUserLoggedIn = user.userId !== undefined;
 
   function handleLogUserIn(user) {
-    console.log("user login handler called");
-    console.log(user);
     setUser(user);
   }
   function handleLogUserOut() {
-    //this needs to be an API call to destroy the session
+    async function fetchLogout() {
+      const apiResult = await fetch("/api/users/logout");
+      //could probably use a set error or something here if fetch fails
+    }
+    fetchLogout();
     setUser({});
   }
 
