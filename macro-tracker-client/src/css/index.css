@@ -60,11 +60,16 @@ nav *:hover {
 .error-container {
   position: absolute;
   top: 10px;
-  left: 10px;
+  left: 70%;
   right: 0px;
   padding: 10px;
+  border-radius: 10px 0 0 10px;
   background-color: var(--bg-error);
   color: var(--font-color-dark);
+  transition: 0.5s;
+}
+.error-container-slide {
+  translate: 100%;
 }
 
 /* Footer */
@@ -199,5 +204,8 @@ form label {
       "userInfo"
       "dailyMacros"
       "macroHistory";
+  }
+  .error-container {
+    left: 10px;
   }
 }

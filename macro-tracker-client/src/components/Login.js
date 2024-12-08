@@ -1,6 +1,5 @@
 import { useState } from "react";
 import Loader from "./Loader";
-import Container from "./Container";
 import ContainerItem from "./ContainerItem";
 
 export default function Login({ onUserLogin, onError }) {
@@ -34,7 +33,7 @@ export default function Login({ onUserLogin, onError }) {
           onError(jsonResult.errorMessage);
         }
       } catch (e) {
-        console.log(e); //this needs to be changed to something else
+        onError("An error occurred while attempting to create a user.");
       } finally {
         setIsLoading(false);
       }
@@ -67,7 +66,7 @@ export default function Login({ onUserLogin, onError }) {
           onError(jsonResult.errorMessage);
         }
       } catch (e) {
-        console.log(e); // this needs to be changed to something else
+        onError("An error occurred while attempting to log in.");
       } finally {
         setIsLoading(false);
       }
@@ -76,7 +75,7 @@ export default function Login({ onUserLogin, onError }) {
   }
 
   return (
-    <Container>
+    <>
       {isCreatingNewUser ? (
         <ContainerItem gridArea="login-form-container" itemHeader="Create User">
           {isLoading ? (
@@ -182,6 +181,6 @@ export default function Login({ onUserLogin, onError }) {
           )}
         </ContainerItem>
       )}
-    </Container>
+    </>
   );
 }
