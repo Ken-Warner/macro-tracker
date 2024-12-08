@@ -83,7 +83,7 @@ export default function Login({ onUserLogin, onError }) {
           ) : (
             <>
               <form className="form" onSubmit={handleSubmitCreateNewUser}>
-                <label for="username">Username</label>
+                <label htmlFor="username">Username</label>
                 <input
                   name="username"
                   id="username"
@@ -93,7 +93,7 @@ export default function Login({ onUserLogin, onError }) {
                   title="Letters, numbers, dashes, and underscores up to 20 characters."
                   required
                 />
-                <label for="email">Email</label>
+                <label htmlFor="email">Email</label>
                 <input
                   name="email"
                   id="email"
@@ -101,7 +101,7 @@ export default function Login({ onUserLogin, onError }) {
                   type="email"
                   required
                 />
-                <label for="password">Password</label>
+                <label htmlFor="password">Password</label>
                 <input
                   name="password"
                   id="password"
@@ -111,7 +111,7 @@ export default function Login({ onUserLogin, onError }) {
                   title="At least 1 letter, 1 number, and 1 symbol (@$!%*#?&) between 8 and 20 characters"
                   required
                 />
-                <label for="confirmPassword">Confirm Password</label>
+                <label htmlFor="confirmPassword">Confirm Password</label>
                 <input
                   name="confirmPassword"
                   id="confirmPassword"
@@ -146,7 +146,7 @@ export default function Login({ onUserLogin, onError }) {
           ) : (
             <>
               <form className="form" onSubmit={handleSubmitLogin}>
-                <label for="username">Username</label>
+                <label htmlFor="username">Username</label>
                 <input
                   name="username"
                   id="username"
@@ -156,7 +156,7 @@ export default function Login({ onUserLogin, onError }) {
                   title="Letters, numbers, dashes, and underscores up to 20 characters."
                   required
                 />
-                <label for="password">Password</label>
+                <label htmlFor="password">Password</label>
                 <input
                   name="password"
                   id="password"

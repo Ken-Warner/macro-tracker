@@ -27,6 +27,17 @@ body {
   background-color: var(--bg-primary);
 }
 
+/* Dialogs */
+/* These also use the .container-item class */
+dialog {
+  margin: auto;
+  border: 1px solid var(--complement);
+}
+
+dialog::backdrop {
+  background-color: rgba(0, 0, 0, 50%);
+}
+
 /* Banner */
 .header-banner {
   background-color: var(--bg-header);
@@ -162,12 +173,26 @@ form label {
   font-size: 1.2em;
   border-radius: 5px;
 }
-.input:focus {
+.input:focus,
+.textarea:focus {
   outline: 2px solid var(--complement);
 }
 .submit {
   display: block;
   margin: 5px auto;
+}
+.textarea {
+  display: block;
+  width: 90%;
+  height: 5em;
+  margin: 0 auto;
+  padding: 3px;
+  resize: none;
+  font-size: 1.2em;
+  background-color: var(--bg-body);
+  border-radius: 5px;
+  color: var(--font-color);
+  /* style scroll for this eventually */
 }
 
 .link {

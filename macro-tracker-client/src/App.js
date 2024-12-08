@@ -6,6 +6,7 @@ import Banner from "./components/Banner";
 import Nav from "./components/Nav";
 import Login from "./components/Login";
 import Error from "./components/Error";
+import AddMealButton from "./components/AddMealButton";
 
 const tempUser = {
   userId: 1,
@@ -31,6 +32,9 @@ export default function App() {
   function handleSetError(errorMessage) {
     setError(errorMessage);
   }
+  function handleAddNewMeal(newMeal) {
+    console.log(newMeal);
+  }
 
   return (
     <>
@@ -54,10 +58,16 @@ export default function App() {
                 </span>
                 )
               </p>
+              <p>
+                Contains current goals setting (bulk, cut, maintain), last
+                weight in date and weight.
+              </p>
             </ContainerItem>
             <ContainerItem gridArea="macro-history" itemHeader="Macro History">
-              This is just some more text that is supposed to go inside of this
-              card bro.
+              <p>
+                This card contains a history of the meals someone has eaten,
+                their macros, and the progress for each days' goals.
+              </p>
               <button
                 className="button"
                 onClick={() => handleSetError("testing")}
@@ -66,13 +76,13 @@ export default function App() {
               </button>
             </ContainerItem>
             <ContainerItem gridArea="daily-macros" itemHeader="Daily Macros">
-              This is just some more text that is supposed to go inside of this
-              card bro.This is just some more text that is supposed to go inside
-              of this card bro.This is just some more text that is supposed to
-              go inside of this card bro.This is just some more text that is
-              supposed to go inside of this card bro.This is just some more text
-              that is supposed to go inside of this card bro.This is just some
-              more text that is supposed to go inside of this card bro.
+              <AddMealButton
+                onError={handleSetError}
+                onAddNewMeal={handleAddNewMeal}
+              />
+              <p>
+                This pane contains todays macro goals and progress towards them.
+              </p>
             </ContainerItem>
           </>
         ) : (
