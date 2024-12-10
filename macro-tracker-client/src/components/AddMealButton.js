@@ -38,9 +38,8 @@ export default function AddMealButton({ onError, onAddNewMeal }) {
         const jsonResult = await apiResult.json();
 
         if (apiResult.ok) {
-          onAddNewMeal({ id: jsonResult.id, ...newMeal });
-
-          //all values in form need to be reset
+          onAddNewMeal(jsonResult);
+          e.target.reset();
         } else if (apiResult.status === 400) {
           onError(jsonResult.error);
         }

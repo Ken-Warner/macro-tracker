@@ -16,6 +16,7 @@ const tempUser = {
 export default function App() {
   const [error, setError] = useState("");
   const [user, setUser] = useState(tempUser);
+
   const isUserLoggedIn = user.userId !== undefined;
 
   function handleLogUserIn(user) {

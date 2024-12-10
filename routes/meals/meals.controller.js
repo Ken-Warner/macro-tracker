@@ -86,24 +86,34 @@ async function createNewMealRaw(req, res) {
         .send(JSON.stringify({ error: `You must provide a meal name.` }));
       return;
     }
-    //do not allow negative numbers for macros
 
     let newMeal = {
       name: req.body.name,
       description: req.body.description,
-      calories: req.body.calories || 0,
-      protein: req.body.protein || 0,
-      carbohydrates: req.body.carbohydrates || 0,
-      fats: req.body.fats || 0,
+      calories: req.body.calories || -1 < 0 ? 0 : req.body.calories,
+      protein: req.body.protein || -1 < 0 ? 0 : req.body.protein,
+      carbohydrates:
+        req.body.carbohydrates || -1 < 0 ? 0 : req.body.carbohydrates,
+      fats: req.body.fats || -1 < 0 ? 0 : req.body.fats,
       date: req.body.date,
       time: req.body.time,
     };
 
-    //the user_id field needs to be removed from the newMeal before it is returned
-
     newMeal = await createMealRaw(req.session.userId, newMeal);
 
-    res.status(201).send(JSON.stringify(newMeal));
+    const responseMeal = {
+      mealId: newMeal.id,
+      name: newMeal.name,
+      description: newMeal.description,
+      calories: newMeal.calories,
+      protein: newMeal.protein,
+      carbohydrates: newMeal.carbohydrates,
+      fats: newMeal.fats,
+      date: newMeal.date,
+      time: newMeal.time,
+    };
+
+    res.status(201).send(JSON.stringify(responseMeal));
   } catch (e) {
     const uuid = await log(
       loggingLevels.ERROR,
@@ -140,7 +150,26 @@ async function getMealHistory(req, res) {
       req.query.toDate
     );
 
-    res.status(200).send(JSON.stringify(mealHistory));
+    let deepMealHistory = [];
+    for (let meal of mealHistory) {
+      meal.date = meal.date.toISOString().split("T")[0];
+
+      let deepMealHistoryDate = deepMealHistory.find(
+        (el) => el.mealsDate === meal.date
+      );
+
+      if (!deepMealHistoryDate) {
+        deepMealHistoryDate = {
+          mealsDate: meal.date,
+          meals: [meal],
+        };
+        deepMealHistory.push(deepMealHistoryDate);
+      } else {
+        deepMealHistoryDate.meals.push(meal);
+      }
+    }
+
+    res.status(200).send(JSON.stringify(deepMealHistory));
   } catch (e) {
     const uuid = await log(
       loggingLevels.ERROR,

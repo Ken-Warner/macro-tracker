@@ -1,20 +1,17 @@
-const {
-  query,
-  buildInsert,
-  DEFAULT,
-} = require('./pool');
+const { query, buildInsert, DEFAULT } = require("./pool");
 
 async function createMeal(userId, meal) {
-
   let getIngredientsQuery = {
     text: `SELECT id, calories, protein, carbohydrates, fats
             FROM ingredients
             WHERE user_id = $1
-              AND id IN (${meal.ingredients.map((ingredient, idx) => '$' + (idx + 2)).join(',')});`,
+              AND id IN (${meal.ingredients
+                .map((ingredient, idx) => "$" + (idx + 2))
+                .join(",")});`,
     params: [
       userId,
-      ...meal.ingredients.map(ingredient => ingredient.ingredientId)
-    ]
+      ...meal.ingredients.map((ingredient) => ingredient.ingredientId),
+    ],
   };
 
   let mealRecipe = new Array();
@@ -22,7 +19,7 @@ async function createMeal(userId, meal) {
   ingredientsResult = await query(getIngredientsQuery);
 
   if (ingredientsResult.rowCount <= 0)
-    throw new Error('No results for provided Ingredients.');
+    throw new Error("No results for provided Ingredients.");
 
   let newMeal = {
     name: meal.name,
@@ -32,45 +29,46 @@ async function createMeal(userId, meal) {
     calories: 0,
     protein: 0,
     carbohydrates: 0,
-    fats: 0
+    fats: 0,
   };
 
-  ingredientsResult.rows.forEach(ingredient => {
-    const portionSize = meal.ingredients.find(el => el.ingredientId == ingredient.id).portionSize;
+  ingredientsResult.rows.forEach((ingredient) => {
+    const portionSize = meal.ingredients.find(
+      (el) => el.ingredientId == ingredient.id
+    ).portionSize;
 
     const recipeAssociation = {
       ingredientId: ingredient.id,
-      portionSize: portionSize
+      portionSize: portionSize,
     };
 
     mealRecipe.push(recipeAssociation);
 
-    newMeal.calories += (ingredient.calories * portionSize);
-    newMeal.protein += (ingredient.protein * portionSize);
-    newMeal.carbohydrates += (ingredient.carbohydrates * portionSize);
-    newMeal.fats += (ingredient.fats * portionSize);
+    newMeal.calories += ingredient.calories * portionSize;
+    newMeal.protein += ingredient.protein * portionSize;
+    newMeal.carbohydrates += ingredient.carbohydrates * portionSize;
+    newMeal.fats += ingredient.fats * portionSize;
   });
 
   const finalNewMeal = await createMealRaw(userId, newMeal);
 
-  mealRecipe.forEach(component => component.mealId = finalNewMeal.id);
+  mealRecipe.forEach((component) => (component.mealId = finalNewMeal.id));
   await insertMealRecipe(mealRecipe);
 
   return finalNewMeal;
 }
 
 async function createMealRaw(userId, meal) {
-
   let fields = [
-    'user_id',
-    'name',
-    'description',
-    'date',
-    'time',
-    'calories',
-    'protein',
-    'carbohydrates',
-    'fats'
+    "user_id",
+    "name",
+    "description",
+    "date",
+    "time",
+    "calories",
+    "protein",
+    "carbohydrates",
+    "fats",
   ];
 
   let values = [
@@ -82,7 +80,7 @@ async function createMealRaw(userId, meal) {
     meal.calories,
     meal.protein,
     meal.carbohydrates,
-    meal.fats
+    meal.fats,
   ];
 
   [queryFields, queryValues, queryParams] = buildInsert(fields, values);
@@ -92,7 +90,7 @@ async function createMealRaw(userId, meal) {
             VALUES ${queryValues}
             RETURNING *;`,
     params: queryParams,
-  }
+  };
 
   const result = await query(createMealQuery);
 
@@ -100,9 +98,9 @@ async function createMealRaw(userId, meal) {
 
   //pg returns a date object instead of an ISO string, so it must be converted
   //to get the YYYY-MM-DD part of the date
-  resultMeal.date = resultMeal.date.toISOString().split('T')[0];
+  resultMeal.date = resultMeal.date.toISOString().split("T")[0];
   //same with the time string
-  resultMeal.time = resultMeal.time.split('.')[0];
+  resultMeal.time = resultMeal.time.split(".")[0];
 
   await updateMacroTotals(userId, resultMeal);
 
@@ -115,17 +113,14 @@ async function getMealsFromDay(userId, daysAgo) {
             FROM meals
             WHERE user_id = $1
             AND (current_date - date) = $2;`,
-    params: [
-      userId,
-      daysAgo
-    ]
+    params: [userId, daysAgo],
   };
 
   try {
     const result = await query(getMealsQuery);
     return result.rows;
   } catch (e) {
-    throw new Error('Invalid Query');
+    throw new Error("Invalid Query");
   }
 }
 
@@ -135,10 +130,7 @@ async function deleteMeal(userId, mealId) {
             WHERE user_id = $1
               AND id = $2
             RETURNING *;`,
-    params: [
-      userId,
-      mealId
-    ]
+    params: [userId, mealId],
   };
 
   const result = await query(deleteMealQuery);
@@ -151,7 +143,7 @@ async function deleteMeal(userId, mealId) {
     deletedMeal.protein *= -1;
     deletedMeal.carbohydrates *= -1;
     deletedMeal.fats *= -1;
-    deletedMeal.date = deletedMeal.date.toISOString().split('T')[0];
+    deletedMeal.date = deletedMeal.date.toISOString().split("T")[0];
 
     await updateMacroTotals(userId, deletedMeal);
   }
@@ -165,11 +157,7 @@ async function getMealHistoryWithRange(userId, fromDate, toDate) {
               AND date >= $2
               AND date <= $3
             ORDER BY date DESC;`,
-    params: [
-      userId,
-      fromDate,
-      toDate
-    ]
+    params: [userId, fromDate, toDate],
   };
 
   const result = await query(getMealHistoryQuery);
@@ -180,11 +168,15 @@ async function getMealHistoryWithRange(userId, fromDate, toDate) {
 async function insertMealRecipe(mealRecipe) {
   let mealRecipeQuery = {
     text: `INSERT INTO meal_ingredients (meal_id, ingredient_id, portion_size)
-            VALUES ${mealRecipe.map((el, idx) => {
-      const firstIdx = (3 * idx) + 1;
-      return `($${firstIdx},$${firstIdx + 1},$${firstIdx + 2})`
-    }).join(',')};`,
-    params: mealRecipe.map(el => [el.mealId, el.ingredientId, el.portionSize]).flat(),
+            VALUES ${mealRecipe
+              .map((el, idx) => {
+                const firstIdx = 3 * idx + 1;
+                return `($${firstIdx},$${firstIdx + 1},$${firstIdx + 2})`;
+              })
+              .join(",")};`,
+    params: mealRecipe
+      .map((el) => [el.mealId, el.ingredientId, el.portionSize])
+      .flat(),
   };
 
   return await query(mealRecipeQuery);
@@ -201,17 +193,14 @@ async function updateMacroTotals(userId, meal) {
             FROM macro_totals
             WHERE user_id = $1
               AND date = $2;`,
-    params: [
-      userId,
-      meal.date
-    ]
+    params: [userId, meal.date],
   };
 
   let result = await query(getMacroTotalsQuery);
 
   let upsertQuery = {
     text: ``,
-    params: []
+    params: [],
   };
 
   //if they exist
@@ -235,8 +224,8 @@ async function updateMacroTotals(userId, meal) {
         macroTotals.carbohydrates,
         macroTotals.fats,
         userId,
-        macroTotals.date.toISOString().split('T')[0]
-      ]
+        macroTotals.date.toISOString().split("T")[0],
+      ],
     };
     //if they don't
   } else {
@@ -249,8 +238,8 @@ async function updateMacroTotals(userId, meal) {
         meal.calories,
         meal.protein,
         meal.carbohydrates,
-        meal.fats
-      ]
+        meal.fats,
+      ],
     };
   }
 
@@ -262,5 +251,5 @@ module.exports = {
   createMealRaw,
   getMealsFromDay,
   getMealHistoryWithRange,
-  deleteMeal
+  deleteMeal,
 };
