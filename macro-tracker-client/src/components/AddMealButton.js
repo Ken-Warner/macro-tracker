@@ -12,6 +12,17 @@ export default function AddMealButton({ onError, onAddNewMeal }) {
 
   function handleSubmit(e) {
     e.preventDefault();
+    // onAddNewMeal({
+    //   name: "Test Meal",
+    //   description: "This is just a test meal",
+    //   date: "2024-11-11",
+    //   time: "13:41:00",
+    //   calories: 12,
+    //   protein: 1,
+    //   carbohydrates: 22,
+    //   fats: 2,
+    // });
+    // return;
 
     const newMeal = {
       name: e.target.elements.name.value,

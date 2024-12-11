@@ -151,7 +151,15 @@ async function deleteMeal(userId, mealId) {
 
 async function getMealHistoryWithRange(userId, fromDate, toDate) {
   let getMealHistoryQuery = {
-    text: `SELECT *
+    text: `SELECT id,
+                  name,
+                  description,
+                  date,
+                  time,
+                  calories,
+                  protein,
+                  carbohydrates,
+                  fats
             FROM meals
             WHERE user_id = $1
               AND date >= $2
