@@ -7,6 +7,7 @@ import Nav from "./components/Nav";
 import Login from "./components/Login";
 import Error from "./components/Error";
 import AddMealButton from "./components/AddMealButton";
+import MealDay from "./components/MealDay";
 
 //todo
 // - add loader spinner to 'Add Meal button'
@@ -22,17 +23,6 @@ const tempMeals = [
     mealsDate: "2024-12-11",
     meals: [
       {
-        id: 1,
-        name: "Ramen",
-        description: "ramen noodles from the package",
-        date: "2024-12-11",
-        time: "12:30:00",
-        calories: 254,
-        protein: 11,
-        carbohydrates: 34,
-        fats: 3,
-      },
-      {
         id: 2,
         name: "Steak",
         description: "Steak and veggies.",
@@ -42,6 +32,17 @@ const tempMeals = [
         protein: 35,
         carbohydrates: 42,
         fats: 12,
+      },
+      {
+        id: 1,
+        name: "Ramen",
+        description: "ramen noodles from the package",
+        date: "2024-12-11",
+        time: "12:30:00",
+        calories: 254,
+        protein: 11,
+        carbohydrates: 34,
+        fats: 3,
       },
     ],
   },
@@ -107,6 +108,8 @@ export default function App() {
     });
   }
 
+  function handleDeleteMeal(mealId) {}
+
   return (
     <>
       {error && <Error errorMessage={error} onError={handleSetError} />}
@@ -135,13 +138,13 @@ export default function App() {
               </p>
             </ContainerItem>
             <ContainerItem gridArea="macro-history" itemHeader="Macro History">
-              <p>
-                This card contains a history of the meals someone has eaten,
-                their macros, and the progress for each days' goals.
-              </p>
-              <button className="button" onClick={() => console.log(meals)}>
-                Test
-              </button>
+              {meals.map((mealDay) => (
+                <MealDay
+                  key={mealDay.mealsDate}
+                  mealDay={mealDay}
+                  onDeleteMeal={handleDeleteMeal}
+                />
+              ))}
             </ContainerItem>
             <ContainerItem gridArea="daily-macros" itemHeader="Daily Macros">
               <AddMealButton
