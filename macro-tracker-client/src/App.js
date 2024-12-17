@@ -108,7 +108,9 @@ export default function App() {
     });
   }
 
-  function handleDeleteMeal(mealId) {}
+  function handleDeleteMeal(mealId) {
+    console.log(mealId);
+  }
 
   return (
     <>

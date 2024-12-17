@@ -12,6 +12,10 @@
   /* Accent */
   --call-to-action: #08cfef;
   --call-to-action-highlight: #89ebfb;
+  /* Analogous */
+  --analogous-one: #cfef08;
+  --analogous-two: #5cef08;
+  --analogous-three: #08ef9b;
 }
 
 *,
@@ -219,6 +223,85 @@ form label {
   to {
     rotate: 360deg;
   }
+}
+
+/* Accordion */
+.accordion-header {
+  display: block;
+  width: 100%;
+  padding: 4px;
+  margin-bottom: 3px;
+  text-align: left;
+  font-size: 1.2em;
+  color: var(--font-color);
+  background-color: var(--bg-primary);
+  border: none;
+  border-radius: 5px;
+}
+.accordion-header-selected {
+  border-radius: 5px 5px 0 0;
+  background-color: hsl(from var(--bg-primary) h s calc(l + 5));
+}
+.accordion-header:hover {
+  background-color: hsl(from var(--bg-primary) h s calc(l + 5));
+}
+
+.accordion-icon {
+  display: inline-block;
+  margin: 0 5px;
+  font-weight: bolder;
+  transition: 0.3s;
+}
+
+.rotate90 {
+  rotate: 90deg;
+}
+
+.accordion-body {
+  display: block;
+  overflow: hidden;
+  transition: max-height 0.4s ease-in-out;
+  transform: translateY(-3px);
+}
+
+.accordion-item {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  background-color: var(--bg-primary);
+}
+.accordion-item:last-child {
+  border-radius: 0 0 5px 5px;
+}
+.accordion-item-title {
+  display: flex;
+  align-items: center;
+  padding-left: 10px;
+}
+
+.accordion-item-macro-grid {
+  display: grid;
+  gap: 2px;
+  grid-template-columns: repeat(2, minmax(min-content, 20px));
+  grid-template-areas:
+    "calories protein"
+    "carbohydrates fats";
+}
+.calories {
+  grid-area: calories;
+  color: var(--complement);
+}
+.protein {
+  grid-area: protein;
+  color: var(--analogous-one);
+}
+.carbohydrates {
+  grid-area: carbohydrates;
+  color: var(--analogous-two);
+}
+.fats {
+  grid-area: fats;
+  color: var(--analogous-three);
 }
 
 @media only screen and (max-width: 600px) {
