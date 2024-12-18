@@ -269,9 +269,11 @@ form label {
   flex-direction: row;
   justify-content: space-between;
   background-color: var(--bg-primary);
+  border-bottom: 1px solid var(--font-color);
 }
 .accordion-item:last-child {
   border-radius: 0 0 5px 5px;
+  border: none;
 }
 .accordion-item-title {
   display: flex;
@@ -281,7 +283,8 @@ form label {
 
 .accordion-item-macro-grid {
   display: grid;
-  gap: 2px;
+  column-gap: 10px;
+  row-gap: 2px;
   grid-template-columns: repeat(2, minmax(min-content, 20px));
   grid-template-areas:
     "calories protein"

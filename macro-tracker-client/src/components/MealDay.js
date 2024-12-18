@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 
 export default function MealDay({ mealDay, onDeleteMeal }) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -33,17 +33,48 @@ export default function MealDay({ mealDay, onDeleteMeal }) {
 }
 
 function Meal({ meal, onDeleteMeal }) {
+  const mealItemDialogId = `mealItem${meal.id}`;
+
+  function handleDeleteMeal() {
+    //make fetch call to API to delete the meal
+    onDeleteMeal(meal);
+  }
+
   return (
-    <div className="accordion-item">
-      <div className="accordion-item-title">
-        {meal.name} at {meal.time}
+    <>
+      <div
+        className="accordion-item"
+        onClick={() => document.getElementById(mealItemDialogId).showModal()}
+      >
+        <div className="accordion-item-title">
+          {meal.name} at {meal.time}
+        </div>
+        <div className="accordion-item-macro-grid">
+          <div className="calories">{meal.calories}</div>
+          <div className="protein">{meal.protein}</div>
+          <div className="carbohydrates">{meal.carbohydrates}</div>
+          <div className="fats">{meal.fats}</div>
+        </div>
       </div>
-      <div className="accordion-item-macro-grid">
-        <div className="calories">{meal.calories}</div>
-        <div className="protein">{meal.protein}</div>
-        <div className="carbohydrates">{meal.carbohydrates}</div>
-        <div className="fats">{meal.fats}</div>
-      </div>
-    </div>
+      <dialog id={mealItemDialogId} className="container-item">
+        <div className="container-item-header">{meal.name}</div>
+        <div className="container-item-body">
+          <ul>
+            <li>{meal.time}</li>
+            <li>{meal.description}</li>
+          </ul>
+          <button
+            className="button"
+            type="button"
+            onClick={() => document.getElementById(mealItemDialogId).close()}
+          >
+            Close
+          </button>
+          <button className="button" type="button" onClick={handleDeleteMeal}>
+            Delete
+          </button>
+        </div>
+      </dialog>
+    </>
   );
 }

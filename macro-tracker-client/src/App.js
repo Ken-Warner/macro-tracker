@@ -108,8 +108,21 @@ export default function App() {
     });
   }
 
-  function handleDeleteMeal(mealId) {
-    console.log(mealId);
+  function handleDeleteMeal(mealToDelete) {
+    setMeals((meals) => {
+      return meals
+        .map((mealDay) =>
+          mealDay.mealsDate !== mealToDelete.date
+            ? { mealsDate: mealDay.mealsDate, meals: [...mealDay.meals] }
+            : {
+                mealsDate: mealDay.mealsDate,
+                meals: mealDay.meals.filter(
+                  (meal) => meal.id !== mealToDelete.id
+                ),
+              }
+        )
+        .filter((mealDay) => mealDay.meals.length > 0);
+    });
   }
 
   return (
@@ -140,13 +153,17 @@ export default function App() {
               </p>
             </ContainerItem>
             <ContainerItem gridArea="macro-history" itemHeader="Macro History">
-              {meals.map((mealDay) => (
-                <MealDay
-                  key={mealDay.mealsDate}
-                  mealDay={mealDay}
-                  onDeleteMeal={handleDeleteMeal}
-                />
-              ))}
+              {meals.length > 0 ? (
+                meals.map((mealDay) => (
+                  <MealDay
+                    key={mealDay.mealsDate}
+                    mealDay={mealDay}
+                    onDeleteMeal={handleDeleteMeal}
+                  />
+                ))
+              ) : (
+                <p>You have no macro history ☹</p>
+              )}
             </ContainerItem>
             <ContainerItem gridArea="daily-macros" itemHeader="Daily Macros">
               <AddMealButton
