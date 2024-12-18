@@ -275,6 +275,9 @@ form label {
   border-radius: 0 0 5px 5px;
   border: none;
 }
+.accordion-item:hover {
+  background-color: hsl(from var(--bg-primary) h s calc(l + 5));
+}
 .accordion-item-title {
   display: flex;
   align-items: center;
@@ -318,5 +321,9 @@ form label {
   }
   .error-container {
     left: 10px;
+  }
+  dialog {
+    width: 90vw;
+    height: 90vh;
   }
 }

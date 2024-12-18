@@ -11,7 +11,7 @@ import MealDay from "./components/MealDay";
 
 //todo
 // - add loader spinner to 'Add Meal button'
-// - make meal history accordian
+// - style meal info dialog
 
 const tempUser = {
   userId: 1,
@@ -159,6 +159,7 @@ export default function App() {
                     key={mealDay.mealsDate}
                     mealDay={mealDay}
                     onDeleteMeal={handleDeleteMeal}
+                    onError={handleSetError}
                   />
                 ))
               ) : (

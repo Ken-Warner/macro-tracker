@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export default function MealDay({ mealDay, onDeleteMeal }) {
+export default function MealDay({ mealDay, onDeleteMeal, onError }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
@@ -25,19 +25,42 @@ export default function MealDay({ mealDay, onDeleteMeal }) {
         style={isExpanded ? { display: "block" } : { display: "none" }}
       >
         {mealDay.meals.map((meal) => (
-          <Meal key={meal.id} meal={meal} onDeleteMeal={onDeleteMeal} />
+          <Meal
+            key={meal.id}
+            meal={meal}
+            onDeleteMeal={onDeleteMeal}
+            onError={onError}
+          />
         ))}
       </div>
     </>
   );
 }
 
-function Meal({ meal, onDeleteMeal }) {
+function Meal({ meal, onDeleteMeal, onError }) {
   const mealItemDialogId = `mealItem${meal.id}`;
 
   function handleDeleteMeal() {
-    //make fetch call to API to delete the meal
-    onDeleteMeal(meal);
+    async function fetchDeleteMeal() {
+      try {
+        onError("");
+
+        const apiResult = await fetch(`/api/meals/${meal.id}`, {
+          method: "DELETE",
+        });
+
+        if (apiResult.ok) {
+          onDeleteMeal(meal);
+        } else {
+          onError("This meal could not be deleted.");
+        }
+      } catch {
+        onError("An unexpected error occured.");
+      }
+    }
+
+    fetchDeleteMeal();
+    document.getElementById(mealItemDialogId).close();
   }
 
   return (
