@@ -1,13 +1,12 @@
-import { useState } from "react";
-import Loader from "./Loader";
+import { useState, useRef } from "react";
 
 export default function AddMealButton({ onError, onAddNewMeal }) {
   const [isLoading, setIsLoading] = useState(false);
+  const createMealModal = useRef(null);
 
   function handleOnClick() {
     if (isLoading) return;
-    const modal = document.getElementById("addMealDialog");
-    modal.showModal();
+    createMealModal.current.showModal();
   }
 
   function handleSubmit(e) {
@@ -51,7 +50,7 @@ export default function AddMealButton({ onError, onAddNewMeal }) {
     }
 
     fetchCreateNewMeal();
-    document.getElementById("addMealDialog").close();
+    createMealModal.current.close();
   }
 
   return (
@@ -59,7 +58,7 @@ export default function AddMealButton({ onError, onAddNewMeal }) {
       <button className="button" onClick={handleOnClick}>
         {isLoading ? "Loading..." : "Add Meal"}
       </button>
-      <dialog id="addMealDialog" className="container-item">
+      <dialog ref={createMealModal} className="container-item">
         <div className="container-item-header">Add Meal</div>
         <div className="container-item-body">
           <form className="form" onSubmit={handleSubmit}>
@@ -120,16 +119,18 @@ export default function AddMealButton({ onError, onAddNewMeal }) {
             />
             <label htmlFor="description">Description</label>
             <textarea name="description" className="textarea"></textarea>
-            <button className="button" type="submit">
-              Submit
-            </button>
-            <button
-              className="button"
-              type="button"
-              onClick={() => document.getElementById("addMealDialog").close()}
-            >
-              Cancel
-            </button>
+            <div className="modal-button-container">
+              <button className="button" type="submit">
+                Submit
+              </button>
+              <button
+                className="button"
+                type="button"
+                onClick={() => createMealModal.current.close()}
+              >
+                Cancel
+              </button>
+            </div>
           </form>
         </div>
       </dialog>
