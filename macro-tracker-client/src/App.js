@@ -8,10 +8,14 @@ import Login from "./components/Login";
 import Error from "./components/Error";
 import AddMealButton from "./components/AddMealButton";
 import MealDay from "./components/MealDay";
+import DailyMacros from "./components/DailyMacros";
 
 //todo
 // - add loader spinner to 'Add Meal button'
+// - make mobile add meal button
 // - style meal info dialog
+// - add daily macros to macro container
+// - initial state of application on load from API
 
 const tempUser = {
   userId: 1,
@@ -64,10 +68,19 @@ const tempMeals = [
   },
 ];
 
+const tempMacros = {
+  date: "2024-12-11",
+  calories: 1222,
+  carbohydrates: 45,
+  protein: 23,
+  fats: 12,
+};
+
 export default function App() {
   const [error, setError] = useState("");
   const [user, setUser] = useState(tempUser);
   const [meals, setMeals] = useState(tempMeals);
+  const [todaysMacros, setTodaysMacros] = useState(tempMacros);
 
   const isUserLoggedIn = user.userId !== undefined;
 
@@ -131,9 +144,10 @@ export default function App() {
       <Banner />
       {isUserLoggedIn && (
         <Nav>
-          <span>Link</span>
-          <span>Link</span>
-          <span>Link</span>
+          <span>Macros</span>
+          <span>Weigh-In</span>
+          <span>Settings</span>
+          <span>Support</span>
         </Nav>
       )}
       <Container>
@@ -167,13 +181,11 @@ export default function App() {
               )}
             </ContainerItem>
             <ContainerItem gridArea="daily-macros" itemHeader="Daily Macros">
+              <DailyMacros dailyMacros={todaysMacros} />
               <AddMealButton
                 onError={handleSetError}
                 onAddNewMeal={handleAddNewMeal}
               />
-              <p>
-                This pane contains todays macro goals and progress towards them.
-              </p>
             </ContainerItem>
           </>
         ) : (
