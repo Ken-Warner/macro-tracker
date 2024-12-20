@@ -107,7 +107,7 @@ nav span:hover {
   justify-content: center;
   grid-template-columns: repeat(4, minmax(min-content, 275px));
   grid-template-areas:
-    ". loginForm loginForm ."
+    ". generalForm generalForm ."
     "userInfo userInfo dailyMacros dailyMacros"
     ". . macroHistory macroHistory";
 }
@@ -138,8 +138,8 @@ nav span:hover {
 .daily-macros {
   grid-area: dailyMacros;
 }
-.login-form-container {
-  grid-area: loginForm;
+.general-form-container {
+  grid-area: generalForm;
 }
 
 /* Buttons */

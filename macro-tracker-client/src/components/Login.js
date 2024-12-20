@@ -77,7 +77,10 @@ export default function Login({ onUserLogin, onError }) {
   return (
     <>
       {isCreatingNewUser ? (
-        <ContainerItem gridArea="login-form-container" itemHeader="Create User">
+        <ContainerItem
+          gridArea="general-form-container"
+          itemHeader="Create User"
+        >
           {isLoading ? (
             <Loader />
           ) : (
@@ -140,7 +143,7 @@ export default function Login({ onUserLogin, onError }) {
           )}
         </ContainerItem>
       ) : (
-        <ContainerItem gridArea="login-form-container" itemHeader="Login">
+        <ContainerItem gridArea="general-form-container" itemHeader="Login">
           {isLoading ? (
             <Loader />
           ) : (

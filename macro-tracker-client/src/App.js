@@ -9,6 +9,7 @@ import Error from "./components/Error";
 import AddMealButton from "./components/AddMealButton";
 import MealDay from "./components/MealDay";
 import DailyMacros from "./components/DailyMacros";
+import WeighInForm from "./components/WeighInForm";
 
 const tempUser = {
   userId: 1,
@@ -69,14 +70,19 @@ const tempMacros = {
   fats: 12,
 };
 
-const navItems = ["macros", "weighIn", "settings", "support"];
+const navItems = {
+  MACROS: "Macros",
+  WEIGH_IN: "Weigh-In",
+  SETTINGS: "Settings",
+  SUPPORT: "Support",
+};
 
 export default function App() {
   const [error, setError] = useState("");
   const [user, setUser] = useState(tempUser);
   const [meals, setMeals] = useState(tempMeals);
   const [todaysMacros, setTodaysMacros] = useState(tempMacros);
-  const [selectedNavItem, setSelectedNavItem] = useState(navItems[0]);
+  const [selectedNavItem, setSelectedNavItem] = useState(navItems.MACROS);
 
   const isUserLoggedIn = user.userId !== undefined;
 
@@ -140,13 +146,13 @@ export default function App() {
       <Banner />
       {isUserLoggedIn && (
         <Nav
-          navItems={navItems}
+          navItems={Object.values(navItems)}
           selectedNavItem={selectedNavItem}
           onClick={setSelectedNavItem}
         />
       )}
       <Container>
-        {isUserLoggedIn ? (
+        {isUserLoggedIn && selectedNavItem === navItems.MACROS && (
           <>
             <ContainerItem gridArea="user-info" itemHeader="User Info">
               <p>
@@ -183,7 +189,32 @@ export default function App() {
               />
             </ContainerItem>
           </>
-        ) : (
+        )}
+        {isUserLoggedIn && selectedNavItem === navItems.WEIGH_IN && (
+          <ContainerItem
+            gridArea="general-form-container"
+            itemHeader="Weigh-In"
+          >
+            <WeighInForm userId={user.userId} />
+          </ContainerItem>
+        )}
+        {isUserLoggedIn && selectedNavItem === navItems.SETTINGS && (
+          <ContainerItem
+            gridArea="general-form-container"
+            itemHeader="Settings"
+          >
+            🚧 Under construction 🚧
+          </ContainerItem>
+        )}
+        {isUserLoggedIn && selectedNavItem === navItems.SUPPORT && (
+          <ContainerItem
+            gridArea="general-form-container"
+            itemHeader="Settings"
+          >
+            🚧 Under construction 🚧
+          </ContainerItem>
+        )}
+        {!isUserLoggedIn && (
           <Login onUserLogin={handleLogUserIn} onError={handleSetError} />
         )}
       </Container>
