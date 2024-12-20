@@ -69,11 +69,14 @@ const tempMacros = {
   fats: 12,
 };
 
+const navItems = ["macros", "weighIn", "settings", "support"];
+
 export default function App() {
   const [error, setError] = useState("");
   const [user, setUser] = useState(tempUser);
   const [meals, setMeals] = useState(tempMeals);
   const [todaysMacros, setTodaysMacros] = useState(tempMacros);
+  const [selectedNavItem, setSelectedNavItem] = useState(navItems[0]);
 
   const isUserLoggedIn = user.userId !== undefined;
 
@@ -136,12 +139,11 @@ export default function App() {
       {error && <Error errorMessage={error} onError={handleSetError} />}
       <Banner />
       {isUserLoggedIn && (
-        <Nav>
-          <span>Macros</span>
-          <span>Weigh-In</span>
-          <span>Settings</span>
-          <span>Support</span>
-        </Nav>
+        <Nav
+          navItems={navItems}
+          selectedNavItem={selectedNavItem}
+          onClick={setSelectedNavItem}
+        />
       )}
       <Container>
         {isUserLoggedIn ? (
