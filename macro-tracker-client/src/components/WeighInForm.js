@@ -7,6 +7,8 @@ export default function WeighInForm({ userId }) {
   const weighInForm = useRef(null);
 
   useEffect(() => {
+    //weight in api result:
+    //{"date":"2024-12-11","weight":135,"targetCalories":1700,"targetProtein":0,"targetCarbohydrates":0,"targetFats":0}
     //on render we need to get data from the API
     //last weigh in date, weight, and target macros from the time,
     //and all meals between that date and today.

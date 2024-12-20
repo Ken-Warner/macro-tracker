@@ -1,13 +1,15 @@
-const express = require('express');
+const express = require("express");
 
 const {
   getWeighInData,
+  getRecentWeighInData,
   postWeighInData,
-} = require('./weighIn.controller');
+} = require("./weighIn.controller");
 
 const weighInRouter = express.Router();
 
-weighInRouter.post('/', postWeighInData);
-weighInRouter.get('/', getWeighInData);
+weighInRouter.post("/", postWeighInData);
+weighInRouter.get("/recent", getRecentWeighInData);
+weighInRouter.get("/", getWeighInData);
 
 module.exports = weighInRouter;

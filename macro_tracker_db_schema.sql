@@ -2,12 +2,13 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 16.0 (Debian 16.0-1.pgdg120+1)
--- Dumped by pg_dump version 16.0 (Debian 16.0-1.pgdg120+1)
+-- Dumped from database version 17.0 (Debian 17.0-1.pgdg120+1)
+-- Dumped by pg_dump version 17.0 (Debian 17.0-1.pgdg120+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
@@ -353,7 +354,10 @@ CREATE TABLE public.user_weights (
     user_id integer NOT NULL,
     weight integer NOT NULL,
     date date DEFAULT CURRENT_DATE,
-    "time" time without time zone DEFAULT CURRENT_TIME
+    target_calories integer DEFAULT 0,
+    target_protein integer DEFAULT 0,
+    target_carbohydrates integer DEFAULT 0,
+    target_fats integer DEFAULT 0
 );
 
 
