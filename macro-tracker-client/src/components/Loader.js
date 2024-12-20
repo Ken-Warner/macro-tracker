@@ -1,7 +1,7 @@
-export default function Loader({ size = 50, thickness = 10 }) {
+export default function Loader({ size = 1, thickness = 10 }) {
   const sizeStyles = {
-    width: `${size}px`,
-    height: `${size}px`,
+    width: `${size}em`,
+    height: `${size}em`,
     border: `${thickness}px solid var(--bg-primary)`,
     borderBottom: `${thickness}px solid var(--call-to-action)`,
   };

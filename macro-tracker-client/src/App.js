@@ -10,13 +10,6 @@ import AddMealButton from "./components/AddMealButton";
 import MealDay from "./components/MealDay";
 import DailyMacros from "./components/DailyMacros";
 
-//todo
-// - add loader spinner to 'Add Meal button'
-// - make mobile add meal button
-// - style meal info dialog
-// - add daily macros to macro container
-// - initial state of application on load from API
-
 const tempUser = {
   userId: 1,
   username: "Ken",

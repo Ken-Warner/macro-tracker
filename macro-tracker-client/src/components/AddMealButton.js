@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import Loader from "./Loader";
 
 export default function AddMealButton({ onError, onAddNewMeal }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -56,7 +57,7 @@ export default function AddMealButton({ onError, onAddNewMeal }) {
   return (
     <>
       <button className="button" onClick={handleOnClick}>
-        {isLoading ? "Loading..." : "Add Meal"}
+        {isLoading ? <Loader size={1.15} thickness={3} /> : "Add Meal"}
       </button>
       <dialog ref={createMealModal} className="container-item">
         <div className="container-item-header">Add Meal</div>

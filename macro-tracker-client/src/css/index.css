@@ -27,7 +27,6 @@
 }
 
 body {
-  overflow: hidden;
   background-color: var(--bg-primary);
 }
 
@@ -142,7 +141,7 @@ nav *:hover {
 .button {
   display: inline-block;
   padding: 10px 30px;
-  margin: 5px;
+  margin: 5px auto;
   border-radius: 10px;
   font-size: 1.2em;
   color: var(--font-color-dark);
@@ -150,6 +149,7 @@ nav *:hover {
   border: 2px solid var(--call-to-action-highlight);
   cursor: pointer;
   transition-duration: 0.2s;
+  width: 100%;
 }
 
 .button:hover {
@@ -165,11 +165,9 @@ nav *:hover {
   padding: 5px;
   display: flex;
   flex-direction: row;
+  gap: 5px;
   width: 100%;
   justify-content: space-around;
-}
-.modal-button-container button {
-  width: 100%;
 }
 
 /* Forms */
@@ -194,7 +192,8 @@ form label {
 }
 .submit {
   display: block;
-  margin: 5px auto;
+  margin: 10px auto;
+  width: 60%;
 }
 .textarea {
   display: block;
@@ -218,7 +217,7 @@ form label {
 
 /* Loader */
 .loader {
-  margin: 20px auto;
+  margin: auto;
   width: 50px;
   height: 50px;
   border: 10px solid var(--bg-primary);
