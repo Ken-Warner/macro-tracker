@@ -68,6 +68,7 @@ async function getRecentWeighInData(req, res) {
 
   try {
     const weighInData = await selectRecentWeighInData(req.session.userId);
+
     const apiResult = {
       date: weighInData.date.toISOString().split("T")[0],
       weight: weighInData.weight,
@@ -76,6 +77,7 @@ async function getRecentWeighInData(req, res) {
       targetCarbohydrates: weighInData.target_carbohydrates,
       targetFats: weighInData.target_fats,
     };
+
     res.status(200).send(JSON.stringify(apiResult));
   } catch (e) {
     const uuid = await log(

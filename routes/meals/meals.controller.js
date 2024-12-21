@@ -90,11 +90,11 @@ async function createNewMealRaw(req, res) {
     let newMeal = {
       name: req.body.name,
       description: req.body.description,
-      calories: req.body.calories || -1 < 0 ? 0 : req.body.calories,
-      protein: req.body.protein || -1 < 0 ? 0 : req.body.protein,
+      calories: (req.body.calories || -1) < 0 ? 0 : req.body.calories,
+      protein: (req.body.protein || -1) < 0 ? 0 : req.body.protein,
       carbohydrates:
-        req.body.carbohydrates || -1 < 0 ? 0 : req.body.carbohydrates,
-      fats: req.body.fats || -1 < 0 ? 0 : req.body.fats,
+        (req.body.carbohydrates || -1) < 0 ? 0 : req.body.carbohydrates,
+      fats: (req.body.fats || -1) < 0 ? 0 : req.body.fats,
       date: req.body.date,
       time: req.body.time,
     };
@@ -102,7 +102,7 @@ async function createNewMealRaw(req, res) {
     newMeal = await createMealRaw(req.session.userId, newMeal);
 
     const responseMeal = {
-      mealId: newMeal.id,
+      id: newMeal.id,
       name: newMeal.name,
       description: newMeal.description,
       calories: newMeal.calories,

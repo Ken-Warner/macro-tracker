@@ -15,7 +15,7 @@ export default function Error({ errorMessage, onError }) {
       clearTimeout(changeStyleId);
       clearTimeout(removeErrorId);
     };
-  }, []);
+  }, [onError]);
 
   return (
     <div

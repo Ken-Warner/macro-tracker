@@ -77,17 +77,104 @@ const navItems = {
   SUPPORT: "Support",
 };
 
+const initialTodaysMacros = {
+  date: "2024-12-21",
+  calories: 0,
+  protein: 0,
+  carbohydrates: 0,
+  fats: 0,
+};
+
 export default function App() {
+  //UI States
   const [error, setError] = useState("");
-  const [user, setUser] = useState(tempUser);
-  const [meals, setMeals] = useState(tempMeals);
-  const [todaysMacros, setTodaysMacros] = useState(tempMacros);
   const [selectedNavItem, setSelectedNavItem] = useState(navItems.MACROS);
 
+  //Application Data States
+  const [user, setUser] = useState({});
   const isUserLoggedIn = user.userId !== undefined;
+  const [meals, setMeals] = useState({});
+  const [recentWeighInData, setRecentWeighInData] = useState({});
+  const [todaysMacros, setTodaysMacros] = useState(initialTodaysMacros);
 
   function handleLogUserIn(user) {
     setUser(user);
+
+    async function fetchRecentWeighInData() {
+      try {
+        handleSetError("");
+
+        const apiResult = await fetch("/api/weighIn/recent");
+        const jsonResult = await apiResult.json();
+
+        if (apiResult.ok) {
+          setRecentWeighInData(jsonResult);
+        } else {
+          handleSetError("Unable to get weigh in data");
+        }
+      } catch (e) {
+        handleSetError("Unable to get weigh in data");
+      }
+    }
+
+    async function fetchMealHistory() {
+      try {
+        handleSetError("");
+
+        const today = new Date(
+          Date.now() - new Date().getTimezoneOffset() * 60000
+        );
+        const tenDaysAgo = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate() - 10
+        );
+
+        const searchParams = new URLSearchParams({
+          fromDate: tenDaysAgo.toISOString().split("T")[0],
+          toDate: today.toISOString().split("T")[0],
+        });
+
+        const apiResult = await fetch(
+          `/api/meals/history?${searchParams.toString()}`
+        );
+        const jsonResult = await apiResult.json();
+
+        if (apiResult.ok) setMeals(jsonResult);
+        else handleSetError("Unable to get meal history");
+      } catch {
+        handleSetError("Unable to get meal history");
+      }
+    }
+
+    async function fetchCurrentMacros() {
+      try {
+        handleSetError("");
+
+        const searchParams = new URLSearchParams({
+          today: new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+            .toISOString()
+            .split("T")[0],
+        });
+
+        const apiResult = await fetch(
+          `/api/macros/today?${searchParams.toString()}`
+        );
+        const jsonResult = await apiResult.json();
+
+        if (apiResult.ok) {
+          setTodaysMacros(jsonResult);
+        } else {
+          handleSetError("Unable to get current macro totals");
+        }
+      } catch {
+        handleSetError("Unable to get current macro totals");
+      }
+    }
+
+    fetchRecentWeighInData();
+    fetchMealHistory();
+    fetchCurrentMacros();
   }
 
   function handleLogUserOut() {
@@ -121,6 +208,18 @@ export default function App() {
           )
         : [...meals, { mealsDate: newMeal.date, meals: [newMeal] }];
     });
+
+    if (newMeal.date === todaysMacros.date) {
+      setTodaysMacros((macros) => {
+        return {
+          date: macros.date,
+          calories: macros.calories + newMeal.calories,
+          protein: macros.protein + newMeal.protein,
+          carbohydrates: macros.carbohydrates + newMeal.carbohydrates,
+          fats: macros.fats + newMeal.fats,
+        };
+      });
+    }
   }
 
   function handleDeleteMeal(mealToDelete) {
@@ -138,6 +237,18 @@ export default function App() {
         )
         .filter((mealDay) => mealDay.meals.length > 0);
     });
+
+    if (mealToDelete.date === todaysMacros.date) {
+      setTodaysMacros((macros) => {
+        return {
+          date: macros.date,
+          calories: macros.calories - mealToDelete.calories,
+          protein: macros.protein - mealToDelete.protein,
+          carbohydrates: macros.carbohydrates - mealToDelete.carbohydrates,
+          fats: macros.fats - mealToDelete.fats,
+        };
+      });
+    }
   }
 
   return (
@@ -182,7 +293,10 @@ export default function App() {
               )}
             </ContainerItem>
             <ContainerItem gridArea="daily-macros" itemHeader="Daily Macros">
-              <DailyMacros dailyMacros={todaysMacros} />
+              <DailyMacros
+                dailyMacros={todaysMacros}
+                macroTargets={recentWeighInData}
+              />
               <AddMealButton
                 onError={handleSetError}
                 onAddNewMeal={handleAddNewMeal}

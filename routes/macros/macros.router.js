@@ -1,11 +1,13 @@
-const express = require('express');
+const express = require("express");
 
 const {
-  getMacrosFromDateRange
-} = require('./macros.controller');
+  getMacrosFromDateRange,
+  getTodaysMacros,
+} = require("./macros.controller");
 
 const macrosRouter = express.Router();
 
-macrosRouter.get('/', getMacrosFromDateRange);
+macrosRouter.get("/today", getTodaysMacros);
+macrosRouter.get("/", getMacrosFromDateRange);
 
 module.exports = macrosRouter;

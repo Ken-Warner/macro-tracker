@@ -4,6 +4,7 @@ export default function MacroProgressBar({
   macroLabel,
   macroColor,
 }) {
+  const targetsSet = targetMacroValue > 0;
   const progressPercentage =
     currentMacroValue > targetMacroValue
       ? 100 + "%"
@@ -16,18 +17,20 @@ export default function MacroProgressBar({
     >
       <div className="daily-macro-count">
         {currentMacroValue}
-        <span>/{targetMacroValue}</span>
+        {targetsSet && <span>/{targetMacroValue}</span>}
       </div>
       <center className="daily-macro-label">{macroLabel}</center>
-      <div className="daily-macro-progress-bar">
-        <div
-          className="daily-macro-progress"
-          style={{
-            width: progressPercentage,
-            backgroundColor: macroColor,
-          }}
-        ></div>
-      </div>
+      {targetsSet && (
+        <div className="daily-macro-progress-bar">
+          <div
+            className="daily-macro-progress"
+            style={{
+              width: progressPercentage,
+              backgroundColor: macroColor,
+            }}
+          ></div>
+        </div>
+      )}
     </div>
   );
 }

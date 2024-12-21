@@ -26,6 +26,8 @@ export default function AddMealButton({ onError, onAddNewMeal }) {
 
     async function fetchCreateNewMeal() {
       try {
+        console.log(newMeal);
+
         setIsLoading(true);
         onError("");
 
@@ -36,6 +38,8 @@ export default function AddMealButton({ onError, onAddNewMeal }) {
         });
 
         const jsonResult = await apiResult.json();
+
+        console.log(jsonResult);
 
         if (apiResult.ok) {
           onAddNewMeal(jsonResult);

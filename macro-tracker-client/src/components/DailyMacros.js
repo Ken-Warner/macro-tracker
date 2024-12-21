@@ -1,39 +1,31 @@
 import MacroProgressBar from "./MacroProgressBar";
 
-//temporary, idk if this should be global state or not
-const macroGoals = {
-  calories: 1700,
-  protein: 120,
-  carbohydrates: 125,
-  fats: 65,
-};
-
-export default function DailyMacros({ dailyMacros }) {
+export default function DailyMacros({ dailyMacros, macroTargets }) {
   return (
     <div className="daily-macros-container">
       <MacroProgressBar
         macroColor={"var(--complement)"}
         macroLabel={"Calories"}
         currentMacroValue={dailyMacros.calories}
-        targetMacroValue={macroGoals.calories}
+        targetMacroValue={macroTargets.targetCalories}
       />
       <MacroProgressBar
         macroColor={"var(--analogous-one)"}
         macroLabel={"Protein"}
         currentMacroValue={dailyMacros.protein}
-        targetMacroValue={macroGoals.protein}
+        targetMacroValue={macroTargets.targetProtein}
       />
       <MacroProgressBar
         macroColor={"var(--analogous-two)"}
         macroLabel={"Carbohydrates"}
         currentMacroValue={dailyMacros.carbohydrates}
-        targetMacroValue={macroGoals.carbohydrates}
+        targetMacroValue={macroTargets.targetCarbohydrates}
       />
       <MacroProgressBar
         macroColor={"var(--analogous-three)"}
         macroLabel={"Fats"}
         currentMacroValue={dailyMacros.fats}
-        targetMacroValue={macroGoals.fats}
+        targetMacroValue={macroTargets.targetFats}
       />
     </div>
   );
