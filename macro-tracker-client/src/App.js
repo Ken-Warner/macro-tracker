@@ -91,7 +91,7 @@ export default function App() {
   const [selectedNavItem, setSelectedNavItem] = useState(navItems.MACROS);
 
   //Application Data States
-  const [user, setUser] = useState({});
+  const [user, setUser] = useState(tempUser);
   const isUserLoggedIn = user.userId !== undefined;
   const [meals, setMeals] = useState({});
   const [recentWeighInData, setRecentWeighInData] = useState({});

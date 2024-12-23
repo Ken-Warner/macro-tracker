@@ -3,15 +3,50 @@ import Loader from "./Loader";
 
 export default function WeighInForm({ userId }) {
   const [currentWeight, setCurrentWeight] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isMealsLoading, setIsMealsLoading] = useState(false);
+  const [isWeighInLoading, setIsWeighInLoading] = useState(false);
+  const [goalValue, setGoalValue] = useState(0);
+
   const weighInForm = useRef(null);
+  const mealsSinceLastWeighIn = useRef({});
+  const lastWeighInData = useRef({});
+
+  const goalText =
+    goalValue < -500
+      ? "Aggressively Losing Weight"
+      : goalValue < 0
+      ? "Losing Weight"
+      : goalValue === "0"
+      ? "Maintaining Weight"
+      : goalValue < 500
+      ? "Gaining Weight"
+      : "Aggressively Gaining Weight";
 
   useEffect(() => {
-    //weight in api result:
-    //{"date":"2024-12-11","weight":135,"targetCalories":1700,"targetProtein":0,"targetCarbohydrates":0,"targetFats":0}
-    //on render we need to get data from the API
-    //last weigh in date, weight, and target macros from the time,
-    //and all meals between that date and today.
+    async function fetchLastWeighInData() {
+      //weight in api result:
+      //{"date":"2024-12-11","weight":135,"targetCalories":1700,"targetProtein":0,"targetCarbohydrates":0,"targetFats":0}
+      try {
+        setIsWeighInLoading(true);
+      } catch {
+        //todo
+      } finally {
+        setIsWeighInLoading(false);
+      }
+    }
+
+    async function fetchMealsSinceLastWeighIn() {
+      try {
+        setIsMealsLoading(true);
+      } catch {
+        //todo
+      } finally {
+        setIsMealsLoading(false);
+      }
+    }
+
+    fetchLastWeighInData();
+    fetchMealsSinceLastWeighIn();
   }, []);
 
   function handleSubmit(e) {
@@ -24,20 +59,27 @@ export default function WeighInForm({ userId }) {
 
   function handleCurrentWeightChange(e) {
     if (e.target.value.length < 2) return;
+    setCurrentWeight(e.target.value);
+    updateTargetMacros();
+  }
 
+  function handleGoalSliderChange(e) {
+    setGoalValue(e.target.value);
+    updateTargetMacros();
+  }
+
+  function updateTargetMacros() {
     //recalculate all target values based on weight
     //set values using form ref
     weighInForm.current.elements.targetCalories.value = "10";
     weighInForm.current.elements.targetProtein.value = "11";
     weighInForm.current.elements.targetCarbohydrates.value = "12";
     weighInForm.current.elements.targetFats.value = "13";
-
-    setCurrentWeight(e.target.value);
   }
 
   return (
     <>
-      {!isLoading ? (
+      {!isMealsLoading && !isWeighInLoading ? (
         <form className="form" onSubmit={handleSubmit} ref={weighInForm}>
           <label htmlFor="date">Date</label>
           <input
@@ -57,6 +99,19 @@ export default function WeighInForm({ userId }) {
             className="input"
             defaultValue={currentWeight}
             onChange={handleCurrentWeightChange}
+          />
+          <label htmlFor="weightObjective">
+            Goal: {goalText}({goalValue})
+          </label>
+          <input
+            type="range"
+            name="objective"
+            className="slider"
+            value={goalValue}
+            onChange={handleGoalSliderChange}
+            step={50}
+            max={750}
+            min={-750}
           />
           <label htmlFor="targetCalories">New Target Calories</label>
           <input

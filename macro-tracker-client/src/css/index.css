@@ -213,6 +213,42 @@ form label {
   color: var(--font-color);
   /* style scroll for this eventually */
 }
+.slider {
+  appearance: none;
+  display: block;
+  width: 80%;
+  background: var(--bg-primary);
+  outline: none;
+  height: 6px;
+  margin: 15px auto;
+  position: relative;
+}
+.slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 10px;
+  height: 20px;
+  border-radius: 2px;
+  background: var(--call-to-action);
+  cursor: pointer;
+  position: relative;
+}
+.slider::after {
+  content: attr(max);
+  color: var(--font-color);
+  position: absolute;
+  right: -6%;
+  top: -50%;
+  text-align: center;
+}
+
+.slider::before {
+  content: attr(min);
+  color: var(--font-color);
+  position: absolute;
+  left: -7%;
+  top: -50%;
+  text-align: center;
+}
 
 .link {
   color: var(--complement-light);
