@@ -91,7 +91,7 @@ export default function App() {
   const [selectedNavItem, setSelectedNavItem] = useState(navItems.MACROS);
 
   //Application Data States
-  const [user, setUser] = useState(tempUser);
+  const [user, setUser] = useState({});
   const isUserLoggedIn = user.userId !== undefined;
   const [meals, setMeals] = useState({});
   const [recentWeighInData, setRecentWeighInData] = useState({});
@@ -309,7 +309,7 @@ export default function App() {
             gridArea="general-form-container"
             itemHeader="Weigh-In"
           >
-            <WeighInForm userId={user.userId} />
+            <WeighInForm userId={user.userId} onError={handleSetError} />
           </ContainerItem>
         )}
         {isUserLoggedIn && selectedNavItem === navItems.SETTINGS && (

@@ -1,10 +1,9 @@
 import { useEffect, useState, useRef } from "react";
 import Loader from "./Loader";
 
-export default function WeighInForm({ userId }) {
+export default function WeighInForm({ userId, onError }) {
   const [currentWeight, setCurrentWeight] = useState(0);
-  const [isMealsLoading, setIsMealsLoading] = useState(false);
-  const [isWeighInLoading, setIsWeighInLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [goalValue, setGoalValue] = useState(0);
 
   const weighInForm = useRef(null);
@@ -23,38 +22,87 @@ export default function WeighInForm({ userId }) {
       : "Aggressively Gaining Weight";
 
   useEffect(() => {
-    async function fetchLastWeighInData() {
-      //weight in api result:
-      //{"date":"2024-12-11","weight":135,"targetCalories":1700,"targetProtein":0,"targetCarbohydrates":0,"targetFats":0}
+    async function fetchData() {
       try {
-        setIsWeighInLoading(true);
+        //Weigh In API Data
+        //{"date":"2024-12-11","weight":135,"targetCalories":1700,"targetProtein":0,"targetCarbohydrates":0,"targetFats":0}
+        setIsLoading(true);
+        onError("");
+
+        const weighInApiResult = await fetch("/api/weighIn/recent");
+        const weighInJsonResult = await weighInApiResult.json();
+
+        if (!weighInApiResult.ok) throw new Error();
+        lastWeighInData.current = weighInJsonResult;
+
+        //Meals API Data
+        const today = new Date(
+          Date.now() - new Date().getTimezoneOffset() * 60000
+        );
+
+        const lastWeighInDate = new Date(lastWeighInData.current.date);
+
+        const searchParams = new URLSearchParams({
+          fromDate: lastWeighInDate.toISOString().split("T")[0],
+          toDate: today.toISOString().split("T")[0],
+        });
+
+        const mealsApiResult = await fetch(
+          `/api/meals/history?${searchParams.toString()}`
+        );
+        const mealsJsonResult = await mealsApiResult.json();
+
+        if (mealsApiResult.ok) mealsSinceLastWeighIn.current = mealsJsonResult;
+
+        updateTargetMacros();
       } catch {
-        //todo
+        onError("An error occurred retrieving data since last weigh in.");
       } finally {
-        setIsWeighInLoading(false);
+        setIsLoading(false);
+        onError("");
       }
     }
 
-    async function fetchMealsSinceLastWeighIn() {
-      try {
-        setIsMealsLoading(true);
-      } catch {
-        //todo
-      } finally {
-        setIsMealsLoading(false);
-      }
-    }
-
-    fetchLastWeighInData();
-    fetchMealsSinceLastWeighIn();
-  }, []);
+    fetchData();
+  }, [onError]);
 
   function handleSubmit(e) {
     e.preventDefault();
 
-    //make API call to save new weight and target macro data
+    async function fetchPostWeighInData() {
+      try {
+        onError("");
+        setIsLoading(true);
+
+        const formData = {
+          weight: weighInForm.current.currentWeight.value,
+          date: weighInForm.current.date.value,
+          targetCalories: weighInForm.current.elements.targetCalories.value,
+          targetCarbohydrates:
+            weighInForm.current.elements.targetCarbohydrates.value,
+          targetProtein: weighInForm.current.elements.targetProtein.value,
+          targetFats: weighInForm.current.elements.targetFats.value,
+        };
+
+        const apiResult = await fetch("/api/weighIn", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        });
+
+        if (!apiResult.ok) throw new Error();
+      } catch {
+        onError("Error sending new macro targets.");
+      } finally {
+        onError("");
+        setIsLoading(false);
+      }
+    }
 
     //on success either notify user or switch to macro screen or both
+    fetchPostWeighInData();
   }
 
   function handleCurrentWeightChange(e) {
@@ -71,15 +119,15 @@ export default function WeighInForm({ userId }) {
   function updateTargetMacros() {
     //recalculate all target values based on weight
     //set values using form ref
-    weighInForm.current.elements.targetCalories.value = "10";
-    weighInForm.current.elements.targetProtein.value = "11";
-    weighInForm.current.elements.targetCarbohydrates.value = "12";
-    weighInForm.current.elements.targetFats.value = "13";
+    // weighInForm.current.elements.targetCalories.value = "10";
+    // weighInForm.current.elements.targetProtein.value = "11";
+    // weighInForm.current.elements.targetCarbohydrates.value = "12";
+    // weighInForm.current.elements.targetFats.value = "13";
   }
 
   return (
     <>
-      {!isMealsLoading && !isWeighInLoading ? (
+      {!isLoading ? (
         <form className="form" onSubmit={handleSubmit} ref={weighInForm}>
           <label htmlFor="date">Date</label>
           <input

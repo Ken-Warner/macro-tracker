@@ -113,9 +113,15 @@ async function postWeighInData(req, res) {
     return;
   }
 
+  //validations should be done on the targets to make sure they are positive whole numbers or undefined
+
   weighInData = {
     weight: req.body.weight,
     date: req.body.date,
+    targetCalories: req.body.targetCalories,
+    targetProtein: req.body.targetProtein,
+    targetCarbohydrates: req.body.targetCarbohydrates,
+    targetFats: req.body.targetFats,
   };
 
   try {

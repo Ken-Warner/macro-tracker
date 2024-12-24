@@ -1,9 +1,25 @@
 const { query, DEFAULT, buildInsert } = require("./pool");
 
 async function insertWeighInData(userId, weighInData) {
-  const fields = ["user_id", "weight", "date"];
+  const fields = [
+    "user_id",
+    "weight",
+    "date",
+    "target_calories",
+    "target_protein",
+    "target_carbohydrates",
+    "target_fats",
+  ];
 
-  const values = [userId, weighInData.weight, weighInData.date || DEFAULT];
+  const values = [
+    userId,
+    weighInData.weight,
+    weighInData.date || DEFAULT,
+    weighInData.targetCalories || DEFAULT,
+    weighInData.targetProtein || DEFAULT,
+    weighInData.targetCarbohydrates || DEFAULT,
+    weighInData.targetFats || DEFAULT,
+  ];
 
   [queryFields, queryValues, queryParams] = buildInsert(fields, values);
 
