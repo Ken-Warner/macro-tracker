@@ -1,14 +1,117 @@
 import { useEffect, useState, useRef } from "react";
 import Loader from "./Loader";
 
+const tempMealHistory = [
+  {
+    mealsDate: "2024-12-21",
+    meals: [
+      {
+        id: 2,
+        name: "Steak",
+        description: "Steak and veggies.",
+        date: "2024-12-21",
+        time: "16:30:00",
+        calories: 554,
+        protein: 35,
+        carbohydrates: 42,
+        fats: 12,
+      },
+      {
+        id: 1,
+        name: "Ramen",
+        description: "ramen noodles from the package",
+        date: "2024-12-21",
+        time: "12:30:00",
+        calories: 254,
+        protein: 11,
+        carbohydrates: 34,
+        fats: 3,
+      },
+    ],
+  },
+  {
+    mealsDate: "2024-12-22",
+    meals: [
+      {
+        id: 3,
+        name: "Salmon",
+        description: "Salmon as in the fish bruh.",
+        date: "2024-12-22",
+        time: "12:35:00",
+        calories: 400,
+        protein: 14,
+        carbohydrates: 13,
+        fats: 20,
+      },
+    ],
+  },
+  {
+    mealsDate: "2024-12-23",
+    meals: [
+      {
+        id: 3,
+        name: "Salmon",
+        description: "Salmon as in the fish bruh.",
+        date: "2024-12-23",
+        time: "12:35:00",
+        calories: 600,
+        protein: 12,
+        carbohydrates: 11,
+        fats: 25,
+      },
+    ],
+  },
+  {
+    mealsDate: "2024-12-24",
+    meals: [
+      {
+        id: 3,
+        name: "Salmon",
+        description: "Salmon as in the fish bruh.",
+        date: "2024-12-24",
+        time: "12:35:00",
+        calories: 650,
+        protein: 22,
+        carbohydrates: 0,
+        fats: 21,
+      },
+    ],
+  },
+  {
+    mealsDate: "2024-12-25",
+    meals: [
+      {
+        id: 3,
+        name: "Salmon",
+        description: "Salmon as in the fish bruh.",
+        date: "2024-12-25",
+        time: "12:35:00",
+        calories: 800,
+        protein: 12,
+        carbohydrates: 130,
+        fats: 21,
+      },
+    ],
+  },
+];
+
+const tempLastWeighInData = {
+  date: "2024-12-20",
+  weight: 135,
+  targetCalories: 1700,
+  targetProtein: 150,
+  targetCarbohydrates: 125,
+  targetFats: 65,
+};
+
 export default function WeighInForm({ userId, onError }) {
   const [currentWeight, setCurrentWeight] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [goalValue, setGoalValue] = useState(0);
 
   const weighInForm = useRef(null);
-  const mealsSinceLastWeighIn = useRef({});
-  const lastWeighInData = useRef({});
+  const mealsSinceLastWeighIn = useRef(tempMealHistory);
+  const lastWeighInData = useRef(tempLastWeighInData);
 
   const goalText =
     goalValue < -500
@@ -25,7 +128,6 @@ export default function WeighInForm({ userId, onError }) {
     async function fetchData() {
       try {
         //Weigh In API Data
-        //{"date":"2024-12-11","weight":135,"targetCalories":1700,"targetProtein":0,"targetCarbohydrates":0,"targetFats":0}
         setIsLoading(true);
         onError("");
 
@@ -118,11 +220,43 @@ export default function WeighInForm({ userId, onError }) {
 
   function updateTargetMacros() {
     //recalculate all target values based on weight
-    //set values using form ref
-    // weighInForm.current.elements.targetCalories.value = "10";
-    // weighInForm.current.elements.targetProtein.value = "11";
-    // weighInForm.current.elements.targetCarbohydrates.value = "12";
-    // weighInForm.current.elements.targetFats.value = "13";
+
+    const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000);
+
+    const lastWeighIn = new Date(lastWeighInData.current.date);
+    lastWeighIn.setMinutes(
+      lastWeighIn.getMinutes() - lastWeighIn.getTimezoneOffset()
+    );
+
+    const daysBetween = (today - lastWeighIn) / (1000 * 60 * 60 * 24);
+
+    const totalCalories = mealsSinceLastWeighIn.current.reduce(
+      (mealDayCalories, mealDay) =>
+        mealDayCalories +
+        mealDay.meals.reduce(
+          (mealCalories, meal) => mealCalories + meal.calories,
+          0
+        ),
+      0
+    );
+
+    const caloriesPerDay = totalCalories / daysBetween;
+    const calorieSurplusDeficitPerDay =
+      ((lastWeighInData.current.weight - currentWeight) * 3500) / daysBetween;
+
+    const maintanenceCalories = caloriesPerDay - calorieSurplusDeficitPerDay;
+    const targetCalories =
+      Math.round((maintanenceCalories + goalValue) / 50) * 50;
+    const targetProtein = currentWeight;
+    const targetFats = 65;
+    const targetCarbohydrates =
+      (targetCalories - 4 * targetProtein - 9 * targetFats) / 4;
+
+    weighInForm.current.elements.targetCalories.value = targetCalories;
+    weighInForm.current.elements.targetProtein.value = targetProtein;
+    weighInForm.current.elements.targetCarbohydrates.value =
+      targetCarbohydrates;
+    weighInForm.current.elements.targetFats.value = targetFats;
   }
 
   return (
