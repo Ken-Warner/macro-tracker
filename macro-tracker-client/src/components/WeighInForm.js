@@ -22,7 +22,7 @@ const tempMealHistory = [
         description: "ramen noodles from the package",
         date: "2024-12-21",
         time: "12:30:00",
-        calories: 254,
+        calories: 1200,
         protein: 11,
         carbohydrates: 34,
         fats: 3,
@@ -38,7 +38,7 @@ const tempMealHistory = [
         description: "Salmon as in the fish bruh.",
         date: "2024-12-22",
         time: "12:35:00",
-        calories: 400,
+        calories: 1700,
         protein: 14,
         carbohydrates: 13,
         fats: 20,
@@ -54,7 +54,7 @@ const tempMealHistory = [
         description: "Salmon as in the fish bruh.",
         date: "2024-12-23",
         time: "12:35:00",
-        calories: 600,
+        calories: 1800,
         protein: 12,
         carbohydrates: 11,
         fats: 25,
@@ -70,7 +70,7 @@ const tempMealHistory = [
         description: "Salmon as in the fish bruh.",
         date: "2024-12-24",
         time: "12:35:00",
-        calories: 650,
+        calories: 1650,
         protein: 22,
         carbohydrates: 0,
         fats: 21,
@@ -86,7 +86,7 @@ const tempMealHistory = [
         description: "Salmon as in the fish bruh.",
         date: "2024-12-25",
         time: "12:35:00",
-        calories: 800,
+        calories: 1801,
         protein: 12,
         carbohydrates: 130,
         fats: 21,
@@ -103,6 +103,21 @@ const tempLastWeighInData = {
   targetCarbohydrates: 125,
   targetFats: 65,
 };
+
+function mapToRange(value, inMin, inMax, outMin, outMax) {
+  if (!(inMin <= value && value <= inMax))
+    throw new Error("Value is not in input range");
+
+  //find ratio of number lines
+  let spaceRatio = (outMax - outMin) / (inMax - inMin);
+  //set minimum of input number range to origin
+  let origin = value - inMin;
+  //scale vector space
+  origin *= spaceRatio;
+  //translate origin to output space minimum
+  origin += outMin;
+  return origin;
+}
 
 export default function WeighInForm({ userId, onError }) {
   const [currentWeight, setCurrentWeight] = useState(0);
@@ -155,8 +170,6 @@ export default function WeighInForm({ userId, onError }) {
         const mealsJsonResult = await mealsApiResult.json();
 
         if (mealsApiResult.ok) mealsSinceLastWeighIn.current = mealsJsonResult;
-
-        updateTargetMacros();
       } catch {
         onError("An error occurred retrieving data since last weigh in.");
       } finally {
@@ -210,25 +223,21 @@ export default function WeighInForm({ userId, onError }) {
   function handleCurrentWeightChange(e) {
     if (e.target.value.length < 2) return;
     setCurrentWeight(e.target.value);
-    updateTargetMacros();
   }
 
-  function handleGoalSliderChange(e) {
-    setGoalValue(e.target.value);
-    updateTargetMacros();
-  }
-
-  function updateTargetMacros() {
-    //recalculate all target values based on weight
-
-    const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000);
+  useEffect(() => {
+    if (currentWeight <= 0) return;
+    // const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000);
+    const today = new Date("2024-12-25");
 
     const lastWeighIn = new Date(lastWeighInData.current.date);
     lastWeighIn.setMinutes(
       lastWeighIn.getMinutes() - lastWeighIn.getTimezoneOffset()
     );
 
-    const daysBetween = (today - lastWeighIn) / (1000 * 60 * 60 * 24);
+    const daysBetween = Math.floor(
+      (today - lastWeighIn) / (1000 * 60 * 60 * 24)
+    );
 
     const totalCalories = mealsSinceLastWeighIn.current.reduce(
       (mealDayCalories, mealDay) =>
@@ -241,23 +250,38 @@ export default function WeighInForm({ userId, onError }) {
     );
 
     const caloriesPerDay = totalCalories / daysBetween;
+
     const calorieSurplusDeficitPerDay =
-      ((lastWeighInData.current.weight - currentWeight) * 3500) / daysBetween;
+      ((lastWeighInData.current.weight - currentWeight) * 3500 * -1) /
+      daysBetween;
 
     const maintanenceCalories = caloriesPerDay - calorieSurplusDeficitPerDay;
+
     const targetCalories =
-      Math.round((maintanenceCalories + goalValue) / 50) * 50;
-    const targetProtein = currentWeight;
-    const targetFats = 65;
+      Math.round((maintanenceCalories + Number(goalValue)) / 50) * 50;
+    if (targetCalories < 1200) return;
+
+    const targetProtein = Math.round(
+      (goalValue < 0
+        ? mapToRange(goalValue, -750, 0, 1, 0.5)
+        : mapToRange(goalValue, 0, 750, 0.5, 1.5)) * currentWeight
+    );
+
+    const targetFats = Math.round(
+      mapToRange(goalValue, -750, 750, 0.35, 0.5) * currentWeight
+    );
+
     const targetCarbohydrates =
-      (targetCalories - 4 * targetProtein - 9 * targetFats) / 4;
+      Math.round(
+        (targetCalories - 4 * targetProtein - 9 * targetFats) / 4 / 5
+      ) * 5;
 
     weighInForm.current.elements.targetCalories.value = targetCalories;
     weighInForm.current.elements.targetProtein.value = targetProtein;
     weighInForm.current.elements.targetCarbohydrates.value =
       targetCarbohydrates;
     weighInForm.current.elements.targetFats.value = targetFats;
-  }
+  }, [goalValue, currentWeight]);
 
   return (
     <>
@@ -290,7 +314,7 @@ export default function WeighInForm({ userId, onError }) {
             name="objective"
             className="slider"
             value={goalValue}
-            onChange={handleGoalSliderChange}
+            onChange={(e) => setGoalValue(e.target.value)}
             step={50}
             max={750}
             min={-750}
