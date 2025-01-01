@@ -72,7 +72,7 @@ const tempMacros = {
 
 const navItems = {
   MACROS: "Macros",
-  WEIGH_IN: "Weigh-In",
+  METRICS: "Metrics",
   SETTINGS: "Settings",
   SUPPORT: "Support",
 };
@@ -304,7 +304,7 @@ export default function App() {
             </ContainerItem>
           </>
         )}
-        {isUserLoggedIn && selectedNavItem === navItems.WEIGH_IN && (
+        {isUserLoggedIn && selectedNavItem === navItems.METRICS && (
           <ContainerItem
             gridArea="general-form-container"
             itemHeader="Weigh-In"

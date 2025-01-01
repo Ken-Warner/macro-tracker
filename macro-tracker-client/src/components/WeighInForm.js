@@ -123,6 +123,7 @@ export default function WeighInForm({ userId, onError }) {
   const [currentWeight, setCurrentWeight] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [goalValue, setGoalValue] = useState(0);
+  const [mealsConsistent, setMealsConsistent] = useState(true);
 
   const weighInForm = useRef(null);
   const mealsSinceLastWeighIn = useRef(tempMealHistory);
@@ -151,6 +152,7 @@ export default function WeighInForm({ userId, onError }) {
 
         if (!weighInApiResult.ok) throw new Error();
         lastWeighInData.current = weighInJsonResult;
+        setCurrentWeight(lastWeighInData.weight);
 
         //Meals API Data
         const today = new Date(
@@ -170,6 +172,19 @@ export default function WeighInForm({ userId, onError }) {
         const mealsJsonResult = await mealsApiResult.json();
 
         if (mealsApiResult.ok) mealsSinceLastWeighIn.current = mealsJsonResult;
+
+        const timestamps = mealsJsonResult
+          .map((mealDay) => mealDay.mealsDate.split("-"))
+          .map(([day, month, year]) => new Date(year, month, day).getTime())
+          .sort();
+        let consistent = true;
+        const oneDay = 24 * 60 * 60 * 1000;
+        for (const timestamp in timestamps)
+          if (timestamps[timestamp] !== timestamps[timestamp - 1] + oneDay) {
+            consistent = false;
+            break;
+          }
+        setMealsConsistent(consistent);
       } catch {
         onError("An error occurred retrieving data since last weigh in.");
       } finally {
@@ -286,71 +301,86 @@ export default function WeighInForm({ userId, onError }) {
   return (
     <>
       {!isLoading ? (
-        <form className="form" onSubmit={handleSubmit} ref={weighInForm}>
-          <label htmlFor="date">Date</label>
-          <input
-            type="date"
-            name="date"
-            className="input"
-            defaultValue={
-              new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
-                .toISOString()
-                .split("T")[0]
-            }
-          />
-          <label htmlFor="currentWeight">Current Weight</label>
-          <input
-            type="number"
-            name="currentWeight"
-            className="input"
-            defaultValue={currentWeight}
-            onChange={handleCurrentWeightChange}
-          />
-          <label htmlFor="weightObjective">
-            Goal: {goalText}({goalValue})
-          </label>
-          <input
-            type="range"
-            name="objective"
-            className="slider"
-            value={goalValue}
-            onChange={(e) => setGoalValue(e.target.value)}
-            step={50}
-            max={750}
-            min={-750}
-          />
-          <label htmlFor="targetCalories">New Target Calories</label>
-          <input
-            type="number"
-            name="targetCalories"
-            className="input"
-            defaultValue={0}
-          />
-          <label htmlFor="targetProtein">New Target Protein</label>
-          <input
-            type="number"
-            name="targetProtein"
-            className="input"
-            defaultValue={0}
-          />
-          <label htmlFor="targetCarbohydrates">New Target Carbohydrates</label>
-          <input
-            type="number"
-            name="targetCarbohydrates"
-            className="input"
-            defaultValue={0}
-          />
-          <label htmlFor="targetFats">New Target Fats</label>
-          <input
-            type="number"
-            name="targetFats"
-            className="input"
-            defaultValue={0}
-          />
-          <button className="button submit" type="submit">
-            Accept
-          </button>
-        </form>
+        <>
+          <div>
+            <p>Last Weigh-In: {lastWeighInData.current.date}</p>
+            <p>Previous Weight: {lastWeighInData.current.weight}</p>
+            {!mealsConsistent && (
+              <p>
+                There seems to be missing days in your meal history. This is
+                going to affect your targets. It is recommended to override
+                them.
+              </p>
+            )}
+          </div>
+          <form className="form" onSubmit={handleSubmit} ref={weighInForm}>
+            <label htmlFor="date">Date</label>
+            <input
+              type="date"
+              name="date"
+              className="input"
+              defaultValue={
+                new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+                  .toISOString()
+                  .split("T")[0]
+              }
+            />
+            <label htmlFor="currentWeight">Current Weight</label>
+            <input
+              type="number"
+              name="currentWeight"
+              className="input"
+              defaultValue={currentWeight}
+              onChange={handleCurrentWeightChange}
+            />
+            <label htmlFor="weightObjective">
+              Goal: {goalText}({goalValue})
+            </label>
+            <input
+              type="range"
+              name="objective"
+              className="slider"
+              value={goalValue}
+              onChange={(e) => setGoalValue(e.target.value)}
+              step={50}
+              max={750}
+              min={-750}
+            />
+            <label htmlFor="targetCalories">New Target Calories</label>
+            <input
+              type="number"
+              name="targetCalories"
+              className="input"
+              defaultValue={0}
+            />
+            <label htmlFor="targetProtein">New Target Protein</label>
+            <input
+              type="number"
+              name="targetProtein"
+              className="input"
+              defaultValue={0}
+            />
+            <label htmlFor="targetCarbohydrates">
+              New Target Carbohydrates
+            </label>
+            <input
+              type="number"
+              name="targetCarbohydrates"
+              className="input"
+              defaultValue={0}
+            />
+            <label htmlFor="targetFats">New Target Fats</label>
+            <input
+              type="number"
+              name="targetFats"
+              className="input"
+              defaultValue={0}
+            />
+            <button className="button submit" type="submit">
+              Accept
+            </button>
+          </form>
+        </>
       ) : (
         <Loader size={3} />
       )}
