@@ -70,13 +70,6 @@ const tempMacros = {
   fats: 12,
 };
 
-const navItems = {
-  MACROS: "Macros",
-  METRICS: "Metrics",
-  SETTINGS: "Settings",
-  SUPPORT: "Support",
-};
-
 const initialTodaysMacros = {
   date: "2024-12-21",
   calories: 0,
@@ -85,17 +78,24 @@ const initialTodaysMacros = {
   fats: 0,
 };
 
+const navItems = {
+  MACROS: "Macros",
+  METRICS: "Metrics",
+  SETTINGS: "Settings",
+  SUPPORT: "Support",
+};
+
 export default function App() {
   //UI States
   const [error, setError] = useState("");
   const [selectedNavItem, setSelectedNavItem] = useState(navItems.MACROS);
 
   //Application Data States
-  const [user, setUser] = useState(tempUser);
+  const [user, setUser] = useState({});
   const isUserLoggedIn = user.userId !== undefined;
   const [meals, setMeals] = useState({});
   const [recentWeighInData, setRecentWeighInData] = useState({});
-  const [todaysMacros, setTodaysMacros] = useState(initialTodaysMacros);
+  const [todaysMacros, setTodaysMacros] = useState({});
 
   function handleLogUserIn(user) {
     setUser(user);
@@ -309,7 +309,7 @@ export default function App() {
             gridArea="general-form-container"
             itemHeader="Weigh-In"
           >
-            <WeighInForm userId={user.userId} onError={handleSetError} />
+            <WeighInForm onError={handleSetError} />
           </ContainerItem>
         )}
         {isUserLoggedIn && selectedNavItem === navItems.SETTINGS && (

@@ -1,109 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import Loader from "./Loader";
 
-const tempMealHistory = [
-  {
-    mealsDate: "2024-12-21",
-    meals: [
-      {
-        id: 2,
-        name: "Steak",
-        description: "Steak and veggies.",
-        date: "2024-12-21",
-        time: "16:30:00",
-        calories: 554,
-        protein: 35,
-        carbohydrates: 42,
-        fats: 12,
-      },
-      {
-        id: 1,
-        name: "Ramen",
-        description: "ramen noodles from the package",
-        date: "2024-12-21",
-        time: "12:30:00",
-        calories: 1200,
-        protein: 11,
-        carbohydrates: 34,
-        fats: 3,
-      },
-    ],
-  },
-  {
-    mealsDate: "2024-12-22",
-    meals: [
-      {
-        id: 3,
-        name: "Salmon",
-        description: "Salmon as in the fish bruh.",
-        date: "2024-12-22",
-        time: "12:35:00",
-        calories: 1700,
-        protein: 14,
-        carbohydrates: 13,
-        fats: 20,
-      },
-    ],
-  },
-  {
-    mealsDate: "2024-12-23",
-    meals: [
-      {
-        id: 3,
-        name: "Salmon",
-        description: "Salmon as in the fish bruh.",
-        date: "2024-12-23",
-        time: "12:35:00",
-        calories: 1800,
-        protein: 12,
-        carbohydrates: 11,
-        fats: 25,
-      },
-    ],
-  },
-  {
-    mealsDate: "2024-12-24",
-    meals: [
-      {
-        id: 3,
-        name: "Salmon",
-        description: "Salmon as in the fish bruh.",
-        date: "2024-12-24",
-        time: "12:35:00",
-        calories: 1650,
-        protein: 22,
-        carbohydrates: 0,
-        fats: 21,
-      },
-    ],
-  },
-  {
-    mealsDate: "2024-12-25",
-    meals: [
-      {
-        id: 3,
-        name: "Salmon",
-        description: "Salmon as in the fish bruh.",
-        date: "2024-12-25",
-        time: "12:35:00",
-        calories: 1801,
-        protein: 12,
-        carbohydrates: 130,
-        fats: 21,
-      },
-    ],
-  },
-];
-
-const tempLastWeighInData = {
-  date: "2024-12-20",
-  weight: 135,
-  targetCalories: 1700,
-  targetProtein: 150,
-  targetCarbohydrates: 125,
-  targetFats: 65,
-};
-
 function mapToRange(value, inMin, inMax, outMin, outMax) {
   if (!(inMin <= value && value <= inMax))
     throw new Error("Value is not in input range");
@@ -119,15 +16,15 @@ function mapToRange(value, inMin, inMax, outMin, outMax) {
   return origin;
 }
 
-export default function WeighInForm({ userId, onError }) {
+export default function WeighInForm({ onError }) {
   const [currentWeight, setCurrentWeight] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [goalValue, setGoalValue] = useState(0);
   const [mealsConsistent, setMealsConsistent] = useState(true);
 
   const weighInForm = useRef(null);
-  const mealsSinceLastWeighIn = useRef(tempMealHistory);
-  const lastWeighInData = useRef(tempLastWeighInData);
+  const mealsSinceLastWeighIn = useRef([]);
+  const lastWeighInData = useRef({});
 
   const goalText =
     goalValue < -500
@@ -242,8 +139,10 @@ export default function WeighInForm({ userId, onError }) {
 
   useEffect(() => {
     if (currentWeight <= 0) return;
-    // const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000);
-    const today = new Date("2024-12-25");
+    if (!weighInForm.current) return;
+    if (mealsSinceLastWeighIn.current.length === 0) return;
+
+    const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000);
 
     const lastWeighIn = new Date(lastWeighInData.current.date);
     lastWeighIn.setMinutes(
