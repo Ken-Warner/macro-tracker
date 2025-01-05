@@ -1,4 +1,4 @@
-const express = require('express');
+const express = require("express");
 
 const {
   createNewMeal,
@@ -6,14 +6,16 @@ const {
   getMealHistory,
   getMeals,
   deleteMealById,
-} = require('./meals.controller');
+  putMealIsRecurring,
+} = require("./meals.controller");
 
 const mealsRouter = express.Router();
 
-mealsRouter.post('/nonComposed', createNewMealRaw);
-mealsRouter.get('/history', getMealHistory)
-mealsRouter.post('/', createNewMeal);
-mealsRouter.delete('/:id', deleteMealById);
-mealsRouter.get('/', getMeals);
+mealsRouter.post("/nonComposed", createNewMealRaw);
+mealsRouter.get("/history", getMealHistory);
+mealsRouter.post("/", createNewMeal);
+mealsRouter.delete("/:id", deleteMealById);
+mealsRouter.get("/", getMeals);
+mealsRouter.put("/:id", putMealIsRecurring);
 
 module.exports = mealsRouter;

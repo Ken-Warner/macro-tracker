@@ -254,10 +254,25 @@ async function updateMacroTotals(userId, meal) {
   await query(upsertQuery);
 }
 
+async function updateMealIsRecurring(mealId, userId, isRecurring) {
+  let updateQuery = {
+    text: `UPDATE meals
+            SET is_recurring = $1
+            WHERE id = $2
+              AND user_id = $3;`,
+    params: [isRecurring, mealId, userId],
+  };
+
+  let result = await query(updateQuery);
+
+  return result.rowCount;
+}
+
 module.exports = {
   createMeal,
   createMealRaw,
   getMealsFromDay,
   getMealHistoryWithRange,
   deleteMeal,
+  updateMealIsRecurring,
 };

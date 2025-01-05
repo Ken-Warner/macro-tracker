@@ -223,7 +223,8 @@ CREATE TABLE public.meals (
     calories integer,
     protein integer,
     carbohydrates integer,
-    fats integer
+    fats integer,
+    is_recurring boolean DEFAULT false
 );
 
 

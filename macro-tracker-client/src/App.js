@@ -91,11 +91,11 @@ export default function App() {
   const [selectedNavItem, setSelectedNavItem] = useState(navItems.MACROS);
 
   //Application Data States
-  const [user, setUser] = useState({});
+  const [user, setUser] = useState(tempUser);
   const isUserLoggedIn = user.userId !== undefined;
-  const [meals, setMeals] = useState({});
+  const [meals, setMeals] = useState(tempMeals);
   const [recentWeighInData, setRecentWeighInData] = useState({});
-  const [todaysMacros, setTodaysMacros] = useState({});
+  const [todaysMacros, setTodaysMacros] = useState(tempMacros);
 
   function handleLogUserIn(user) {
     setUser(user);

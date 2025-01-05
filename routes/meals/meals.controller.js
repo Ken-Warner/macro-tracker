@@ -4,6 +4,7 @@ const {
   getMealsFromDay,
   getMealHistoryWithRange,
   deleteMeal,
+  updateMealIsRecurring,
 } = require("../../models/meals.model");
 
 const validator = require("../../Utilities/validator");
@@ -239,10 +240,35 @@ async function deleteMealById(req, res) {
   }
 }
 
+async function putMealIsRecurring(req, res) {
+  if (!req.session.userId || !req.session.username) {
+    res.status(401).send();
+    return;
+  }
+
+  try {
+    const result = await updateMealIsRecurring(
+      req.params.id,
+      req.session.userId,
+      req.body.isRecurring
+    );
+
+    res.status(result === 1 ? 200 : 404).send();
+  } catch (e) {
+    const uuid = await log(
+      loggingLevels.ERROR,
+      `putMealIsRecurring: ${e.message}`,
+      { userId: req.session.userId, requestParamaters: req.params }
+    );
+    res.status(500).send(formatResponse(uuid));
+  }
+}
+
 module.exports = {
   createNewMeal,
   createNewMealRaw,
   getMealHistory,
   getMeals,
   deleteMealById,
+  putMealIsRecurring,
 };
