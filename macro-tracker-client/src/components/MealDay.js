@@ -1,6 +1,12 @@
 import { useRef, useState } from "react";
+import Loader from "./Loader";
 
-export default function MealDay({ mealDay, onDeleteMeal, onError }) {
+export default function MealDay({
+  mealDay,
+  onDeleteMeal,
+  onError,
+  onRecurringChange,
+}) {
   const [isExpanded, setIsExpanded] = useState(false);
   const accordionBody = useRef(null);
 
@@ -36,6 +42,7 @@ export default function MealDay({ mealDay, onDeleteMeal, onError }) {
             meal={meal}
             onDeleteMeal={onDeleteMeal}
             onError={onError}
+            onRecurringChange={onRecurringChange}
           />
         ))}
       </div>
@@ -43,7 +50,8 @@ export default function MealDay({ mealDay, onDeleteMeal, onError }) {
   );
 }
 
-function Meal({ meal, onDeleteMeal, onError }) {
+function Meal({ meal, onDeleteMeal, onError, onRecurringChange }) {
+  const [isLoading, setIsLoading] = useState(false);
   const mealItemModal = useRef(null);
 
   function handleDeleteMeal() {
@@ -69,6 +77,38 @@ function Meal({ meal, onDeleteMeal, onError }) {
     mealItemModal.current.close();
   }
 
+  function handleSetRecurringMeal() {
+    if (isLoading) return;
+
+    async function fetchSetRecurringMeal() {
+      try {
+        onError("");
+        setIsLoading(true);
+
+        const apiResult = await fetch(`/api/meals/${meal.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ isRecurring: !meal.isRecurring }),
+        });
+
+        if (apiResult.ok) {
+          onRecurringChange(meal.id, !meal.isRecurring);
+          mealItemModal.current.close();
+        } else {
+          onError("Meal Not Found");
+        }
+      } catch {
+        onError("Error contacting server");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchSetRecurringMeal();
+  }
+
   return (
     <>
       <div
@@ -77,6 +117,7 @@ function Meal({ meal, onDeleteMeal, onError }) {
       >
         <div className="accordion-item-title">
           {meal.name} at {meal.time}
+          {meal.isRecurring ? " (R)" : ""}
         </div>
         <div className="accordion-item-macro-grid">
           <div className="calories">{meal.calories}</div>
@@ -91,6 +132,18 @@ function Meal({ meal, onDeleteMeal, onError }) {
           <ul>
             <li>{meal.time}</li>
             <li>{meal.description}</li>
+            <li>
+              <button
+                className="button"
+                onClick={() => handleSetRecurringMeal()}
+              >
+                {isLoading ? (
+                  <Loader size={1.15} thickness={4} />
+                ) : (
+                  "Toggle Recurring"
+                )}
+              </button>
+            </li>
           </ul>
           <div className="modal-button-container">
             <button

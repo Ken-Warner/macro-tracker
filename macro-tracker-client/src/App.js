@@ -30,6 +30,7 @@ const tempMeals = [
         protein: 35,
         carbohydrates: 42,
         fats: 12,
+        isRecurring: true,
       },
       {
         id: 1,
@@ -251,6 +252,19 @@ export default function App() {
     }
   }
 
+  function handleSetRecurringMeal(mealId, isRecurring) {
+    setMeals(
+      meals.map((mealDay) => {
+        return {
+          ...mealDay,
+          meals: mealDay.meals.map((meal) =>
+            meal.id === mealId ? { ...meal, isRecurring: isRecurring } : meal
+          ),
+        };
+      })
+    );
+  }
+
   return (
     <>
       {error && <Error errorMessage={error} onError={handleSetError} />}
@@ -286,6 +300,7 @@ export default function App() {
                     mealDay={mealDay}
                     onDeleteMeal={handleDeleteMeal}
                     onError={handleSetError}
+                    onRecurringChange={handleSetRecurringMeal}
                   />
                 ))
               ) : (

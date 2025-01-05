@@ -159,7 +159,8 @@ async function getMealHistoryWithRange(userId, fromDate, toDate) {
                   calories,
                   protein,
                   carbohydrates,
-                  fats
+                  fats,
+                  is_recurring
             FROM meals
             WHERE user_id = $1
               AND date >= $2
