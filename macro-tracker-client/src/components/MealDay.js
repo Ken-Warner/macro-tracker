@@ -6,6 +6,7 @@ export default function MealDay({
   onDeleteMeal,
   onError,
   onRecurringChange,
+  canBeRecurring = false,
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const accordionBody = useRef(null);
@@ -43,6 +44,7 @@ export default function MealDay({
             onDeleteMeal={onDeleteMeal}
             onError={onError}
             onRecurringChange={onRecurringChange}
+            canBeRecurring={canBeRecurring}
           />
         ))}
       </div>
@@ -50,7 +52,13 @@ export default function MealDay({
   );
 }
 
-function Meal({ meal, onDeleteMeal, onError, onRecurringChange }) {
+function Meal({
+  meal,
+  onDeleteMeal,
+  onError,
+  onRecurringChange,
+  canBeRecurring = false,
+}) {
   const [isLoading, setIsLoading] = useState(false);
   const mealItemModal = useRef(null);
 
@@ -132,18 +140,20 @@ function Meal({ meal, onDeleteMeal, onError, onRecurringChange }) {
           <ul>
             <li>{meal.time}</li>
             <li>{meal.description}</li>
-            <li>
-              <button
-                className="button"
-                onClick={() => handleSetRecurringMeal()}
-              >
-                {isLoading ? (
-                  <Loader size={1.15} thickness={4} />
-                ) : (
-                  "Toggle Recurring"
-                )}
-              </button>
-            </li>
+            {canBeRecurring && (
+              <li>
+                <button
+                  className="button"
+                  onClick={() => handleSetRecurringMeal()}
+                >
+                  {isLoading ? (
+                    <Loader size={1.15} thickness={4} />
+                  ) : (
+                    "Toggle Recurring"
+                  )}
+                </button>
+              </li>
+            )}
           </ul>
           <div className="modal-button-container">
             <button

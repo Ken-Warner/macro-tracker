@@ -86,6 +86,10 @@ const navItems = {
   SUPPORT: "Support",
 };
 
+const today = new Date(Date.now() - new Date().getTimezoneOffset())
+  .toISOString()
+  .split("T")[0];
+
 export default function App() {
   //UI States
   const [error, setError] = useState("");
@@ -294,13 +298,16 @@ export default function App() {
             </ContainerItem>
             <ContainerItem gridArea="macro-history" itemHeader="Macro History">
               {meals.length > 0 ? (
-                meals.map((mealDay) => (
+                meals.map((mealDay, index) => (
                   <MealDay
                     key={mealDay.mealsDate}
                     mealDay={mealDay}
                     onDeleteMeal={handleDeleteMeal}
                     onError={handleSetError}
                     onRecurringChange={handleSetRecurringMeal}
+                    canBeRecurring={
+                      index === 0 && mealDay.mealsDate === today ? true : false
+                    }
                   />
                 ))
               ) : (
