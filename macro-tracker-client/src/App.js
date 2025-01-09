@@ -86,7 +86,7 @@ const navItems = {
   SUPPORT: "Support",
 };
 
-const today = new Date(Date.now() - new Date().getTimezoneOffset())
+const today = new Date(Date.now() - new Date().getTimezoneOffset() * 6000)
   .toISOString()
   .split("T")[0];
 
@@ -96,11 +96,11 @@ export default function App() {
   const [selectedNavItem, setSelectedNavItem] = useState(navItems.MACROS);
 
   //Application Data States
-  const [user, setUser] = useState(tempUser);
+  const [user, setUser] = useState({});
   const isUserLoggedIn = user.userId !== undefined;
-  const [meals, setMeals] = useState(tempMeals);
+  const [meals, setMeals] = useState([]);
   const [recentWeighInData, setRecentWeighInData] = useState({});
-  const [todaysMacros, setTodaysMacros] = useState(tempMacros);
+  const [todaysMacros, setTodaysMacros] = useState({});
 
   function handleLogUserIn(user) {
     setUser(user);

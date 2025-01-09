@@ -269,6 +269,34 @@ async function updateMealIsRecurring(mealId, userId, isRecurring) {
   return result.rowCount;
 }
 
+async function selectRecurringMeals(userId) {
+  let selectQuery = {
+    text: `SELECT name,
+                  description,
+                  date,
+                  time,
+                  calories,
+                  protein,
+                  carbohydrates,
+                  fats
+            FROM meals AS outer_meals
+            WHERE NOT EXISTS (SELECT id
+                                FROM meals AS inner_meals
+                                WHERE inner_meals.date > outer_meals.date
+                                  AND inner_meals.user_id = $1)
+            AND outer_meals.user_id = $1;`,
+    params: [userId],
+  };
+
+  let result = await query(selectQuery);
+
+  return result.rows;
+}
+
+async function insertMealsFromRecurringUpdate(newMeals) {
+  throw new Error("not implemented");
+}
+
 module.exports = {
   createMeal,
   createMealRaw,
@@ -276,4 +304,6 @@ module.exports = {
   getMealHistoryWithRange,
   deleteMeal,
   updateMealIsRecurring,
+  selectRecurringMeals,
+  insertMealsFromRecurringUpdate,
 };

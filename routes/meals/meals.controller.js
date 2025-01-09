@@ -5,6 +5,8 @@ const {
   getMealHistoryWithRange,
   deleteMeal,
   updateMealIsRecurring,
+  selectRecurringMeals,
+  insertMealsFromRecurringUpdate,
 } = require("../../models/meals.model");
 
 const validator = require("../../Utilities/validator");
@@ -145,11 +147,47 @@ async function getMealHistory(req, res) {
   }
 
   try {
-    const mealHistory = await getMealHistoryWithRange(
+    const mealHistoryWithoutRecurring = await getMealHistoryWithRange(
       req.session.userId,
       req.query.fromDate,
       req.query.toDate
     );
+
+    let newMeals = [];
+
+    if (
+      (mealHistoryWithoutRecurring.length > 0 &&
+        mealHistoryWithoutRecurring[0].date.toISOString().split("T")[0] !==
+          req.query.toDate) ||
+      mealHistoryWithoutRecurring.length === 0
+    ) {
+      const recurringMeals = await selectRecurringMeals(req.session.userId);
+      if (recurringMeals.length > 0) {
+        const fromDate = new Date(recurringMeals[0].date);
+        const toDate = new Date(req.query.toDate + "T00:00:00");
+
+        let currentDate = new Date(fromDate);
+
+        while (currentDate <= toDate) {
+          newMeals.push(
+            ...recurringMeals.map((recurringMeal) => {
+              return {
+                ...recurringMeal,
+                date: new Date(currentDate),
+                userId: req.session.userId,
+                isRecurring: true,
+              };
+            })
+          );
+
+          currentDate.setDate(currentDate.getDate() + 1);
+        }
+
+        await insertMealsFromRecurringUpdate(newMeals);
+      }
+    }
+
+    const mealHistory = [...newMeals, ...mealHistoryWithoutRecurring];
 
     let deepMealHistory = [];
     for (let meal of mealHistory) {
