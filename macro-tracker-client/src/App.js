@@ -150,9 +150,7 @@ export default function App() {
       } catch {
         handleSetError("Unable to get meal history");
       }
-    }
 
-    async function fetchCurrentMacros() {
       try {
         handleSetError("");
 
@@ -179,7 +177,6 @@ export default function App() {
 
     fetchRecentWeighInData();
     fetchMealHistory();
-    fetchCurrentMacros();
   }
 
   function handleLogUserOut() {

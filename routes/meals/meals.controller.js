@@ -154,6 +154,7 @@ async function getMealHistory(req, res) {
     );
 
     let newMeals = [];
+    let newMacroTotals = [];
 
     if (
       (mealHistoryWithoutRecurring.length > 0 &&
@@ -163,7 +164,22 @@ async function getMealHistory(req, res) {
     ) {
       const recurringMeals = await selectRecurringMeals(req.session.userId);
       if (recurringMeals.length > 0) {
-        //tally up the macro totals for the recurring meals so those can be passed into the DB too
+        const recurringMacroTotals = recurringMeals.reduce(
+          (acc, curr) => {
+            acc.calories += curr.calories;
+            acc.protein += curr.protein;
+            acc.carbohydrates += curr.carbohydrates;
+            acc.fats += curr.fats;
+
+            return acc;
+          },
+          {
+            calories: 0,
+            protein: 0,
+            carbohydrates: 0,
+            fats: 0,
+          }
+        );
 
         const toDate = new Date(req.query.toDate + "T00:00:00");
         let currentDate = new Date(recurringMeals[0].date);
@@ -180,12 +196,16 @@ async function getMealHistory(req, res) {
               };
             })
           );
+          newMacroTotals.push({
+            ...recurringMacroTotals,
+            date: new Date(currentDate),
+            userId: req.session.userId,
+          });
 
           currentDate.setDate(currentDate.getDate() + 1);
         }
 
-        //insert macro totals as well
-        await insertMealsFromRecurringUpdate(newMeals);
+        await insertMealsFromRecurringUpdate(newMeals, newMacroTotals);
       }
     }
 

@@ -293,14 +293,14 @@ async function selectRecurringMeals(userId) {
   return result.rows;
 }
 
-async function insertMealsFromRecurringUpdate(newMeals) {
-  let values = ``;
-  let params = [];
+async function insertMealsFromRecurringUpdate(newMeals, newMacroTotals) {
+  let mealsValues = ``;
+  let mealsParams = [];
   let counter = 1;
   for (meal of newMeals) {
-    values += ` ($${counter++}, $${counter++}, $${counter++}, $${counter++}, $${counter++}, 
+    mealsValues += ` ($${counter++}, $${counter++}, $${counter++}, $${counter++}, $${counter++}, 
                 $${counter++}, $${counter++}, $${counter++}, $${counter++}, $${counter++}),`;
-    params.push(
+    mealsParams.push(
       meal.userId,
       meal.name,
       meal.description,
@@ -314,16 +314,43 @@ async function insertMealsFromRecurringUpdate(newMeals) {
     );
   }
 
-  values = values.slice(0, values.length - 1);
+  mealsValues = mealsValues.slice(0, mealsValues.length - 1);
 
-  let insertQuery = {
+  let insertMealsQuery = {
     text: `INSERT INTO meals
             (user_id, name, description, date, time, calories, protein, carbohydrates, fats, is_recurring)
-            VALUES${values};`,
-    params: params,
+            VALUES${mealsValues};`,
+    params: mealsParams,
   };
 
-  await query(insertQuery);
+  await query(insertMealsQuery);
+
+  let macrosValues = ``;
+  let macrosParams = [];
+  counter = 1;
+  for (macros of newMacroTotals) {
+    macrosValues += ` ($${counter++}, $${counter++}, $${counter++}, 
+                      $${counter++}, $${counter++}, $${counter++}),`;
+    macrosParams.push(
+      macros.userId,
+      macros.date,
+      macros.calories,
+      macros.protein,
+      macros.carbohydrates,
+      macros.fats
+    );
+  }
+
+  macrosValues = macrosValues.slice(0, macrosValues.length - 1);
+
+  let insertMacrosQuery = {
+    text: `INSERT INTO macro_totals 
+            (user_id, date, calories, protein, carbohydrates, fats) 
+            VALUES${macrosValues};`,
+    params: macrosParams,
+  };
+
+  await query(insertMacrosQuery);
 }
 
 module.exports = {
