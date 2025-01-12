@@ -27,6 +27,8 @@
 }
 
 body {
+  width: 100vw;
+  overflow-x: none;
   background-color: var(--bg-primary);
 }
 

@@ -294,7 +294,36 @@ async function selectRecurringMeals(userId) {
 }
 
 async function insertMealsFromRecurringUpdate(newMeals) {
-  throw new Error("not implemented");
+  let values = ``;
+  let params = [];
+  let counter = 1;
+  for (meal of newMeals) {
+    values += ` ($${counter++}, $${counter++}, $${counter++}, $${counter++}, $${counter++}, 
+                $${counter++}, $${counter++}, $${counter++}, $${counter++}, $${counter++}),`;
+    params.push(
+      meal.userId,
+      meal.name,
+      meal.description,
+      meal.date,
+      meal.time,
+      meal.calories,
+      meal.protein,
+      meal.carbohydrates,
+      meal.fats,
+      meal.isRecurring
+    );
+  }
+
+  values = values.slice(0, values.length - 1);
+
+  let insertQuery = {
+    text: `INSERT INTO meals
+            (user_id, name, description, date, time, calories, protein, carbohydrates, fats, is_recurring)
+            VALUES${values};`,
+    params: params,
+  };
+
+  await query(insertQuery);
 }
 
 module.exports = {

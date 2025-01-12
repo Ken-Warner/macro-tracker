@@ -163,10 +163,11 @@ async function getMealHistory(req, res) {
     ) {
       const recurringMeals = await selectRecurringMeals(req.session.userId);
       if (recurringMeals.length > 0) {
-        const fromDate = new Date(recurringMeals[0].date);
-        const toDate = new Date(req.query.toDate + "T00:00:00");
+        //tally up the macro totals for the recurring meals so those can be passed into the DB too
 
-        let currentDate = new Date(fromDate);
+        const toDate = new Date(req.query.toDate + "T00:00:00");
+        let currentDate = new Date(recurringMeals[0].date);
+        currentDate.setDate(currentDate.getDate() + 1);
 
         while (currentDate <= toDate) {
           newMeals.push(
@@ -183,11 +184,12 @@ async function getMealHistory(req, res) {
           currentDate.setDate(currentDate.getDate() + 1);
         }
 
+        //insert macro totals as well
         await insertMealsFromRecurringUpdate(newMeals);
       }
     }
 
-    const mealHistory = [...newMeals, ...mealHistoryWithoutRecurring];
+    const mealHistory = [...newMeals.reverse(), ...mealHistoryWithoutRecurring];
 
     let deepMealHistory = [];
     for (let meal of mealHistory) {
