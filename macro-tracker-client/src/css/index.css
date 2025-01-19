@@ -410,7 +410,7 @@ form label {
   .container {
     grid-template-columns: 1fr;
     grid-template-areas:
-      "loginForm"
+      "generalForm"
       "userInfo"
       "dailyMacros"
       "macroHistory";

@@ -1,47 +1,36 @@
-const { query } = require('./pool');
+const { query } = require("./pool");
 
 async function getUser(username, password) {
   let getUserQuery = {
     text: `SELECT id, username FROM users
             WHERE username = $1
             AND password = crypt($2, password);`,
-    params: [
-      username,
-      password,
-    ],
+    params: [username, password],
   };
 
   const result = await query(getUserQuery);
 
-  if (result.rowCount == 1)
-    return result.rows[0];
-  else
-    throw new Error('Incorrect username or password');
+  if (result.rowCount == 1) return result.rows[0];
+  else throw new Error("Incorrect username or password");
 }
 
 async function createUser(username, password, emailAddress) {
   let usernameCheck = {
-    text: 'SELECT COUNT( * ) FROM users WHERE username = $1;',
-    params: [
-      username,
-    ],
+    text: "SELECT COUNT( * ) FROM users WHERE username = $1;",
+    params: [username],
   };
 
   let insertUserQuery = {
     text: `INSERT INTO users (username, password, email_address)
                VALUES ($1, crypt($2, gen_salt('bf')), $3)
                RETURNING id;`,
-    params: [
-      username,
-      password,
-      emailAddress,
-    ],
+    params: [username, password, emailAddress],
   };
 
   const usernameCheckResult = await query(usernameCheck);
 
   if (usernameCheckResult.rows[0].count > 0) {
-    throw new Error('Username already exists');
+    throw new Error("Username already exists");
   } else {
     const insertResult = await query(insertUserQuery);
 
@@ -52,4 +41,4 @@ async function createUser(username, password, emailAddress) {
 module.exports = {
   getUser,
   createUser,
-}
+};

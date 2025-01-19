@@ -1,9 +1,11 @@
-const { Pool } = require('pg');
+const { Pool } = require("pg");
 
-const DEFAULT = Symbol('default');
+const DEFAULT = Symbol("default");
 
 const pool = new Pool({
-  connectionString: process.env.DB_CONN_STRING || 'postgres://postgres:test1234@127.0.0.1:5432/postgres'
+  connectionString:
+    process.env.DB_CONN_STRING ||
+    "postgres://postgres:test1234@127.0.0.1:5432/postgres",
 });
 
 async function query({ text, params = [] }) {
@@ -27,26 +29,26 @@ async function query({ text, params = [] }) {
 //default vlaues in the value list
 function buildInsert(fieldList, valueList) {
   if (fieldList.length !== valueList.length)
-    throw new Error('Parameters and values must be of equal length');
+    throw new Error("Parameters and values must be of equal length");
 
-  const queryFields = `(${fieldList.join(',')})`;
+  const queryFields = `(${fieldList.join(",")})`;
 
   let counter = 0;
   let queryParams = [];
 
   const queryValueList = valueList.map((element, index) => {
     if (element == DEFAULT) {
-      return 'DEFAULT';
+      return "DEFAULT";
     } else {
       counter += 1;
       queryParams.push(element);
-      return '$' + counter;
+      return "$" + counter;
     }
   });
 
-  const queryValues = `(${queryValueList.join(',')})`;
-                  
-  return [ queryFields, queryValues, queryParams ];
+  const queryValues = `(${queryValueList.join(",")})`;
+
+  return [queryFields, queryValues, queryParams];
 }
 
 module.exports = {
