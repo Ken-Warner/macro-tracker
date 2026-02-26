@@ -1,9 +1,6 @@
 node_modules/
 macro-tracker-client/node_modules/
-db/*
 .dockerignore
-dockerfile
 .env
 public/*
-compose.yaml
-compose.production.yaml
+data
