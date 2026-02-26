@@ -1,0 +1,18 @@
+services:
+  api:
+    build: !reset
+    image: kenw1991/macro-tracker-api:latest
+    ports: !reset
+    expose:
+      - 80
+    networks:
+      - nginx_default
+  db:
+    build: !reset
+    image: kenw1991/macro-tracker-db:latest
+    networks:
+      - nginx_default
+networks:
+  nginx_default:
+    name: nginxproxymanager_default
+    external: true
