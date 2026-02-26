@@ -3,9 +3,11 @@ const { Pool } = require("pg");
 const DEFAULT = Symbol("default");
 
 const pool = new Pool({
-  connectionString:
-    process.env.DB_CONN_STRING ||
-    "postgres://postgres:test1234@127.0.0.1:5432/postgres",
+  host: process.env.DB_HOST || "127.0.0.1",
+  user: process.env.DB_USER || "postgres",
+  password: process.env.DB_PASSWORD || "test123",
+  database: process.env.DB_DATABASE || "postgres",
+  port: process.env.DB_PORT || 5432,
 });
 
 async function query({ text, params = [] }) {

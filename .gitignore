@@ -5,3 +5,5 @@ db/*
 dockerfile
 .env
 public/*
+compose.yaml
+compose.production.yaml
