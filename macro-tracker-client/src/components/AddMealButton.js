@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import Loader from "./Loader";
+import { postMealNonComposed } from "../utilities/api";
 
 export default function AddMealButton({ onError, onAddNewMeal }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -26,29 +27,12 @@ export default function AddMealButton({ onError, onAddNewMeal }) {
 
     async function fetchCreateNewMeal() {
       try {
-        console.log(newMeal);
-
         setIsLoading(true);
         onError("");
 
-        const apiResult = await fetch("/api/meals/nonComposed", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(newMeal),
-        });
-
-        const jsonResult = await apiResult.json();
-
-        console.log(jsonResult);
-
-        if (apiResult.ok) {
-          onAddNewMeal(jsonResult);
-          e.target.reset();
-        } else if (apiResult.status === 400) {
-          onError(jsonResult.error);
-        }
-      } catch {
-        onError("There was a problem adding this new meal.");
+        onAddNewMeal(await postMealNonComposed(newMeal));
+      } catch (error) {
+        onError(error.message);
       } finally {
         setIsLoading(false);
       }
@@ -87,7 +71,7 @@ export default function AddMealButton({ onError, onAddNewMeal }) {
               className="input"
               step={60}
               defaultValue={new Date(
-                Date.now() - new Date().getTimezoneOffset() * 60000
+                Date.now() - new Date().getTimezoneOffset() * 60000,
               )
                 .toISOString()
                 .split("T")[1]
@@ -100,6 +84,7 @@ export default function AddMealButton({ onError, onAddNewMeal }) {
               name="calories"
               className="input"
               defaultValue={0}
+              onFocus={(event) => event.target.select()}
             />
             <label htmlFor="protein">Protein</label>
             <input
@@ -107,6 +92,7 @@ export default function AddMealButton({ onError, onAddNewMeal }) {
               name="protein"
               className="input"
               defaultValue={0}
+              onFocus={(event) => event.target.select()}
             />
             <label htmlFor="carbohydrates">Carbohydrates</label>
             <input
@@ -114,6 +100,7 @@ export default function AddMealButton({ onError, onAddNewMeal }) {
               name="carbohydrates"
               className="input"
               defaultValue={0}
+              onFocus={(event) => event.target.select()}
             />
             <label htmlFor="fats">Fats</label>
             <input
@@ -121,6 +108,7 @@ export default function AddMealButton({ onError, onAddNewMeal }) {
               name="fats"
               className="input"
               defaultValue={0}
+              onFocus={(event) => event.target.select()}
             />
             <label htmlFor="description">Description</label>
             <textarea name="description" className="textarea"></textarea>

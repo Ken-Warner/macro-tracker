@@ -35,7 +35,7 @@ async function createNewMeal(req, res) {
     res
       .status(400)
       .send(
-        JSON.stringify({ error: "You must provide at least one ingredient" })
+        JSON.stringify({ error: "You must provide at least one ingredient" }),
       );
     return;
   }
@@ -46,7 +46,7 @@ async function createNewMeal(req, res) {
     res
       .status(400)
       .send(
-        JSON.stringify({ error: "1 or more of the ingredient IDs is invalid" })
+        JSON.stringify({ error: "1 or more of the ingredient IDs is invalid" }),
       );
     return;
   }
@@ -57,7 +57,7 @@ async function createNewMeal(req, res) {
     res.status(400).send(
       JSON.stringify({
         error: "1 or more of the ingredients portion sizes are invalid",
-      })
+      }),
     );
     return;
   }
@@ -70,7 +70,7 @@ async function createNewMeal(req, res) {
     const uuid = await log(
       loggingLevels.ERROR,
       `createNewMeal: ${e.message}`,
-      req.body
+      req.body,
     );
     res.status(500).send(formatResponse(uuid));
   }
@@ -121,7 +121,7 @@ async function createNewMealRaw(req, res) {
     const uuid = await log(
       loggingLevels.ERROR,
       `createNewMealRaw: ${e.message}`,
-      req.body
+      req.body,
     );
     res.status(500).send(formatResponse(uuid));
   }
@@ -141,7 +141,7 @@ async function getMealHistory(req, res) {
       JSON.stringify({
         error:
           "You must provide a date range with values fromDate and toDate in the format YYYY-MM-DD",
-      })
+      }),
     );
     return;
   }
@@ -150,7 +150,7 @@ async function getMealHistory(req, res) {
     const mealHistoryWithoutRecurring = await getMealHistoryWithRange(
       req.session.userId,
       req.query.fromDate,
-      req.query.toDate
+      req.query.toDate,
     );
 
     let newMeals = [];
@@ -178,7 +178,7 @@ async function getMealHistory(req, res) {
             protein: 0,
             carbohydrates: 0,
             fats: 0,
-          }
+          },
         );
 
         const toDate = new Date(req.query.toDate + "T00:00:00");
@@ -194,7 +194,7 @@ async function getMealHistory(req, res) {
                 userId: req.session.userId,
                 isRecurring: true,
               };
-            })
+            }),
           );
           newMacroTotals.push({
             ...recurringMacroTotals,
@@ -216,7 +216,7 @@ async function getMealHistory(req, res) {
       meal.date = meal.date.toISOString().split("T")[0];
 
       let deepMealHistoryDate = deepMealHistory.find(
-        (el) => el.mealsDate === meal.date
+        (el) => el.mealsDate === meal.date,
       );
 
       if (!deepMealHistoryDate) {
@@ -235,7 +235,7 @@ async function getMealHistory(req, res) {
     const uuid = await log(
       loggingLevels.ERROR,
       `getMealHistory: ${e.message}`,
-      req.query
+      req.query,
     );
     res.status(500).send(formatResponse(uuid));
   }
@@ -254,7 +254,7 @@ async function getMeals(req, res) {
       JSON.stringify({
         error:
           "You must provide a numerical offset, day greater than 0, from today as daysAgo",
-      })
+      }),
     );
     return;
   }
@@ -267,7 +267,7 @@ async function getMeals(req, res) {
     const uuid = await log(
       loggingLevels.ERROR,
       `getMeals: ${e.message}`,
-      req.query
+      req.query,
     );
     res.status(500).send(formatResponse(uuid));
   }
@@ -294,7 +294,7 @@ async function deleteMealById(req, res) {
     const uuid = await log(
       loggingLevels.ERROR,
       `deleteMealById: ${e.message}`,
-      { userId: req.session.userId, requestParamaters: req.params }
+      { userId: req.session.userId, requestParamaters: req.params },
     );
     res.status(500).send(formatResponse(uuid));
   }
@@ -310,7 +310,7 @@ async function putMealIsRecurring(req, res) {
     const result = await updateMealIsRecurring(
       req.params.id,
       req.session.userId,
-      req.body.isRecurring
+      req.body.isRecurring,
     );
 
     res.status(result === 1 ? 200 : 404).send();
@@ -318,7 +318,7 @@ async function putMealIsRecurring(req, res) {
     const uuid = await log(
       loggingLevels.ERROR,
       `putMealIsRecurring: ${e.message}`,
-      { userId: req.session.userId, requestParamaters: req.params }
+      { userId: req.session.userId, requestParamaters: req.params },
     );
     res.status(500).send(formatResponse(uuid));
   }

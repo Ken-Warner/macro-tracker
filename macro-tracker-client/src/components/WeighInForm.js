@@ -1,5 +1,10 @@
 import { useEffect, useState, useRef } from "react";
 import Loader from "./Loader";
+import {
+  getMostRecentWeighIn,
+  getMealHistoryFromRange,
+  postWeighIn,
+} from "../utilities/api";
 
 function mapToRange(value, inMin, inMax, outMin, outMax) {
   if (!(inMin <= value && value <= inMax))
@@ -30,12 +35,12 @@ export default function WeighInForm({ onError }) {
     goalValue < -500
       ? "Aggressively Losing Weight"
       : goalValue < 0
-      ? "Losing Weight"
-      : goalValue === "0"
-      ? "Maintaining Weight"
-      : goalValue < 500
-      ? "Gaining Weight"
-      : "Aggressively Gaining Weight";
+        ? "Losing Weight"
+        : goalValue === "0"
+          ? "Maintaining Weight"
+          : goalValue < 500
+            ? "Gaining Weight"
+            : "Aggressively Gaining Weight";
 
   useEffect(() => {
     async function fetchData() {
@@ -44,33 +49,22 @@ export default function WeighInForm({ onError }) {
         setIsLoading(true);
         onError("");
 
-        const weighInApiResult = await fetch("/api/weighIn/recent");
-        const weighInJsonResult = await weighInApiResult.json();
-
-        if (!weighInApiResult.ok) throw new Error();
-        lastWeighInData.current = weighInJsonResult;
+        lastWeighInData.current = await getMostRecentWeighIn();
         setCurrentWeight(lastWeighInData.weight);
 
         //Meals API Data
         const today = new Date(
-          Date.now() - new Date().getTimezoneOffset() * 60000
+          Date.now() - new Date().getTimezoneOffset() * 60000,
         );
 
         const lastWeighInDate = new Date(lastWeighInData.current.date);
 
-        const searchParams = new URLSearchParams({
-          fromDate: lastWeighInDate.toISOString().split("T")[0],
-          toDate: today.toISOString().split("T")[0],
-        });
-
-        const mealsApiResult = await fetch(
-          `/api/meals/history?${searchParams.toString()}`
+        mealsSinceLastWeighIn.current = await getMealHistoryFromRange(
+          lastWeighInDate,
+          today,
         );
-        const mealsJsonResult = await mealsApiResult.json();
 
-        if (mealsApiResult.ok) mealsSinceLastWeighIn.current = mealsJsonResult;
-
-        const timestamps = mealsJsonResult
+        const timestamps = mealsSinceLastWeighIn.current
           .map((mealDay) => mealDay.mealsDate.split("-"))
           .map(([day, month, year]) => new Date(year, month, day).getTime())
           .sort();
@@ -111,24 +105,16 @@ export default function WeighInForm({ onError }) {
           targetFats: weighInForm.current.elements.targetFats.value,
         };
 
-        const apiResult = await fetch("/api/weighIn", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-        });
-
-        if (!apiResult.ok) throw new Error();
-      } catch {
-        onError("Error sending new macro targets.");
+        await postWeighIn(formData);
+      } catch (error) {
+        onError(error.message);
       } finally {
         onError("");
         setIsLoading(false);
       }
     }
 
-    //on success either notify user or switch to macro screen or both
+    //TODO on success either notify user or switch to macro screen or both
     fetchPostWeighInData();
   }
 
@@ -146,11 +132,11 @@ export default function WeighInForm({ onError }) {
 
     const lastWeighIn = new Date(lastWeighInData.current.date);
     lastWeighIn.setMinutes(
-      lastWeighIn.getMinutes() - lastWeighIn.getTimezoneOffset()
+      lastWeighIn.getMinutes() - lastWeighIn.getTimezoneOffset(),
     );
 
     const daysBetween = Math.floor(
-      (today - lastWeighIn) / (1000 * 60 * 60 * 24)
+      (today - lastWeighIn) / (1000 * 60 * 60 * 24),
     );
 
     const totalCalories = mealsSinceLastWeighIn.current.reduce(
@@ -158,9 +144,9 @@ export default function WeighInForm({ onError }) {
         mealDayCalories +
         mealDay.meals.reduce(
           (mealCalories, meal) => mealCalories + meal.calories,
-          0
+          0,
         ),
-      0
+      0,
     );
 
     const caloriesPerDay = totalCalories / daysBetween;
@@ -178,16 +164,16 @@ export default function WeighInForm({ onError }) {
     const targetProtein = Math.round(
       (goalValue < 0
         ? mapToRange(goalValue, -750, 0, 1, 0.5)
-        : mapToRange(goalValue, 0, 750, 0.5, 1.5)) * currentWeight
+        : mapToRange(goalValue, 0, 750, 0.5, 1.5)) * currentWeight,
     );
 
     const targetFats = Math.round(
-      mapToRange(goalValue, -750, 750, 0.35, 0.5) * currentWeight
+      mapToRange(goalValue, -750, 750, 0.35, 0.5) * currentWeight,
     );
 
     const targetCarbohydrates =
       Math.round(
-        (targetCalories - 4 * targetProtein - 9 * targetFats) / 4 / 5
+        (targetCalories - 4 * targetProtein - 9 * targetFats) / 4 / 5,
       ) * 5;
 
     weighInForm.current.elements.targetCalories.value = targetCalories;

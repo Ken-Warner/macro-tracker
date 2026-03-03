@@ -1,72 +1,53 @@
 import { useState } from "react";
 import Loader from "./Loader";
 import ContainerItem from "./ContainerItem";
+import { postCreateNewUser, postUserLogin } from "../utilities/api";
 
 export default function Login({ onUserLogin, onError }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isCreatingNewUser, setIsCreatingNewUser] = useState(false);
 
-  function handleSubmitCreateNewUser(e) {
-    e.preventDefault();
+  function handleSubmitCreateNewUser(event) {
+    event.preventDefault();
 
     async function fetchCreateUser() {
       try {
         setIsLoading(true);
         onError("");
-        const apiResult = await fetch("/api/users/create", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            username: e.target.elements.username.value,
-            password: e.target.elements.password.value,
-            passwordConfirm: e.target.elements.confirmPassword.value,
-            emailAddress: e.target.elements.email.value,
-          }),
-        });
-        const jsonResult = await apiResult.json();
-
-        if (apiResult.ok) {
-          onUserLogin(jsonResult);
-        } else if (apiResult.status === 400) {
-          onError(jsonResult.errorMessage);
-        }
-      } catch (e) {
-        onError("An error occurred while attempting to create a user.");
+        onUserLogin(
+          await postCreateNewUser(
+            event.target.elements.username.value,
+            event.target.elements.password.value,
+            event.target.elements.confirmPassword.value,
+            event.target.elements.email.value,
+          ),
+        );
+      } catch (error) {
+        onError(error.message);
       } finally {
         setIsLoading(false);
       }
     }
+
     fetchCreateUser();
   }
 
-  function handleSubmitLogin(e) {
-    e.preventDefault();
+  function handleSubmitLogin(event) {
+    event.preventDefault();
 
     async function fetchLogin() {
       try {
         setIsLoading(true);
         onError("");
-        const apiResult = await fetch("/api/users/login", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            username: e.target.elements.username.value,
-            password: e.target.elements.password.value,
-          }),
-        });
-        const jsonResult = await apiResult.json();
 
-        if (apiResult.ok) {
-          onUserLogin(jsonResult);
-        } else if (apiResult.status === 400) {
-          onError(jsonResult.errorMessage);
-        }
-      } catch (e) {
-        onError("An error occurred while attempting to log in.");
+        onUserLogin(
+          await postUserLogin(
+            event.target.elements.username.value,
+            event.target.elements.password.value,
+          ),
+        );
+      } catch (error) {
+        onError(error.message);
       } finally {
         setIsLoading(false);
       }

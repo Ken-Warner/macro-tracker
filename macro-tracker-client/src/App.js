@@ -10,6 +10,12 @@ import AddMealButton from "./components/AddMealButton";
 import MealDay from "./components/MealDay";
 import DailyMacros from "./components/DailyMacros";
 import WeighInForm from "./components/WeighInForm";
+import {
+  getMostRecentWeighInData,
+  getMealHistoryFromRange,
+  getTodaysMacros,
+  getUserLogout,
+} from "./utilities/api.js";
 
 const tempUser = {
   userId: 1,
@@ -81,6 +87,7 @@ const initialTodaysMacros = {
 
 const navItems = {
   MACROS: "Macros",
+  PANTRY: "Pantry",
   METRICS: "Metrics",
   SETTINGS: "Settings",
   SUPPORT: "Support",
@@ -109,44 +116,27 @@ export default function App() {
       try {
         handleSetError("");
 
-        const apiResult = await fetch("/api/weighIn/recent");
-        const jsonResult = await apiResult.json();
-
-        if (apiResult.ok) {
-          setRecentWeighInData(jsonResult);
-        } else {
-          handleSetError("Unable to get weigh in data");
-        }
-      } catch (e) {
+        setRecentWeighInData(await getMostRecentWeighInData());
+      } catch {
         handleSetError("Unable to get weigh in data");
       }
     }
 
     async function fetchMealHistory() {
+      const today = new Date(
+        Date.now() - new Date().getTimezoneOffset() * 60000,
+      );
+
+      const tenDaysAgo = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate() - 10,
+      );
+
       try {
         handleSetError("");
 
-        const today = new Date(
-          Date.now() - new Date().getTimezoneOffset() * 60000
-        );
-        const tenDaysAgo = new Date(
-          today.getFullYear(),
-          today.getMonth(),
-          today.getDate() - 10
-        );
-
-        const searchParams = new URLSearchParams({
-          fromDate: tenDaysAgo.toISOString().split("T")[0],
-          toDate: today.toISOString().split("T")[0],
-        });
-
-        const apiResult = await fetch(
-          `/api/meals/history?${searchParams.toString()}`
-        );
-        const jsonResult = await apiResult.json();
-
-        if (apiResult.ok) setMeals(jsonResult);
-        else handleSetError("Unable to get meal history");
+        setMeals(await getMealHistoryFromRange(tenDaysAgo, today));
       } catch {
         handleSetError("Unable to get meal history");
       }
@@ -154,22 +144,7 @@ export default function App() {
       try {
         handleSetError("");
 
-        const searchParams = new URLSearchParams({
-          today: new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
-            .toISOString()
-            .split("T")[0],
-        });
-
-        const apiResult = await fetch(
-          `/api/macros/today?${searchParams.toString()}`
-        );
-        const jsonResult = await apiResult.json();
-
-        if (apiResult.ok) {
-          setTodaysMacros(jsonResult);
-        } else {
-          handleSetError("Unable to get current macro totals");
-        }
+        setTodaysMacros(await getTodaysMacros(today));
       } catch {
         handleSetError("Unable to get current macro totals");
       }
@@ -181,8 +156,11 @@ export default function App() {
 
   function handleLogUserOut() {
     async function fetchLogout() {
-      const apiResult = await fetch("/api/users/logout");
-      if (!apiResult.ok) handleSetError("An error occurred while logging out.");
+      try {
+        await getUserLogout();
+      } catch (error) {
+        handleSetError(error.message);
+      }
     }
     fetchLogout();
     setUser({});
@@ -204,9 +182,9 @@ export default function App() {
               : {
                   mealsDate: mealDay.mealsDate,
                   meals: [...mealDay.meals, newMeal].sort((a, b) =>
-                    a.time < b.time ? -1 : 1
+                    a.time < b.time ? -1 : 1,
                   ),
-                }
+                },
           )
         : [...meals, { mealsDate: newMeal.date, meals: [newMeal] }];
     });
@@ -233,9 +211,9 @@ export default function App() {
             : {
                 mealsDate: mealDay.mealsDate,
                 meals: mealDay.meals.filter(
-                  (meal) => meal.id !== mealToDelete.id
+                  (meal) => meal.id !== mealToDelete.id,
                 ),
-              }
+              },
         )
         .filter((mealDay) => mealDay.meals.length > 0);
     });
@@ -259,10 +237,10 @@ export default function App() {
         return {
           ...mealDay,
           meals: mealDay.meals.map((meal) =>
-            meal.id === mealId ? { ...meal, isRecurring: isRecurring } : meal
+            meal.id === mealId ? { ...meal, isRecurring: isRecurring } : meal,
           ),
         };
-      })
+      }),
     );
   }
 
@@ -329,6 +307,11 @@ export default function App() {
             itemHeader="Weigh-In"
           >
             <WeighInForm onError={handleSetError} />
+          </ContainerItem>
+        )}
+        {isUserLoggedIn && selectedNavItem === navItems.PANTRY && (
+          <ContainerItem gridArea="general-form-container" itemHeader="Pantry">
+            🚧 Under construction 🚧
           </ContainerItem>
         )}
         {isUserLoggedIn && selectedNavItem === navItems.SETTINGS && (

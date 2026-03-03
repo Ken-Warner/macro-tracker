@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import Loader from "./Loader";
+import { deleteMeal, putMealRecurring } from "../utilities/api";
 
 export default function MealDay({
   mealDay,
@@ -66,12 +67,9 @@ function Meal({
     async function fetchDeleteMeal() {
       try {
         onError("");
+        const deleted = await deleteMeal(meal.id);
 
-        const apiResult = await fetch(`/api/meals/${meal.id}`, {
-          method: "DELETE",
-        });
-
-        if (apiResult.ok) {
+        if (deleted) {
           onDeleteMeal(meal);
         } else {
           onError("This meal could not be deleted.");
@@ -93,15 +91,9 @@ function Meal({
         onError("");
         setIsLoading(true);
 
-        const apiResult = await fetch(`/api/meals/${meal.id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ isRecurring: !meal.isRecurring }),
-        });
+        const mealUpdated = await putMealRecurring(meal.id, !meal.isRecurring);
 
-        if (apiResult.ok) {
+        if (mealUpdated) {
           onRecurringChange(meal.id, !meal.isRecurring);
           mealItemModal.current.close();
         } else {

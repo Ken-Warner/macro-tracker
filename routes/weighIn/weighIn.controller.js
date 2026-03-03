@@ -22,7 +22,7 @@ async function getWeighInData(req, res) {
     res.status(400).send(
       JSON.stringify({
         error: `fromDate must be supplied in the format YYYY-MM-DD`,
-      })
+      }),
     );
     return;
   }
@@ -31,7 +31,7 @@ async function getWeighInData(req, res) {
     res.status(400).send(
       JSON.stringify({
         error: `toDate must be supplied in the format YYYY-MM-DD`,
-      })
+      }),
     );
     return;
   }
@@ -40,7 +40,7 @@ async function getWeighInData(req, res) {
     let weighInData = await selectWeighInDataForDateRange(
       req.session.userId,
       req.query.fromDate,
-      req.query.toDate
+      req.query.toDate,
     );
     weighInData = weighInData.map((el) => {
       return {
@@ -54,7 +54,7 @@ async function getWeighInData(req, res) {
     const uuid = await log(
       loggingLevels.ERROR,
       `getWeighInData: ${e.message}`,
-      req.query
+      req.query,
     );
     res.status(500).send(formatResponse(uuid));
   }
@@ -68,6 +68,8 @@ async function getRecentWeighInData(req, res) {
 
   try {
     const weighInData = await selectRecentWeighInData(req.session.userId);
+
+    //TODO fix: weighInData can be undefined here
 
     const apiResult = {
       date: weighInData.date.toISOString().split("T")[0],
@@ -83,7 +85,7 @@ async function getRecentWeighInData(req, res) {
     const uuid = await log(
       loggingLevels.ERROR,
       `getRecentWeighInData: ${e.message}`,
-      req.body
+      req.body,
     );
     res.status(500).send(formatResponse(uuid));
   }
@@ -108,7 +110,7 @@ async function postWeighInData(req, res) {
     res.status(400).send(
       JSON.stringify({
         error: `Please provide a date in the format YYYY-MM-DD`,
-      })
+      }),
     );
     return;
   }
@@ -132,7 +134,7 @@ async function postWeighInData(req, res) {
     const uuid = await log(
       loggingLevels.ERROR,
       `postWeighInData: ${e.message}`,
-      req.body
+      req.body,
     );
     res.status(500).send(formatResponse(uuid));
   }
