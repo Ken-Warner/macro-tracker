@@ -24,6 +24,34 @@ const tempUser = {
 
 const tempMeals = [
   {
+    mealsDate: "2026-03-04",
+    meals: [
+      {
+        id: 2,
+        name: "Steak",
+        description: "Steak and veggies.",
+        date: "2024-12-11",
+        time: "16:30:00",
+        calories: 554,
+        protein: 35,
+        carbohydrates: 42,
+        fats: 12,
+        isRecurring: true,
+      },
+      {
+        id: 1,
+        name: "Ramen",
+        description: "ramen noodles from the package",
+        date: "2024-12-11",
+        time: "12:30:00",
+        calories: 254,
+        protein: 11,
+        carbohydrates: 34,
+        fats: 3,
+      },
+    ],
+  },
+  {
     mealsDate: "2024-12-11",
     meals: [
       {

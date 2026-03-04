@@ -11,6 +11,17 @@ export default function MealDay({
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const accordionBody = useRef(null);
+  let totalCalories = 0;
+  let totalProtein = 0;
+  let totalCarbohydrates = 0;
+  let totalFats = 0;
+
+  mealDay.meals.forEach((meal) => {
+    totalCalories += meal.calories;
+    totalProtein += meal.protein;
+    totalCarbohydrates += meal.carbohydrates;
+    totalFats += meal.fats;
+  });
 
   return (
     <>
@@ -27,7 +38,11 @@ export default function MealDay({
         >
           ▶
         </span>
-        Meals For {mealDay.mealsDate}
+        Meals For {mealDay.mealsDate}{" "}
+        <span className="color-calories">{totalCalories}</span>&nbsp;
+        <span className="color-protein">{totalProtein}</span>&nbsp;
+        <span className="color-carbohydrates">{totalCarbohydrates}</span>&nbsp;
+        <span className="color-fats">{totalFats}</span>&nbsp;
       </button>
       <div
         className="accordion-body"
@@ -120,10 +135,12 @@ function Meal({
           {meal.isRecurring ? " (R)" : ""}
         </div>
         <div className="accordion-item-macro-grid">
-          <div className="calories">{meal.calories}</div>
-          <div className="protein">{meal.protein}</div>
-          <div className="carbohydrates">{meal.carbohydrates}</div>
-          <div className="fats">{meal.fats}</div>
+          <div className="calories color-calories">{meal.calories}</div>
+          <div className="protein color-protein">{meal.protein}</div>
+          <div className="carbohydrates color-carbohydrates">
+            {meal.carbohydrates}
+          </div>
+          <div className="fats color-fats">{meal.fats}</div>
         </div>
       </div>
       <dialog ref={mealItemModal} className="container-item">
