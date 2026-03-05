@@ -278,6 +278,20 @@ form label {
   }
 }
 
+/* Colors */
+.color-calories {
+  color: var(--complement);
+}
+.color-protein {
+  color: var(--analogous-one);
+}
+.color-carbohydrates {
+  color: var(--analogous-two);
+}
+.color-fats {
+  color: var(--analogous-three);
+}
+
 /* Accordion */
 .accordion-header {
   display: block;
@@ -349,19 +363,15 @@ form label {
 }
 .calories {
   grid-area: calories;
-  color: var(--complement);
 }
 .protein {
   grid-area: protein;
-  color: var(--analogous-one);
 }
 .carbohydrates {
   grid-area: carbohydrates;
-  color: var(--analogous-two);
 }
 .fats {
   grid-area: fats;
-  color: var(--analogous-three);
 }
 
 .daily-macros-container {
