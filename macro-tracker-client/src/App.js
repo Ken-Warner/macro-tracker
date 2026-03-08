@@ -6,10 +6,11 @@ import Banner from "./components/Banner";
 import Nav from "./components/Nav";
 import Login from "./components/Login";
 import Error from "./components/Error";
-import AddMealButton from "./components/AddMealButton";
 import MealDay from "./components/MealDay";
 import DailyMacros from "./components/DailyMacros";
 import WeighInForm from "./components/WeighInForm";
+import CreateMealDialog from "./components/dialogs/CreateMealDialog";
+
 import {
   getMostRecentWeighInData,
   getMealHistoryFromRange,
@@ -24,7 +25,7 @@ const tempUser = {
 
 const tempMeals = [
   {
-    mealsDate: "2026-03-04",
+    mealsDate: "2026-03-08",
     meals: [
       {
         id: 2,
@@ -125,6 +126,19 @@ const today = new Date(Date.now() - new Date().getTimezoneOffset() * 6000)
   .toISOString()
   .split("T")[0];
 
+const emptyMeal = {
+  id: 0,
+  name: "",
+  description: "",
+  date: "",
+  time: "",
+  calories: 0,
+  protein: 0,
+  carbohydrates: 0,
+  fats: 0,
+  isRecurring: false,
+};
+
 export default function App() {
   //UI States
   const [error, setError] = useState("");
@@ -136,6 +150,10 @@ export default function App() {
   const [meals, setMeals] = useState([]);
   const [recentWeighInData, setRecentWeighInData] = useState({});
   const [todaysMacros, setTodaysMacros] = useState({});
+
+  //Dialog States
+  const [createMealDialogOpen, setCreateMealDialogOpen] = useState(false);
+  const [mealToCopy, setMealToCopy] = useState(emptyMeal);
 
   function handleLogUserIn(user) {
     setUser(user);
@@ -230,6 +248,11 @@ export default function App() {
     }
   }
 
+  function handleClickCopyMeal(meal) {
+    setMealToCopy(meal);
+    setCreateMealDialogOpen(true);
+  }
+
   function handleDeleteMeal(mealToDelete) {
     setMeals((meals) => {
       return meals
@@ -311,6 +334,7 @@ export default function App() {
                     canBeRecurring={
                       index === 0 && mealDay.mealsDate === today ? true : false
                     }
+                    handleSetCopyMeal={handleClickCopyMeal}
                   />
                 ))
               ) : (
@@ -322,10 +346,12 @@ export default function App() {
                 dailyMacros={todaysMacros}
                 macroTargets={recentWeighInData}
               />
-              <AddMealButton
-                onError={handleSetError}
-                onAddNewMeal={handleAddNewMeal}
-              />
+              <button
+                className="button"
+                onClick={() => setCreateMealDialogOpen(true)}
+              >
+                Add Meal
+              </button>
             </ContainerItem>
           </>
         )}
@@ -363,6 +389,16 @@ export default function App() {
         )}
       </Container>
       <Footer />
+      <CreateMealDialog
+        onError={handleSetError}
+        isOpen={createMealDialogOpen}
+        onClose={() => {
+          setCreateMealDialogOpen(false);
+          setMealToCopy(emptyMeal);
+        }}
+        onAddNewMeal={handleAddNewMeal}
+        mealToCopy={mealToCopy}
+      />
     </>
   );
 }
