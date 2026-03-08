@@ -8,6 +8,7 @@ export default function MealDay({
   onError,
   onRecurringChange,
   canBeRecurring = false,
+  handleSetCopyMeal,
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const accordionBody = useRef(null);
@@ -61,6 +62,7 @@ export default function MealDay({
             onError={onError}
             onRecurringChange={onRecurringChange}
             canBeRecurring={canBeRecurring}
+            handleSetCopyMeal={handleSetCopyMeal}
           />
         ))}
       </div>
@@ -74,6 +76,7 @@ function Meal({
   onError,
   onRecurringChange,
   canBeRecurring = false,
+  handleSetCopyMeal,
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const mealItemModal = useRef(null);
@@ -163,6 +166,17 @@ function Meal({
                 </button>
               </li>
             )}
+            <li>
+              <button
+                className="button"
+                onClick={() => {
+                  handleSetCopyMeal(meal);
+                  mealItemModal.current.close();
+                }}
+              >
+                Copy
+              </button>
+            </li>
           </ul>
           <div className="modal-button-container">
             <button

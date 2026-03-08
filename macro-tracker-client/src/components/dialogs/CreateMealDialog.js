@@ -1,7 +1,18 @@
 import { useRef, useState, useEffect } from "react";
+import Loader from "../Loader";
+import { postMealNonComposed } from "../../utilities/api";
 
-export default function CreateMealDialog({ handleSubmit, isOpen, onClose }) {
+export default function CreateMealDialog({
+  onError,
+  isOpen,
+  onClose,
+  onAddNewMeal,
+  mealToCopy,
+}) {
   const createMealModal = useRef(null);
+  const [isLoading, setIsLoading] = useState(false);
+  //Pretty sure this needs to be set to an empty object
+  const [formData, setFormData] = useState(mealToCopy);
 
   useEffect(() => {
     const modal = createMealModal.current;
@@ -14,82 +25,140 @@ export default function CreateMealDialog({ handleSubmit, isOpen, onClose }) {
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    //A new object needs to be created from mealToCopy with dates of today for the
+    //form data. Then the date and time pickers in the form need to be linked to the form
+    //data and have the proper change event added as well.
+    setFormData(mealToCopy);
+  }, [mealToCopy]);
+
+  function handleChange(event) {
+    const { name, value } = event.target;
+    setFormData((prevValues) => ({
+      ...prevValues,
+      [name]: value,
+    }));
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+
+    async function fetchCreateNewMeal() {
+      try {
+        setIsLoading(true);
+        onError("");
+
+        onAddNewMeal(await postMealNonComposed(formData));
+      } catch (error) {
+        onError(error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchCreateNewMeal();
+    onClose();
+  }
+
   return (
-    <dialog className="container-item" onClose={onClose}>
+    <dialog className="container-item" onClose={onClose} ref={createMealModal}>
       <div className="container-item-header">Add Meal</div>
-      <div className="container-item-body">
-        <form className="form" onSubmit={handleSubmit}>
-          <label htmlFor="name">Name</label>
-          <input type="text" name="name" className="input" required />
-          <label htmlFor="date">Date</label>
-          <input
-            type="date"
-            name="date"
-            className="input"
-            defaultValue={
-              new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+      {isLoading ? (
+        <>
+          <br />
+          <Loader size={1.5} thickness={3} />
+        </>
+      ) : (
+        <div className="container-item-body">
+          <form className="form" onSubmit={handleSubmit}>
+            <label htmlFor="name">Name</label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              className="input"
+              required
+            />
+            <label htmlFor="date">Date</label>
+            <input
+              type="date"
+              name="date"
+              className="input"
+              defaultValue={
+                new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+                  .toISOString()
+                  .split("T")[0]
+              }
+            />
+            <label htmlFor="time">Time</label>
+            <input
+              type="time"
+              name="time"
+              className="input"
+              step={60}
+              defaultValue={new Date(
+                Date.now() - new Date().getTimezoneOffset() * 60000,
+              )
                 .toISOString()
-                .split("T")[0]
-            }
-          />
-          <label htmlFor="time">Time</label>
-          <input
-            type="time"
-            name="time"
-            className="input"
-            step={60}
-            defaultValue={new Date(
-              Date.now() - new Date().getTimezoneOffset() * 60000,
-            )
-              .toISOString()
-              .split("T")[1]
-              .split(".")[0]
-              .slice(0, -3)}
-          />
-          <label htmlFor="calories">Calories</label>
-          <input
-            type="number"
-            name="calories"
-            className="input"
-            defaultValue={0}
-            onFocus={(event) => event.target.select()}
-          />
-          <label htmlFor="protein">Protein</label>
-          <input
-            type="number"
-            name="protein"
-            className="input"
-            defaultValue={0}
-            onFocus={(event) => event.target.select()}
-          />
-          <label htmlFor="carbohydrates">Carbohydrates</label>
-          <input
-            type="number"
-            name="carbohydrates"
-            className="input"
-            defaultValue={0}
-            onFocus={(event) => event.target.select()}
-          />
-          <label htmlFor="fats">Fats</label>
-          <input
-            type="number"
-            name="fats"
-            className="input"
-            defaultValue={0}
-            onFocus={(event) => event.target.select()}
-          />
-          <label htmlFor="description">Description</label>
-          <textarea name="description" className="textarea"></textarea>
-          <div className="modal-button-container">
-            <button className="button" type="submit">
-              Submit
-            </button>
-            <button className="button" type="button" onClick={onClose}>
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
+                .split("T")[1]
+                .split(".")[0]
+                .slice(0, -3)}
+            />
+            <label htmlFor="calories">Calories</label>
+            <input
+              type="number"
+              name="calories"
+              className="input"
+              value={formData.calories}
+              onChange={handleChange}
+              onFocus={(event) => event.target.select()}
+            />
+            <label htmlFor="protein">Protein</label>
+            <input
+              type="number"
+              name="protein"
+              className="input"
+              value={formData.protein}
+              onChange={handleChange}
+              onFocus={(event) => event.target.select()}
+            />
+            <label htmlFor="carbohydrates">Carbohydrates</label>
+            <input
+              type="number"
+              name="carbohydrates"
+              className="input"
+              value={formData.carbohydrates}
+              onChange={handleChange}
+              onFocus={(event) => event.target.select()}
+            />
+            <label htmlFor="fats">Fats</label>
+            <input
+              type="number"
+              name="fats"
+              className="input"
+              value={formData.fats}
+              onChange={handleChange}
+              onFocus={(event) => event.target.select()}
+            />
+            <label htmlFor="description">Description</label>
+            <textarea
+              name="description"
+              className="textarea"
+              value={formData.description}
+              onChange={handleChange}
+            ></textarea>
+            <div className="modal-button-container">
+              <button className="button" type="submit">
+                Submit
+              </button>
+              <button className="button" type="button" onClick={onClose}>
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </dialog>
   );
 }
