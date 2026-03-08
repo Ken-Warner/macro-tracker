@@ -11,8 +11,7 @@ export default function CreateMealDialog({
 }) {
   const createMealModal = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
-  //Pretty sure this needs to be set to an empty object
-  const [formData, setFormData] = useState(mealToCopy);
+  const [formData, setFormData] = useState({});
 
   useEffect(() => {
     const modal = createMealModal.current;
@@ -26,10 +25,18 @@ export default function CreateMealDialog({
   }, [isOpen]);
 
   useEffect(() => {
-    //A new object needs to be created from mealToCopy with dates of today for the
-    //form data. Then the date and time pickers in the form need to be linked to the form
-    //data and have the proper change event added as well.
-    setFormData(mealToCopy);
+    const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+                  .toISOString()
+                  .split("T");
+
+    const copiedMealData = {
+      ...mealToCopy,
+      date: today[0],
+      time: today[1].split(".")[0].slice(0, -3),
+      id: 0
+    };
+
+    setFormData(copiedMealData);
   }, [mealToCopy]);
 
   function handleChange(event) {
@@ -85,11 +92,8 @@ export default function CreateMealDialog({
               type="date"
               name="date"
               className="input"
-              defaultValue={
-                new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
-                  .toISOString()
-                  .split("T")[0]
-              }
+              value={formData.date}
+              onChange={handleChange}
             />
             <label htmlFor="time">Time</label>
             <input
@@ -97,13 +101,8 @@ export default function CreateMealDialog({
               name="time"
               className="input"
               step={60}
-              defaultValue={new Date(
-                Date.now() - new Date().getTimezoneOffset() * 60000,
-              )
-                .toISOString()
-                .split("T")[1]
-                .split(".")[0]
-                .slice(0, -3)}
+              value={formData.time}
+              onChange={handleChange}
             />
             <label htmlFor="calories">Calories</label>
             <input
