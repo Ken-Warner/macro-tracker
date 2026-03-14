@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import Loader from "./Loader";
-import MessageBanner from "./reusables/MessageBanner";
+import ToastMessage from "./reusables/ToastMessage";
 import {
   getMostRecentWeighIn,
   getMealHistoryFromRange,
@@ -22,13 +22,14 @@ function mapToRange(value, inMin, inMax, outMin, outMax) {
   return origin;
 }
 
-export default function WeighInForm({ onError }) {
+export default function WeighInForm() {
   const [currentWeight, setCurrentWeight] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [goalValue, setGoalValue] = useState(0);
   const [mealsConsistent, setMealsConsistent] = useState(true);
-  const [bannerMessage, setBannerMessage] = useState("");
-  const isBannerDisplayed = !!bannerMessage;
+
+  const [toast, setToast] = useState(null);
+  const isToastDisplayed = toast != null;
 
   const weighInForm = useRef(null);
   const mealsSinceLastWeighIn = useRef([]);
@@ -50,7 +51,6 @@ export default function WeighInForm({ onError }) {
       try {
         //Weigh In API Data
         setIsLoading(true);
-        onError("");
 
         lastWeighInData.current = await getMostRecentWeighIn();
         setCurrentWeight(lastWeighInData.weight);
@@ -80,22 +80,23 @@ export default function WeighInForm({ onError }) {
           }
         setMealsConsistent(consistent);
       } catch {
-        onError("An error occurred retrieving data since last weigh in.");
+        setToast({
+          type: "error",
+          message: "An error occurred retrieving data since last weigh in.",
+        });
       } finally {
         setIsLoading(false);
-        onError("");
       }
     }
 
     fetchData();
-  }, [onError]);
+  }, []);
 
   function handleSubmit(e) {
     e.preventDefault();
 
     async function fetchPostWeighInData() {
       try {
-        onError("");
         setIsLoading(true);
 
         const formData = {
@@ -109,16 +110,14 @@ export default function WeighInForm({ onError }) {
         };
 
         await postWeighIn(formData);
-        setBannerMessage("New Weigh-In Saved!");
+        setToast({ type: "good", message: "New Weigh-In Saved!" });
       } catch (error) {
-        onError(error.message);
+        setToast({ type: "error", message: error.message });
       } finally {
-        onError("");
         setIsLoading(false);
       }
     }
 
-    //TODO on success either notify user or switch to macro screen or both
     fetchPostWeighInData();
   }
 
@@ -189,13 +188,9 @@ export default function WeighInForm({ onError }) {
 
   return (
     <>
-      {isBannerDisplayed && 
-        <MessageBanner
-          message={bannerMessage}
-          color="good"
-          onClick={() => setBannerMessage("")}
-        />
-      }
+      {isToastDisplayed && (
+        <ToastMessage toast={toast} onFinished={() => setToast(null)} />
+      )}
       {!isLoading ? (
         <>
           <div>

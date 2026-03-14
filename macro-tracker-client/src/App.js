@@ -5,7 +5,7 @@ import Footer from "./components/Footer";
 import Banner from "./components/Banner";
 import Nav from "./components/Nav";
 import Login from "./components/Login";
-import Error from "./components/Error";
+import ToastMessage from "./components/reusables/ToastMessage.js";
 import MealDay from "./components/MealDay";
 import DailyMacros from "./components/DailyMacros";
 import WeighInForm from "./components/WeighInForm";
@@ -141,7 +141,6 @@ const emptyMeal = {
 
 export default function App() {
   //UI States
-  const [error, setError] = useState("");
   const [selectedNavItem, setSelectedNavItem] = useState(navItems.MACROS);
 
   //Application Data States
@@ -155,16 +154,18 @@ export default function App() {
   const [createMealDialogOpen, setCreateMealDialogOpen] = useState(false);
   const [mealToCopy, setMealToCopy] = useState(emptyMeal);
 
+  //Toast Messages
+  const [toast, setToast] = useState(null);
+  const isToastDisplayed = toast != null;
+
   function handleLogUserIn(user) {
     setUser(user);
 
     async function fetchRecentWeighInData() {
       try {
-        handleSetError("");
-
         setRecentWeighInData(await getMostRecentWeighInData());
       } catch {
-        handleSetError("Unable to get weigh in data");
+        setToast({ type: "error", message: "Unable to get weigh in data" });
       }
     }
 
@@ -180,19 +181,21 @@ export default function App() {
       );
 
       try {
-        handleSetError("");
-
         setMeals(await getMealHistoryFromRange(tenDaysAgo, today));
       } catch {
-        handleSetError("Unable to get meal history");
+        setToast({
+          type: "error",
+          message: "Unable to get meal history",
+        });
       }
 
       try {
-        handleSetError("");
-
         setTodaysMacros(await getTodaysMacros(today));
       } catch {
-        handleSetError("Unable to get current macro totals");
+        setToast({
+          type: "error",
+          message: "Unable to get current macro totals",
+        });
       }
     }
 
@@ -205,15 +208,11 @@ export default function App() {
       try {
         await getUserLogout();
       } catch (error) {
-        handleSetError(error.message);
+        setToast({ type: "error", message: error.message });
       }
     }
     fetchLogout();
     setUser({});
-  }
-
-  function handleSetError(errorMessage) {
-    setError(errorMessage);
   }
 
   function handleAddNewMeal(newMeal) {
@@ -297,7 +296,9 @@ export default function App() {
 
   return (
     <>
-      {error && <Error errorMessage={error} onError={handleSetError} />}
+      {isToastDisplayed && (
+        <ToastMessage toast={toast} onFinished={() => setToast(null)} />
+      )}
       <Banner />
       {isUserLoggedIn && (
         <Nav
@@ -329,7 +330,6 @@ export default function App() {
                     key={mealDay.mealsDate}
                     mealDay={mealDay}
                     onDeleteMeal={handleDeleteMeal}
-                    onError={handleSetError}
                     onRecurringChange={handleSetRecurringMeal}
                     canBeRecurring={
                       index === 0 && mealDay.mealsDate === today ? true : false
@@ -360,7 +360,7 @@ export default function App() {
             gridArea="general-form-container"
             itemHeader="Weigh-In"
           >
-            <WeighInForm onError={handleSetError} />
+            <WeighInForm />
           </ContainerItem>
         )}
         {isUserLoggedIn && selectedNavItem === navItems.PANTRY && (
@@ -384,13 +384,10 @@ export default function App() {
             🚧 Under construction 🚧
           </ContainerItem>
         )}
-        {!isUserLoggedIn && (
-          <Login onUserLogin={handleLogUserIn} onError={handleSetError} />
-        )}
+        {!isUserLoggedIn && <Login onUserLogin={handleLogUserIn} />}
       </Container>
       <Footer />
       <CreateMealDialog
-        onError={handleSetError}
         isOpen={createMealDialogOpen}
         onClose={() => {
           setCreateMealDialogOpen(false);

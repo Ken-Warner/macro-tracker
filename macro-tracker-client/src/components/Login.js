@@ -1,11 +1,15 @@
 import { useState } from "react";
 import Loader from "./Loader";
+import ToastMessage from "./reusables/ToastMessage";
 import ContainerItem from "./ContainerItem";
 import { postCreateNewUser, postUserLogin } from "../utilities/api";
 
-export default function Login({ onUserLogin, onError }) {
+export default function Login({ onUserLogin }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isCreatingNewUser, setIsCreatingNewUser] = useState(false);
+
+  const [toast, setToast] = useState(null);
+  const isToastDisplayed = toast != null;
 
   function handleSubmitCreateNewUser(event) {
     event.preventDefault();
@@ -13,7 +17,7 @@ export default function Login({ onUserLogin, onError }) {
     async function fetchCreateUser() {
       try {
         setIsLoading(true);
-        onError("");
+
         onUserLogin(
           await postCreateNewUser(
             event.target.elements.username.value,
@@ -23,7 +27,7 @@ export default function Login({ onUserLogin, onError }) {
           ),
         );
       } catch (error) {
-        onError(error.message);
+        setToast({ type: "error", message: error.message });
       } finally {
         setIsLoading(false);
       }
@@ -38,7 +42,6 @@ export default function Login({ onUserLogin, onError }) {
     async function fetchLogin() {
       try {
         setIsLoading(true);
-        onError("");
 
         onUserLogin(
           await postUserLogin(
@@ -47,7 +50,7 @@ export default function Login({ onUserLogin, onError }) {
           ),
         );
       } catch (error) {
-        onError(error.message);
+        setToast({ type: "error", message: error.message });
       } finally {
         setIsLoading(false);
       }
@@ -57,6 +60,9 @@ export default function Login({ onUserLogin, onError }) {
 
   return (
     <>
+      {isToastDisplayed && (
+        <ToastMessage toast={toast} onFinished={() => setToast(null)} />
+      )}
       {isCreatingNewUser ? (
         <ContainerItem
           gridArea="general-form-container"

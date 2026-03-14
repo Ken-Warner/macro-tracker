@@ -1,11 +1,11 @@
 import { useRef, useState } from "react";
 import Loader from "./Loader";
+import ToastMessage from "./reusables/ToastMessage";
 import { deleteMeal, putMealRecurring } from "../utilities/api";
 
 export default function MealDay({
   mealDay,
   onDeleteMeal,
-  onError,
   onRecurringChange,
   canBeRecurring = false,
   handleSetCopyMeal,
@@ -59,7 +59,6 @@ export default function MealDay({
             key={meal.id}
             meal={meal}
             onDeleteMeal={onDeleteMeal}
-            onError={onError}
             onRecurringChange={onRecurringChange}
             canBeRecurring={canBeRecurring}
             handleSetCopyMeal={handleSetCopyMeal}
@@ -73,7 +72,6 @@ export default function MealDay({
 function Meal({
   meal,
   onDeleteMeal,
-  onError,
   onRecurringChange,
   canBeRecurring = false,
   handleSetCopyMeal,
@@ -81,19 +79,24 @@ function Meal({
   const [isLoading, setIsLoading] = useState(false);
   const mealItemModal = useRef(null);
 
+  const [toast, setToast] = useState(null);
+  const isToastDisplayed = toast != null;
+
   function handleDeleteMeal() {
     async function fetchDeleteMeal() {
       try {
-        onError("");
         const deleted = await deleteMeal(meal.id);
 
         if (deleted) {
           onDeleteMeal(meal);
         } else {
-          onError("This meal could not be deleted.");
+          setToast({
+            type: "error",
+            message: "This meal could not be deleted.",
+          });
         }
       } catch {
-        onError("An unexpected error occured.");
+        setToast({ type: "error", message: "An unexpected error occured." });
       }
     }
 
@@ -106,7 +109,6 @@ function Meal({
 
     async function fetchSetRecurringMeal() {
       try {
-        onError("");
         setIsLoading(true);
 
         const mealUpdated = await putMealRecurring(meal.id, !meal.isRecurring);
@@ -115,10 +117,10 @@ function Meal({
           onRecurringChange(meal.id, !meal.isRecurring);
           mealItemModal.current.close();
         } else {
-          onError("Meal Not Found");
+          setToast({ type: "error", message: "Meal not found" });
         }
       } catch {
-        onError("Error contacting server");
+        setToast({ type: "error", message: "Error contacting server" });
       } finally {
         setIsLoading(false);
       }
@@ -129,13 +131,16 @@ function Meal({
 
   return (
     <>
+      {isToastDisplayed && (
+        <ToastMessage toast={toast} onFinished={() => setToast(null)} />
+      )}
       <div
         className="accordion-item"
         onClick={() => mealItemModal.current.showModal()}
       >
         <div className="accordion-item-title">
           {meal.name} at {meal.time}&nbsp;
-          {meal.isRecurring ? (<sub>🔁</sub>) : ""}
+          {meal.isRecurring ? <sub>🔁</sub> : ""}
         </div>
         <div className="accordion-item-macro-grid">
           <div className="calories color-calories">{meal.calories}</div>
