@@ -134,8 +134,8 @@ function Meal({
         onClick={() => mealItemModal.current.showModal()}
       >
         <div className="accordion-item-title">
-          {meal.name} at {meal.time}
-          {meal.isRecurring ? " (R)" : ""}
+          {meal.name} at {meal.time}&nbsp;
+          {meal.isRecurring ? (<sub>🔁</sub>) : ""}
         </div>
         <div className="accordion-item-macro-grid">
           <div className="calories color-calories">{meal.calories}</div>
