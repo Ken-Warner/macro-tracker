@@ -142,6 +142,7 @@ const emptyMeal = {
 export default function App() {
   //UI States
   const [selectedNavItem, setSelectedNavItem] = useState(navItems.MACROS);
+  const [isAllExpanded, setIsAllExpanded] = useState(false);
 
   //Application Data States
   const [user, setUser] = useState({});
@@ -324,6 +325,15 @@ export default function App() {
               </p>
             </ContainerItem>
             <ContainerItem gridArea="macro-history" itemHeader="Macro History">
+              <button className="button" onClick={() => setIsAllExpanded(true)}>
+                Expand All
+              </button>
+              <button
+                className="button"
+                onClick={() => setIsAllExpanded(false)}
+              >
+                Collapse All
+              </button>
               {meals.length > 0 ? (
                 meals.map((mealDay, index) => (
                   <MealDay
@@ -335,6 +345,7 @@ export default function App() {
                       index === 0 && mealDay.mealsDate === today ? true : false
                     }
                     handleSetCopyMeal={handleClickCopyMeal}
+                    expanded={isAllExpanded}
                   />
                 ))
               ) : (

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import Loader from "./Loader";
 import ToastMessage from "./reusables/ToastMessage";
 import { deleteMeal, putMealRecurring } from "../utilities/api";
@@ -9,6 +9,7 @@ export default function MealDay({
   onRecurringChange,
   canBeRecurring = false,
   handleSetCopyMeal,
+  expanded,
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const accordionBody = useRef(null);
@@ -23,6 +24,10 @@ export default function MealDay({
     totalCarbohydrates += meal.carbohydrates;
     totalFats += meal.fats;
   });
+
+  useEffect(() => {
+    setIsExpanded(expanded);
+  }, [expanded]);
 
   return (
     <>
