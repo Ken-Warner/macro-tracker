@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import Loader from "./Loader";
+import MessageBanner from "./reusables/MessageBanner";
 import {
   getMostRecentWeighIn,
   getMealHistoryFromRange,
@@ -26,6 +27,8 @@ export default function WeighInForm({ onError }) {
   const [isLoading, setIsLoading] = useState(false);
   const [goalValue, setGoalValue] = useState(0);
   const [mealsConsistent, setMealsConsistent] = useState(true);
+  const [bannerMessage, setBannerMessage] = useState("");
+  const isBannerDisplayed = !!bannerMessage;
 
   const weighInForm = useRef(null);
   const mealsSinceLastWeighIn = useRef([]);
@@ -106,6 +109,7 @@ export default function WeighInForm({ onError }) {
         };
 
         await postWeighIn(formData);
+        setBannerMessage("New Weigh-In Saved!");
       } catch (error) {
         onError(error.message);
       } finally {
@@ -185,6 +189,13 @@ export default function WeighInForm({ onError }) {
 
   return (
     <>
+      {isBannerDisplayed && 
+        <MessageBanner
+          message={bannerMessage}
+          color="good"
+          onClick={() => setBannerMessage("")}
+        />
+      }
       {!isLoading ? (
         <>
           <div>

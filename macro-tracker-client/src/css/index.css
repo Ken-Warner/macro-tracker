@@ -16,6 +16,8 @@
   --analogous-one: #cfef08;
   --analogous-two: #5cef08;
   --analogous-three: #08ef9b;
+  /* Banner */
+  --banner-good: #44b206;
 }
 
 *,
@@ -92,6 +94,22 @@ nav span:hover {
 .error-container-slide {
   translate: 100%;
 }
+
+/* Message Banner */
+.message-banner {
+  width: 90%;
+  margin: 5px auto;
+  padding: 10px;
+  color: var(--font-color-dark);
+}
+
+.message-banner-x {
+  float:right;
+  cursor: pointer;
+}
+
+.message-banner-color-bad { background-color: var(--bg-error); }
+.message-banner-color-good { background-color: var(--banner-good); }
 
 /* Footer */
 .footer-banner {

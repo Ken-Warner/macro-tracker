@@ -11,7 +11,7 @@ export default function CreateMealDialog({
 }) {
   const createMealModal = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState(mealToCopy);
 
   useEffect(() => {
     const modal = createMealModal.current;
