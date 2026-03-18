@@ -2,10 +2,8 @@
 -- PostgreSQL database dump
 --
 
-\restrict jHGfKofHahqHVclxcPmhaJuuYomIcF9RCmOakGDyghb4Y8MisrWjKUYEygemt8w
-
--- Dumped from database version 18.3 (Debian 18.3-1.pgdg13+1)
--- Dumped by pg_dump version 18.3 (Debian 18.3-1.pgdg13+1)
+-- Dumped from database version 17.0 (Debian 17.0-1.pgdg120+1)
+-- Dumped by pg_dump version 17.0 (Debian 17.0-1.pgdg120+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -334,19 +332,6 @@ ALTER SEQUENCE public.recipes_parent_ingredient_id_seq OWNED BY public.recipes.p
 
 
 --
--- Name: session; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.session (
-    sid character varying NOT NULL,
-    sess json NOT NULL,
-    expire timestamp(6) without time zone NOT NULL
-);
-
-
-ALTER TABLE public.session OWNER TO postgres;
-
---
 -- Name: system_logs; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -584,14 +569,6 @@ ALTER TABLE ONLY public.recipes
 
 
 --
--- Name: session session_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.session
-    ADD CONSTRAINT session_pkey PRIMARY KEY (sid);
-
-
---
 -- Name: system_logs system_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -613,13 +590,6 @@ ALTER TABLE ONLY public.user_weights
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
-
-
---
--- Name: IDX_session_expire; Type: INDEX; Schema: public; Owner: postgres
---
-
-CREATE INDEX "IDX_session_expire" ON public.session USING btree (expire);
 
 
 --
@@ -673,6 +643,4 @@ ALTER TABLE ONLY public.user_weights
 --
 -- PostgreSQL database dump complete
 --
-
-\unrestrict jHGfKofHahqHVclxcPmhaJuuYomIcF9RCmOakGDyghb4Y8MisrWjKUYEygemt8w
 

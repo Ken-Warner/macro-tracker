@@ -57,4 +57,5 @@ module.exports = {
   query,
   buildInsert,
   DEFAULT,
+  pool,
 };
