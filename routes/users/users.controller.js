@@ -73,6 +73,7 @@ async function logUserIn(req, res) {
   }
 
   if (req.body.username == "" || req.body.password == "") {
+    //Request sent from a initial request to see if user is to be remembered, but didn't have a session cookie.
     res.status(500).send();
     return;
   }
@@ -83,21 +84,14 @@ async function logUserIn(req, res) {
     req.session.userId = user.id;
     req.session.username = user.username;
 
-    console.log(req.body);
-
-    //still getting some weird error where the checkbox is always set to on to "rememberMe"
-    //logouts also don't seem to delete the session but I wonder if that's because the checkbox state
-
     if (req.body.rememberMe == true) {
-      console.log("Setting cookie max age");
       req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; //30 days
-      console.log(req.session);
     } else {
       req.session.cookie.expires = false; //Terminate session when browser closed.
     }
 
     req.session.save((error) => {
-      console.log(error);
+      console.log(error); //TODO swap with something else later
     });
 
     res

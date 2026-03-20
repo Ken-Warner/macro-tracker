@@ -16,7 +16,7 @@ export default function Login({ onUserLogin }) {
       try {
         onUserLogin(await postUserLogin("", "", false));
       } catch {
-        console.log("session check failed");
+        //TODO add some error handling here or something
       } finally {
         setIsLoading(false);
       }
@@ -57,14 +57,11 @@ export default function Login({ onUserLogin }) {
       try {
         setIsLoading(true);
 
-        console.log(
-          `Checkbox state: ${event.target.elements.rememberMe.value}`,
-        );
         onUserLogin(
           await postUserLogin(
             event.target.elements.username.value,
             event.target.elements.password.value,
-            event.target.elements.rememberMe.value === "on" ? true : false,
+            event.target.elements.rememberMe.checked,
           ),
         );
       } catch (error) {
@@ -177,7 +174,12 @@ export default function Login({ onUserLogin }) {
                 />
                 <div className="remember-me">
                   <label htmlFor="rememberMe">Remember Me:</label>
-                  <input name="rememberMe" id="rememberMe" type="checkbox" />
+                  <input
+                    name="rememberMe"
+                    id="rememberMe"
+                    type="checkbox"
+                    value="true"
+                  />
                 </div>
                 <input className="button submit" type="submit" value="Login" />
               </form>
