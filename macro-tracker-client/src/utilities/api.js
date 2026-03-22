@@ -70,13 +70,14 @@ export async function postCreateNewUser(
   }
 }
 
-export async function postUserLogin(username, password) {
+export async function postUserLogin(username, password, rememberMe) {
   const apiResult = await fetch("/api/users/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       username: username,
       password: password,
+      rememberMe: rememberMe,
     }),
   });
 

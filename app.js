@@ -1,30 +1,36 @@
 const path = require("path");
 const express = require("express");
-const sessions = require("express-session");
-const cookieParser = require("cookie-parser");
+const session = require("express-session");
+const pgSession = require("connect-pg-simple")(session);
+const { pool } = require("./models/pool.js");
 
 const apiRouter = require("./routes/api.router");
 
 const app = express();
 
-//expect json
+app.set("trust proxy", 1);
+
 app.use(express.json());
 
 app.use(express.static(path.join(__dirname, "public")));
 
-//setup session variables
 app.use(express.urlencoded({ extended: true }));
 app.use(
-  sessions({
+  session({
+    store: new pgSession({
+      pool: pool,
+      tableName: "session",
+    }),
     secret: process.env.SESSION_SECRET || "somethingsecret",
-    saveUninitialized: true,
-    cookie: {
-      maxAge: 24 * 60 * 60 * 1000, //1 day
-    },
+    saveUninitialized: false,
     resave: false,
-  })
+    proxy: true,
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "PROD" ? true : false,
+    },
+  }),
 );
-app.use(cookieParser());
 
 app.use("/api", apiRouter);
 

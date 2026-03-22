@@ -1,15 +1,29 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Loader from "./Loader";
 import ToastMessage from "./reusables/ToastMessage";
 import ContainerItem from "./ContainerItem";
 import { postCreateNewUser, postUserLogin } from "../utilities/api";
 
 export default function Login({ onUserLogin }) {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isCreatingNewUser, setIsCreatingNewUser] = useState(false);
 
   const [toast, setToast] = useState(null);
   const isToastDisplayed = toast != null;
+
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        onUserLogin(await postUserLogin("", "", false));
+      } catch {
+        //TODO add some error handling here or something
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    checkAuth();
+  }, [onUserLogin]);
 
   function handleSubmitCreateNewUser(event) {
     event.preventDefault();
@@ -47,6 +61,7 @@ export default function Login({ onUserLogin }) {
           await postUserLogin(
             event.target.elements.username.value,
             event.target.elements.password.value,
+            event.target.elements.rememberMe.checked,
           ),
         );
       } catch (error) {
@@ -69,7 +84,7 @@ export default function Login({ onUserLogin }) {
           itemHeader="Create User"
         >
           {isLoading ? (
-            <Loader />
+            <Loader size={1.5} thickness={3} />
           ) : (
             <>
               <form className="form" onSubmit={handleSubmitCreateNewUser}>
@@ -132,7 +147,7 @@ export default function Login({ onUserLogin }) {
       ) : (
         <ContainerItem gridArea="general-form-container" itemHeader="Login">
           {isLoading ? (
-            <Loader />
+            <Loader size={1.5} thickness={3} />
           ) : (
             <>
               <form className="form" onSubmit={handleSubmitLogin}>
@@ -157,6 +172,15 @@ export default function Login({ onUserLogin }) {
                   title="At least 1 letter, 1 number, and 1 symbol (@$!%*#?&) between 8 and 20 characters"
                   required
                 />
+                <div className="remember-me">
+                  <label htmlFor="rememberMe">Remember Me:</label>
+                  <input
+                    name="rememberMe"
+                    id="rememberMe"
+                    type="checkbox"
+                    value="true"
+                  />
+                </div>
                 <input className="button submit" type="submit" value="Login" />
               </form>
               <p>

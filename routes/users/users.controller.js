@@ -42,7 +42,7 @@ async function createNewUser(req, res) {
     const result = await createUser(
       req.body.username,
       req.body.password,
-      req.body.emailAddress
+      req.body.emailAddress,
     );
 
     req.session.username = req.body.username;
@@ -55,7 +55,7 @@ async function createNewUser(req, res) {
     const uuid = await log(
       loggingLevels.ERROR,
       `createNewUser: ${e.message}`,
-      req.body
+      req.body,
     );
     res.status(500).send(formatResponse(uuid));
   }
@@ -67,8 +67,14 @@ async function logUserIn(req, res) {
       JSON.stringify({
         userId: req.session.userId,
         username: req.session.username,
-      })
+      }),
     );
+    return;
+  }
+
+  if (req.body.username == "" || req.body.password == "") {
+    //Request sent from a initial request to see if user is to be remembered, but didn't have a session cookie.
+    res.status(500).send();
     return;
   }
 
@@ -78,6 +84,14 @@ async function logUserIn(req, res) {
     req.session.userId = user.id;
     req.session.username = user.username;
 
+    if (req.body.rememberMe == true) {
+      req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; //30 days
+    } else {
+      req.session.cookie.expires = false; //Terminate session when browser closed.
+    }
+
+    req.session.save();
+
     res
       .status(200)
       .send(JSON.stringify({ userId: user.id, username: user.username }));
@@ -85,15 +99,18 @@ async function logUserIn(req, res) {
     const uuid = await log(
       loggingLevels.ERROR,
       `logUserIn: ${e.message}`,
-      req.body
+      req.body,
     );
     res.status(500).send(formatResponse(uuid));
   }
 }
 
 async function logUserOut(req, res) {
-  req.session.destroy();
-  res.status(200).send();
+  req.session.destroy((error) => {
+    if (error) return res.status(500).send();
+    res.clearCookie("connect.sid");
+    res.status(200).send();
+  });
 }
 
 module.exports = {

@@ -229,6 +229,21 @@ form label {
   font-size: 1.2em;
   border-radius: 5px;
 }
+.remember-me {
+  margin: 10px auto;
+  width: 90%;
+}
+.remember-me label {
+  display: inline;
+  vertical-align: middle;
+  margin-right: 5px;
+}
+.remember-me input {
+  display: inline-block;
+  vertical-align: middle;
+  width: 1.2rem;
+  height: 1.2rem;
+}
 .input:focus,
 .textarea:focus {
   outline: 2px solid var(--complement);
