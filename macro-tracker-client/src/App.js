@@ -12,7 +12,7 @@ import WeighInForm from "./components/WeighInForm";
 import CreateMealDialog from "./components/dialogs/CreateMealDialog";
 
 import {
-  getMostRecentWeighInData,
+  getMostRecentWeighIn,
   getMealHistoryFromRange,
   getTodaysMacros,
   getUserLogout,
@@ -164,7 +164,13 @@ export default function App() {
 
     async function fetchRecentWeighInData() {
       try {
-        setRecentWeighInData(await getMostRecentWeighInData());
+        const recentWeighInData = await getMostRecentWeighIn();
+
+        if (recentWeighInData === "") {
+          return;
+        }
+
+        setRecentWeighInData(recentWeighInData);
       } catch {
         setToast({ type: "error", message: "Unable to get weigh in data" });
       }

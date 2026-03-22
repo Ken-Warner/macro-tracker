@@ -69,7 +69,9 @@ async function getRecentWeighInData(req, res) {
   try {
     const weighInData = await selectRecentWeighInData(req.session.userId);
 
-    //TODO fix: weighInData can be undefined here
+    if (weighInData == undefined) {
+      return res.status(404).send();
+    }
 
     const apiResult = {
       date: weighInData.date.toISOString().split("T")[0],

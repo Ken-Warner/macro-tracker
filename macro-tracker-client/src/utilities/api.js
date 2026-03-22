@@ -1,12 +1,3 @@
-export async function getMostRecentWeighInData() {
-  const apiResult = await fetch("/api/weighIn/recent");
-  if (apiResult.ok) {
-    return await apiResult.json();
-  } else {
-    throw new Error("Unable to get weigh in data");
-  }
-}
-
 export async function getMealHistoryFromRange(fromDate, toDate) {
   const searchParams = new URLSearchParams({
     fromDate: fromDate.toISOString().split("T")[0],
@@ -115,6 +106,8 @@ export async function getMostRecentWeighIn() {
   const apiResult = await fetch("/api/weighIn/recent");
   if (apiResult.ok) {
     return await apiResult.json();
+  } else if (apiResult.status === 404) {
+    return "";
   } else {
     throw new Error("Could not retrieve weigh in data.");
   }

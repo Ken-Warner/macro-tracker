@@ -16,7 +16,6 @@ export default function Login({ onUserLogin }) {
       try {
         onUserLogin(await postUserLogin("", "", false));
       } catch {
-        //TODO add some error handling here or something
       } finally {
         setIsLoading(false);
       }

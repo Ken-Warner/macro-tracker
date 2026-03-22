@@ -52,8 +52,12 @@ export default function WeighInForm() {
         //Weigh In API Data
         setIsLoading(true);
 
-        lastWeighInData.current = await getMostRecentWeighIn();
-        setCurrentWeight(lastWeighInData.weight);
+        const currentWeighIn = await getMostRecentWeighIn();
+        if (currentWeighIn != "") {
+          lastWeighInData.current = setCurrentWeight(lastWeighInData.weight);
+        } else {
+          return;
+        }
 
         //Meals API Data
         const today = new Date(
