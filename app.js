@@ -8,12 +8,12 @@ const apiRouter = require("./routes/api.router");
 
 const app = express();
 
-//expect json
+app.set("trust proxy", 1);
+
 app.use(express.json());
 
 app.use(express.static(path.join(__dirname, "public")));
 
-//setup session variables
 app.use(express.urlencoded({ extended: true }));
 app.use(
   session({
@@ -24,6 +24,7 @@ app.use(
     secret: process.env.SESSION_SECRET || "somethingsecret",
     saveUninitialized: false,
     resave: false,
+    proxy: true,
     cookie: {
       httpOnly: true,
       secure: process.env.NODE_ENV === "PROD" ? true : false,

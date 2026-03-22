@@ -90,9 +90,7 @@ async function logUserIn(req, res) {
       req.session.cookie.expires = false; //Terminate session when browser closed.
     }
 
-    req.session.save((error) => {
-      console.log(error); //TODO swap with something else later
-    });
+    req.session.save();
 
     res
       .status(200)
