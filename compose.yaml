@@ -1,6 +1,6 @@
 services:
   api:
-    build: .
+    build: ./macro-tracker-api
     image: kenw1991/macro-tracker-api
     ports:
       - "80:${PORT}"
