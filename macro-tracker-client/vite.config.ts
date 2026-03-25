@@ -6,6 +6,7 @@ import babel from "@rolldown/plugin-babel";
 export default defineConfig({
   build: {
     outDir: "../macro-tracker-api/dist/public/",
+    emptyOutDir: true,
   },
   plugins: [react(), babel({ presets: [reactCompilerPreset()] })],
 });
