@@ -7,11 +7,6 @@ import validator from "../../Utilities/validator.js";
 import { loggingLevels, formatResponse, log } from "../../Utilities/logger.js";
 
 async function getWeighInData(req, res) {
-  if (!req.session.userId || !req.session.username) {
-    res.status(401).send();
-    return;
-  }
-
   if (!req.query.fromDate || !validator.isValidDate(req.query.fromDate)) {
     res.status(400).send(
       JSON.stringify({
@@ -55,11 +50,6 @@ async function getWeighInData(req, res) {
 }
 
 async function getRecentWeighInData(req, res) {
-  if (!req.session.userId || !req.session.username) {
-    res.status(401).send();
-    return;
-  }
-
   try {
     const weighInData = await selectRecentWeighInData(req.session.userId);
 
@@ -88,11 +78,6 @@ async function getRecentWeighInData(req, res) {
 }
 
 async function postWeighInData(req, res) {
-  if (!req.session.userId || !req.session.username) {
-    res.status(401).send();
-    return;
-  }
-
   let weighInData = {};
 
   if (!req.body.weight || !validator.isNumberGEZero(req.body.weight)) {

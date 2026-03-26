@@ -8,11 +8,6 @@ import { log, loggingLevels, formatResponse } from "../../Utilities/logger.js";
 import validator from "../../Utilities/validator.js";
 
 async function createNewIngredient(req, res) {
-  if (!req.session.userId || !req.session.username) {
-    res.status(401).send();
-    return;
-  }
-
   try {
     if (req.body.components && req.body.components.length > 0) {
       //ingredient is composed of other existing ingredients
@@ -47,11 +42,6 @@ async function createNewIngredient(req, res) {
 }
 
 async function deleteIngredient(req, res) {
-  if (!req.session.userId || !req.session.username) {
-    res.status(401).send();
-    return;
-  }
-
   if (!validator.isNumberGEZero(req.params.ingredientId)) {
     res.status(400).send(JSON.stringify({ error: `A numeric ingredient ID must be provided.` }));
     return;
@@ -76,11 +66,6 @@ async function deleteIngredient(req, res) {
 }
 
 async function getIngredients(req, res) {
-  if (!req.session.userId || !req.session.username) {
-    res.status(401).send();
-    return;
-  }
-
   try {
     const result = await getIngredientsByUserId(req.session.userId);
 

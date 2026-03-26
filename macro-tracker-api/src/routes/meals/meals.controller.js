@@ -12,11 +12,6 @@ import validator from "../../Utilities/validator.js";
 import { log, loggingLevels, formatResponse } from "../../Utilities/logger.js";
 
 async function createNewMeal(req, res) {
-  if (!req.session.userId || !req.session.username) {
-    res.status(401).send();
-    return;
-  }
-
   let meal = req.body;
 
   if (!meal.name) {
@@ -71,11 +66,6 @@ async function createNewMeal(req, res) {
 }
 
 async function createNewMealRaw(req, res) {
-  if (!req.session.userId || !req.session.username) {
-    res.status(401).send();
-    return;
-  }
-
   try {
     if (!req.body.name) {
       res
@@ -122,11 +112,6 @@ async function createNewMealRaw(req, res) {
 }
 
 async function getMealHistory(req, res) {
-  if (!req.session.userId || !req.session.username) {
-    res.status(401).send();
-    return;
-  }
-
   if (
     !validator.isValidDate(req.query.fromDate) ||
     !validator.isValidDate(req.query.toDate)
@@ -236,11 +221,6 @@ async function getMealHistory(req, res) {
 }
 
 async function getMeals(req, res) {
-  if (!req.session.userId || !req.session.username) {
-    res.status(401).send();
-    return;
-  }
-
   const daysAgo = req.query.daysAgo || 0;
 
   if (!validator.isNumberGEZero(daysAgo)) {
@@ -254,7 +234,7 @@ async function getMeals(req, res) {
   }
 
   try {
-    const meals = await getMealsFromDay(req.session.userid, daysAgo);
+    const meals = await getMealsFromDay(req.session.userId, daysAgo);
 
     res.status(200).send(JSON.stringify(meals));
   } catch (e) {
@@ -268,11 +248,6 @@ async function getMeals(req, res) {
 }
 
 async function deleteMealById(req, res) {
-  if (!req.session.userId || !req.session.username) {
-    res.status(401).send();
-    return;
-  }
-
   if (!validator.isNumberGEZero(req.params.id)) {
     res
       .status(400)
@@ -295,11 +270,6 @@ async function deleteMealById(req, res) {
 }
 
 async function putMealIsRecurring(req, res) {
-  if (!req.session.userId || !req.session.username) {
-    res.status(401).send();
-    return;
-  }
-
   try {
     const result = await updateMealIsRecurring(
       req.params.id,

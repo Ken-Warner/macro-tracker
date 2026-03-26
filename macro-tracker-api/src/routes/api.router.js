@@ -7,10 +7,17 @@ import macrosRouter from "./macros/macros.router.js";
 
 const apiRouter = express.Router();
 
-apiRouter.use('/users', usersRouter);
-apiRouter.use('/ingredients', ingredientsRouter);
-apiRouter.use('/meals', mealsRouter);
-apiRouter.use('/weighIn', weighInRouter);
-apiRouter.use('/macros', macrosRouter);
+function requireSession(req, res, next) {
+  if (!req.session || !req.session.userId || !req.session.username) {
+    return res.status(401).send();
+  }
+  next();
+}
+
+apiRouter.use("/users", usersRouter);
+apiRouter.use("/ingredients", requireSession, ingredientsRouter);
+apiRouter.use("/meals", requireSession, mealsRouter);
+apiRouter.use("/weighIn", requireSession, weighInRouter);
+apiRouter.use("/macros", requireSession, macrosRouter);
 
 export default apiRouter;

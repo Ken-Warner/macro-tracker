@@ -6,11 +6,6 @@ import validator from "../../Utilities/validator.js";
 import { log, loggingLevels, formatResponse } from "../../Utilities/logger.js";
 
 async function getMacrosFromDateRange(req, res) {
-  if (!req.session.userId || !req.session.username) {
-    res.status(401).send();
-    return;
-  }
-
   if (!req.query.fromDate || !validator.isValidDate(req.query.fromDate)) {
     res.status(400).send(
       JSON.stringify({
@@ -58,11 +53,6 @@ async function getMacrosFromDateRange(req, res) {
 }
 
 async function getTodaysMacros(req, res) {
-  if (!req.session.userId || !req.session.username) {
-    res.status(401).send();
-    return;
-  }
-
   try {
     const queryResult = await selectTodaysMacros(
       req.session.userId,
