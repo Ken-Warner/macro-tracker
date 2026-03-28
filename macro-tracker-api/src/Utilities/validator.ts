@@ -6,11 +6,11 @@ const validator = () => {
   //This could probably be more robust
   const emailAddresses = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
   
-  const isValidPassword = (password) => passwords.test(password);
-  const isValidUsername = (username) => usernames.test(username);
-  const isNumberGEZero = (number) => numbers.test(number) && number >= 0;
-  const isValidEmail = (email) => emailAddresses.test(email);
-  const isValidDate = (date) => {
+  const isValidPassword = (password: string) => passwords.test(password);
+  const isValidUsername = (username: string) => usernames.test(username);
+  const isNumberGEZero = (number: number) => number >= 0;
+  const isValidEmail = (email: string) => emailAddresses.test(email);
+  const isValidDate = (date: string) => {
     if (!dates.test(date))
       return false;
     

@@ -6,7 +6,7 @@ const pool = new Pool({
     user: process.env.DB_USER || "postgres",
     password: process.env.DB_PASSWORD || "test123",
     database: process.env.DB_DATABASE || "postgres",
-    port: process.env.DB_PORT || 5432,
+    port: Number(process.env.DB_PORT) || 5432,
 });
 async function query({ text, params = [] }) {
     return new Promise((resolve, reject) => {

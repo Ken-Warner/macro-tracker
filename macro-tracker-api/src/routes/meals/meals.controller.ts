@@ -10,9 +10,36 @@ import {
 } from "../../models/meals.model.js";
 import validator from "../../Utilities/validator.js";
 import { log, loggingLevels, formatResponse } from "../../Utilities/logger.js";
+import type { Request, Response } from "express";
+import type {
+  CreateComposedMealRequest,
+  CreateComposedMealResponse,
+  CreateMealRawRequest,
+  CreateMealRawResponse,
+  GetMealHistoryRequestQuery,
+  GetMealHistoryResponse,
+  GetMealsRequestQuery,
+  GetMealsResponse,
+  MealHistoryMeal,
+  PutMealIsRecurringRequest,
+} from "@macro-tracker/macro-tracker-shared";
 
-async function createNewMeal(req, res) {
-  let meal = req.body;
+type RecurringMealRow = {
+  name: string;
+  description: string | null;
+  date: Date;
+  time: string;
+  calories: number;
+  protein: number;
+  carbohydrates: number;
+  fats: number;
+};
+
+async function createNewMeal(
+  req: Request<unknown, unknown, CreateComposedMealRequest>,
+  res: Response,
+) {
+  const meal = req.body;
 
   if (!meal.name) {
     res
@@ -52,20 +79,27 @@ async function createNewMeal(req, res) {
   }
 
   try {
-    let newMeal = await createMeal(req.session.userId, meal);
+    const newMeal = (await createMeal(
+      req.session.userId,
+      meal,
+    )) as CreateComposedMealResponse;
 
     res.status(201).send(JSON.stringify(newMeal));
   } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
     const uuid = await log(
       loggingLevels.ERROR,
-      `createNewMeal: ${e.message}`,
+      `createNewMeal: ${message}`,
       req.body,
     );
     res.status(500).send(formatResponse(uuid));
   }
 }
 
-async function createNewMealRaw(req, res) {
+async function createNewMealRaw(
+  req: Request<unknown, unknown, CreateMealRawRequest>,
+  res: Response,
+) {
   try {
     if (!req.body.name) {
       res
@@ -74,7 +108,7 @@ async function createNewMealRaw(req, res) {
       return;
     }
 
-    let newMeal = {
+    const rawInput = {
       name: req.body.name,
       description: req.body.description,
       calories: (req.body.calories || -1) < 0 ? 0 : req.body.calories,
@@ -86,9 +120,9 @@ async function createNewMealRaw(req, res) {
       time: req.body.time,
     };
 
-    newMeal = await createMealRaw(req.session.userId, newMeal);
+    const newMeal = await createMealRaw(req.session.userId, rawInput);
 
-    const responseMeal = {
+    const responseMeal: CreateMealRawResponse = {
       id: newMeal.id,
       name: newMeal.name,
       description: newMeal.description,
@@ -102,19 +136,29 @@ async function createNewMealRaw(req, res) {
 
     res.status(201).send(JSON.stringify(responseMeal));
   } catch (e) {
+    console.log(e);
+    const message = e instanceof Error ? e.message : String(e);
     const uuid = await log(
       loggingLevels.ERROR,
-      `createNewMealRaw: ${e.message}`,
+      `createNewMealRaw: ${message}`,
       req.body,
     );
     res.status(500).send(formatResponse(uuid));
   }
 }
 
-async function getMealHistory(req, res) {
+async function getMealHistory(
+  req: Request<unknown, unknown, unknown, Partial<GetMealHistoryRequestQuery>>,
+  res: Response,
+) {
+  const fromDate = req.query.fromDate;
+  const toDate = req.query.toDate;
+
   if (
-    !validator.isValidDate(req.query.fromDate) ||
-    !validator.isValidDate(req.query.toDate)
+    !fromDate ||
+    !toDate ||
+    !validator.isValidDate(fromDate) ||
+    !validator.isValidDate(toDate)
   ) {
     res.status(400).send(
       JSON.stringify({
@@ -128,23 +172,36 @@ async function getMealHistory(req, res) {
   try {
     const mealHistoryWithoutRecurring = await getMealHistoryWithRange(
       req.session.userId,
-      req.query.fromDate,
-      req.query.toDate,
+      fromDate,
+      toDate,
     );
 
-    let newMeals = [];
-    let newMacroTotals = [];
+    let newMeals: unknown[] = [];
+    let newMacroTotals: unknown[] = [];
 
     if (
       (mealHistoryWithoutRecurring.length > 0 &&
         mealHistoryWithoutRecurring[0].date.toISOString().split("T")[0] !==
-          req.query.toDate) ||
+          toDate) ||
       mealHistoryWithoutRecurring.length === 0
     ) {
       const recurringMeals = await selectRecurringMeals(req.session.userId);
       if (recurringMeals.length > 0) {
         const recurringMacroTotals = recurringMeals.reduce(
-          (acc, curr) => {
+          (
+            acc: {
+              calories: number;
+              protein: number;
+              carbohydrates: number;
+              fats: number;
+            },
+            curr: {
+              calories: number;
+              protein: number;
+              carbohydrates: number;
+              fats: number;
+            },
+          ) => {
             acc.calories += curr.calories;
             acc.protein += curr.protein;
             acc.carbohydrates += curr.carbohydrates;
@@ -160,13 +217,13 @@ async function getMealHistory(req, res) {
           },
         );
 
-        const toDate = new Date(req.query.toDate + "T00:00:00");
+        const toDateObj = new Date(toDate + "T00:00:00");
         let currentDate = new Date(recurringMeals[0].date);
         currentDate.setDate(currentDate.getDate() + 1);
 
-        while (currentDate <= toDate) {
+        while (currentDate <= toDateObj) {
           newMeals.push(
-            ...recurringMeals.map((recurringMeal) => {
+            ...recurringMeals.map((recurringMeal: RecurringMealRow) => {
               return {
                 ...recurringMeal,
                 date: new Date(currentDate),
@@ -190,38 +247,48 @@ async function getMealHistory(req, res) {
 
     const mealHistory = [...newMeals.reverse(), ...mealHistoryWithoutRecurring];
 
-    let deepMealHistory = [];
-    for (let meal of mealHistory) {
-      meal.date = meal.date.toISOString().split("T")[0];
+    const deepMealHistory: GetMealHistoryResponse = [];
+    for (const meal of mealHistory) {
+      type MealWithDate = { date: Date | string } & Record<string, unknown>;
+      const m = meal as MealWithDate;
+      const mealsDate =
+        m.date instanceof Date
+          ? (m.date.toISOString().split("T")[0] ?? "")
+          : typeof m.date === "string"
+            ? m.date
+            : "";
+      m.date = mealsDate;
 
-      let deepMealHistoryDate = deepMealHistory.find(
-        (el) => el.mealsDate === meal.date,
+      const historyMeal = m as unknown as MealHistoryMeal;
+
+      const existingGroup = deepMealHistory.find(
+        (el) => el.mealsDate === mealsDate,
       );
 
-      if (!deepMealHistoryDate) {
-        deepMealHistoryDate = {
-          mealsDate: meal.date,
-          meals: [meal],
-        };
-        deepMealHistory.push(deepMealHistoryDate);
+      if (existingGroup) {
+        existingGroup.meals.push(historyMeal);
       } else {
-        deepMealHistoryDate.meals.push(meal);
+        deepMealHistory.push({ mealsDate, meals: [historyMeal] });
       }
     }
 
     res.status(200).send(JSON.stringify(deepMealHistory));
   } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
     const uuid = await log(
       loggingLevels.ERROR,
-      `getMealHistory: ${e.message}`,
+      `getMealHistory: ${message}`,
       req.query,
     );
     res.status(500).send(formatResponse(uuid));
   }
 }
 
-async function getMeals(req, res) {
-  const daysAgo = req.query.daysAgo || 0;
+async function getMeals(
+  req: Request<unknown, unknown, unknown, Partial<GetMealsRequestQuery>>,
+  res: Response,
+) {
+  const daysAgo = Number(req.query.daysAgo) || 0;
 
   if (!validator.isNumberGEZero(daysAgo)) {
     res.status(400).send(
@@ -234,21 +301,28 @@ async function getMeals(req, res) {
   }
 
   try {
-    const meals = await getMealsFromDay(req.session.userId, daysAgo);
+    const meals = (await getMealsFromDay(
+      req.session.userId,
+      daysAgo,
+    )) as GetMealsResponse;
 
     res.status(200).send(JSON.stringify(meals));
   } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
     const uuid = await log(
       loggingLevels.ERROR,
-      `getMeals: ${e.message}`,
+      `getMeals: ${message}`,
       req.query,
     );
     res.status(500).send(formatResponse(uuid));
   }
 }
 
-async function deleteMealById(req, res) {
-  if (!validator.isNumberGEZero(req.params.id)) {
+async function deleteMealById(
+  req: Request<{ id: string }, unknown, unknown, unknown>,
+  res: Response,
+) {
+  if (!validator.isNumberGEZero(Number(req.params.id))) {
     res
       .status(400)
       .send(JSON.stringify({ error: `A numeric meal ID must be provided.` }));
@@ -260,16 +334,20 @@ async function deleteMealById(req, res) {
 
     res.status(200).send();
   } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
     const uuid = await log(
       loggingLevels.ERROR,
-      `deleteMealById: ${e.message}`,
+      `deleteMealById: ${message}`,
       { userId: req.session.userId, requestParamaters: req.params },
     );
     res.status(500).send(formatResponse(uuid));
   }
 }
 
-async function putMealIsRecurring(req, res) {
+async function putMealIsRecurring(
+  req: Request<{ id: string }, unknown, PutMealIsRecurringRequest>,
+  res: Response,
+) {
   try {
     const result = await updateMealIsRecurring(
       req.params.id,
@@ -279,9 +357,10 @@ async function putMealIsRecurring(req, res) {
 
     res.status(result === 1 ? 200 : 404).send();
   } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
     const uuid = await log(
       loggingLevels.ERROR,
-      `putMealIsRecurring: ${e.message}`,
+      `putMealIsRecurring: ${message}`,
       { userId: req.session.userId, requestParamaters: req.params },
     );
     res.status(500).send(formatResponse(uuid));

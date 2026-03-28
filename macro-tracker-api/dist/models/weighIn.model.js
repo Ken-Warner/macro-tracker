@@ -18,7 +18,7 @@ async function insertWeighInData(userId, weighInData) {
         weighInData.targetCarbohydrates || DEFAULT,
         weighInData.targetFats || DEFAULT,
     ];
-    [queryFields, queryValues, queryParams] = buildInsert(fields, values);
+    const [queryFields, queryValues, queryParams] = buildInsert(fields, values);
     let insertWeighInDataQuery = {
         text: `INSERT INTO user_weights ${queryFields}
             VALUES ${queryValues}

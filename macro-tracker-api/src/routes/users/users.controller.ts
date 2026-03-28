@@ -1,8 +1,10 @@
 import { getUser, createUser } from "../../models/users.model.js";
 import validator from "../../Utilities/validator.js";
 import { log, loggingLevels, formatResponse } from "../../Utilities/logger.js";
+import type { Request, Response } from "express";
+import type { UserCreateRequest, UserLoginRequest } from "@macro-tracker/macro-tracker-shared";
 
-async function createNewUser(req, res) {
+async function createNewUser(req: Request<{}, {}, UserCreateRequest>, res: Response) {
   if (req.session.userId && req.session.username) {
     res.status(400).send(JSON.stringify({ error: `User already logged in. ` }));
     return;
@@ -38,24 +40,26 @@ async function createNewUser(req, res) {
       req.body.password,
       req.body.emailAddress,
     );
+    const userId = String(result);
 
     req.session.username = req.body.username;
-    req.session.userId = result;
+    req.session.userId = userId;
 
     res
       .status(201)
-      .send(JSON.stringify({ userId: result, username: req.body.username }));
+      .send(JSON.stringify({ userId, username: req.body.username }));
   } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
     const uuid = await log(
       loggingLevels.ERROR,
-      `createNewUser: ${e.message}`,
+      `createNewUser: ${message}`,
       req.body,
     );
     res.status(500).send(formatResponse(uuid));
   }
 }
 
-async function logUserIn(req, res) {
+async function logUserIn(req: Request<{}, {}, UserLoginRequest>, res: Response) {
   if (req.session.userId && req.session.username) {
     res.status(200).send(
       JSON.stringify({
@@ -81,7 +85,8 @@ async function logUserIn(req, res) {
     if (req.body.rememberMe == true) {
       req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; //30 days
     } else {
-      req.session.cookie.expires = false; //Terminate session when browser closed.
+      req.session.cookie.maxAge = undefined;
+      req.session.cookie.expires = undefined;
     }
 
     req.session.save();
@@ -90,17 +95,18 @@ async function logUserIn(req, res) {
       .status(200)
       .send(JSON.stringify({ userId: user.id, username: user.username }));
   } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
     const uuid = await log(
       loggingLevels.ERROR,
-      `logUserIn: ${e.message}`,
+      `logUserIn: ${message}`,
       req.body,
     );
     res.status(500).send(formatResponse(uuid));
   }
 }
 
-async function logUserOut(req, res) {
-  req.session.destroy((error) => {
+function logUserOut(req: Request, res: Response) {
+  req.session.destroy((error: unknown) => {
     if (error) return res.status(500).send();
     res.clearCookie("connect.sid");
     res.status(200).send();

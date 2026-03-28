@@ -3,3 +3,4 @@ macro-tracker-api/public
 macro-tracker-client/node_modules/
 .env
 data
+node_modules

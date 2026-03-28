@@ -1,0 +1,114 @@
+import {
+  selectMacrosFromDateRange,
+  selectTodaysMacros,
+} from "../../models/macros.model.js";
+import validator from "../../Utilities/validator.js";
+import { log, loggingLevels, formatResponse } from "../../Utilities/logger.js";
+import type { Request, Response } from "express";
+import type {
+  GetMacrosFromDateRangeRequestQuery,
+  GetMacrosFromDateRangeResponse,
+  GetTodaysMacrosRequestQuery,
+  GetTodaysMacrosResponse,
+} from "@macro-tracker/macro-tracker-shared";
+
+async function getMacrosFromDateRange(
+  req: Request<
+    unknown,
+    unknown,
+    unknown,
+    Partial<GetMacrosFromDateRangeRequestQuery>
+  >,
+  res: Response,
+) {
+  const fromDate = req.query.fromDate;
+  const toDate = req.query.toDate;
+
+  if (!fromDate || !validator.isValidDate(fromDate)) {
+    res.status(400).send(
+      JSON.stringify({
+        error: `You must provide a fromDate in the format YYYY-MM-DD`,
+      }),
+    );
+    return;
+  }
+
+  if (!toDate || !validator.isValidDate(toDate)) {
+    res.status(400).send(
+      JSON.stringify({
+        error: `You must provide a toDate in the format YYYY-MM-DD`,
+      }),
+    );
+    return;
+  }
+
+  try {
+    let macroData = await selectMacrosFromDateRange(
+      req.session.userId,
+      fromDate,
+      toDate,
+    );
+
+    macroData = macroData.map((el: { date: Date; calories: number; protein: number; carbohydrates: number; fats: number }) => {
+      return {
+        date: el.date.toISOString().split("T")[0],
+        calories: el.calories,
+        protein: el.protein,
+        carbohydrates: el.carbohydrates,
+        fats: el.fats,
+      };
+    });
+
+    const body: GetMacrosFromDateRangeResponse = macroData;
+    res.status(200).send(JSON.stringify(body));
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    const uuid = await log(
+      loggingLevels.ERROR,
+      `getMacrosFromDateRange: ${message}`,
+      req.query,
+    );
+    res.status(500).send(formatResponse(uuid));
+  }
+}
+
+async function getTodaysMacros(
+  req: Request<unknown, unknown, unknown, Partial<GetTodaysMacrosRequestQuery>>,
+  res: Response,
+) {
+  try {
+    const queryResult = await selectTodaysMacros(
+      req.session.userId,
+      req.query.today,
+    );
+
+    const qr = queryResult as {
+      calories?: number;
+      protein?: number;
+      carbohydrates?: number;
+      fats?: number;
+    };
+
+    const apiResult: GetTodaysMacrosResponse = {
+      calories: qr.calories ?? 0,
+      protein: qr.protein ?? 0,
+      carbohydrates: qr.carbohydrates ?? 0,
+      fats: qr.fats ?? 0,
+    };
+    if (req.query.today !== undefined) {
+      apiResult.date = req.query.today;
+    }
+
+    res.status(200).send(JSON.stringify(apiResult));
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    const uuid = await log(
+      loggingLevels.ERROR,
+      `getTodaysMacros: ${message}`,
+      req.query,
+    );
+    res.status(500).send(formatResponse(uuid));
+  }
+}
+
+export { getMacrosFromDateRange, getTodaysMacros };

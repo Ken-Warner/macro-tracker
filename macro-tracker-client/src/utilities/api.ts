@@ -1,4 +1,7 @@
-export async function getMealHistoryFromRange(fromDate, toDate) {
+import type { weighIn } from "../types/weighIn";
+import type { CreateMealRawRequest } from "@macro-tracker/macro-tracker-shared";
+
+export async function getMealHistoryFromRange(fromDate: Date, toDate: Date) {
   const searchParams = new URLSearchParams({
     fromDate: fromDate.toISOString().split("T")[0],
     toDate: toDate.toISOString().split("T")[0],
@@ -15,7 +18,7 @@ export async function getMealHistoryFromRange(fromDate, toDate) {
   }
 }
 
-export async function getTodaysMacros(today) {
+export async function getTodaysMacros(today: Date) {
   const searchParams = new URLSearchParams({
     today: today.toISOString().split("T")[0],
   });
@@ -35,10 +38,10 @@ export async function getUserLogout() {
 }
 
 export async function postCreateNewUser(
-  username,
-  password,
-  confirmedPassword,
-  email,
+  username: string,
+  password: string,
+  confirmedPassword: string,
+  email: string,
 ) {
   const apiResult = await fetch("/api/users/create", {
     method: "POST",
@@ -61,7 +64,7 @@ export async function postCreateNewUser(
   }
 }
 
-export async function postUserLogin(username, password, rememberMe) {
+export async function postUserLogin(username: string, password: string, rememberMe: boolean) {
   const apiResult = await fetch("/api/users/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -82,7 +85,7 @@ export async function postUserLogin(username, password, rememberMe) {
   }
 }
 
-export async function deleteMeal(mealId) {
+export async function deleteMeal(mealId: number) {
   const apiResult = await fetch(`/api/meals/${mealId}`, { method: "DELETE" });
 
   if (apiResult.ok) {
@@ -92,7 +95,7 @@ export async function deleteMeal(mealId) {
   }
 }
 
-export async function putMealRecurring(mealId, isRecurring) {
+export async function putMealRecurring(mealId: number, isRecurring: boolean) {
   const apiResult = await fetch(`/api/meals/${mealId}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -113,7 +116,7 @@ export async function getMostRecentWeighIn() {
   }
 }
 
-export async function postWeighIn(weighInData) {
+export async function postWeighIn(weighInData: weighIn) {
   const apiResult = await fetch("/api/weighIn", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -123,7 +126,7 @@ export async function postWeighIn(weighInData) {
   if (!apiResult.ok) throw new Error("Error sending new macro targets.");
 }
 
-export async function postMealNonComposed(newMeal) {
+export async function postMealNonComposed(newMeal: CreateMealRawRequest) {
   const apiResult = await fetch("/api/meals/nonComposed", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

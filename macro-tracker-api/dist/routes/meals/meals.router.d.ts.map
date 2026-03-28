@@ -1,1 +1,1 @@
-{"version":3,"file":"meals.router.d.ts","sourceRoot":"","sources":["../../../src/routes/meals/meals.router.js"],"names":[],"mappings":";AAUA,sEAAqC"}
+{"version":3,"file":"meals.router.d.ts","sourceRoot":"","sources":["../../../src/routes/meals/meals.router.ts"],"names":[],"mappings":"AAUA,QAAA,MAAM,WAAW,4CAAmB,CAAC;AASrC,eAAe,WAAW,CAAC"}

@@ -1,0 +1,9 @@
+{
+  "name": "macro-tracker",
+  "private": true,
+  "workspaces": [
+    "macro-tracker-api",
+    "macro-tracker-client",
+    "macro-tracker-shared"
+  ]
+}

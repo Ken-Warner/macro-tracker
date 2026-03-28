@@ -28,14 +28,16 @@ async function createNewUser(req, res) {
             return;
         }
         const result = await createUser(req.body.username, req.body.password, req.body.emailAddress);
+        const userId = String(result);
         req.session.username = req.body.username;
-        req.session.userId = result;
+        req.session.userId = userId;
         res
             .status(201)
-            .send(JSON.stringify({ userId: result, username: req.body.username }));
+            .send(JSON.stringify({ userId, username: req.body.username }));
     }
     catch (e) {
-        const uuid = await log(loggingLevels.ERROR, `createNewUser: ${e.message}`, req.body);
+        const message = e instanceof Error ? e.message : String(e);
+        const uuid = await log(loggingLevels.ERROR, `createNewUser: ${message}`, req.body);
         res.status(500).send(formatResponse(uuid));
     }
 }
@@ -60,7 +62,8 @@ async function logUserIn(req, res) {
             req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; //30 days
         }
         else {
-            req.session.cookie.expires = false; //Terminate session when browser closed.
+            req.session.cookie.maxAge = undefined;
+            req.session.cookie.expires = undefined;
         }
         req.session.save();
         res
@@ -68,11 +71,12 @@ async function logUserIn(req, res) {
             .send(JSON.stringify({ userId: user.id, username: user.username }));
     }
     catch (e) {
-        const uuid = await log(loggingLevels.ERROR, `logUserIn: ${e.message}`, req.body);
+        const message = e instanceof Error ? e.message : String(e);
+        const uuid = await log(loggingLevels.ERROR, `logUserIn: ${message}`, req.body);
         res.status(500).send(formatResponse(uuid));
     }
 }
-async function logUserOut(req, res) {
+function logUserOut(req, res) {
     req.session.destroy((error) => {
         if (error)
             return res.status(500).send();

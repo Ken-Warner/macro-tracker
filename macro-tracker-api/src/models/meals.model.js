@@ -83,7 +83,7 @@ async function createMealRaw(userId, meal) {
     meal.fats,
   ];
 
-  [queryFields, queryValues, queryParams] = buildInsert(fields, values);
+  const [queryFields, queryValues, queryParams] = buildInsert(fields, values);
 
   let createMealQuery = {
     text: `INSERT INTO meals ${queryFields}

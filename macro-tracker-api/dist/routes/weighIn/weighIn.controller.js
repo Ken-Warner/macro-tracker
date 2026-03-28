@@ -2,42 +2,38 @@ import { insertWeighInData, selectRecentWeighInData, selectWeighInDataForDateRan
 import validator from "../../Utilities/validator.js";
 import { loggingLevels, formatResponse, log } from "../../Utilities/logger.js";
 async function getWeighInData(req, res) {
-    if (!req.session.userId || !req.session.username) {
-        res.status(401).send();
-        return;
-    }
-    if (!req.query.fromDate || !validator.isValidDate(req.query.fromDate)) {
+    const fromDate = req.query.fromDate;
+    const toDate = req.query.toDate;
+    if (!fromDate || !validator.isValidDate(fromDate)) {
         res.status(400).send(JSON.stringify({
             error: `fromDate must be supplied in the format YYYY-MM-DD`,
         }));
         return;
     }
-    if (!req.query.toDate || !validator.isValidDate(req.query.toDate)) {
+    if (!toDate || !validator.isValidDate(toDate)) {
         res.status(400).send(JSON.stringify({
             error: `toDate must be supplied in the format YYYY-MM-DD`,
         }));
         return;
     }
     try {
-        let weighInData = await selectWeighInDataForDateRange(req.session.userId, req.query.fromDate, req.query.toDate);
+        let weighInData = await selectWeighInDataForDateRange(req.session.userId, fromDate, toDate);
         weighInData = weighInData.map((el) => {
             return {
                 date: el.date.toISOString().split("T")[0],
                 weight: el.weight,
             };
         });
-        res.status(200).send(JSON.stringify(weighInData));
+        const body = weighInData;
+        res.status(200).send(JSON.stringify(body));
     }
     catch (e) {
-        const uuid = await log(loggingLevels.ERROR, `getWeighInData: ${e.message}`, req.query);
+        const message = e instanceof Error ? e.message : String(e);
+        const uuid = await log(loggingLevels.ERROR, `getWeighInData: ${message}`, req.query);
         res.status(500).send(formatResponse(uuid));
     }
 }
 async function getRecentWeighInData(req, res) {
-    if (!req.session.userId || !req.session.username) {
-        res.status(401).send();
-        return;
-    }
     try {
         const weighInData = await selectRecentWeighInData(req.session.userId);
         if (weighInData == undefined) {
@@ -54,16 +50,12 @@ async function getRecentWeighInData(req, res) {
         res.status(200).send(JSON.stringify(apiResult));
     }
     catch (e) {
-        const uuid = await log(loggingLevels.ERROR, `getRecentWeighInData: ${e.message}`, req.body);
+        const message = e instanceof Error ? e.message : String(e);
+        const uuid = await log(loggingLevels.ERROR, `getRecentWeighInData: ${message}`, req.body);
         res.status(500).send(formatResponse(uuid));
     }
 }
 async function postWeighInData(req, res) {
-    if (!req.session.userId || !req.session.username) {
-        res.status(401).send();
-        return;
-    }
-    let weighInData = {};
     if (!req.body.weight || !validator.isNumberGEZero(req.body.weight)) {
         res
             .status(400)
@@ -76,21 +68,29 @@ async function postWeighInData(req, res) {
         }));
         return;
     }
-    //validations should be done on the targets to make sure they are positive whole numbers or undefined
-    weighInData = {
-        weight: req.body.weight,
-        date: req.body.date,
-        targetCalories: req.body.targetCalories,
-        targetProtein: req.body.targetProtein,
-        targetCarbohydrates: req.body.targetCarbohydrates,
-        targetFats: req.body.targetFats,
-    };
+    const weighInData = { weight: req.body.weight };
+    if (req.body.date) {
+        weighInData.date = req.body.date;
+    }
+    if (req.body.targetCalories !== undefined) {
+        weighInData.targetCalories = req.body.targetCalories;
+    }
+    if (req.body.targetProtein !== undefined) {
+        weighInData.targetProtein = req.body.targetProtein;
+    }
+    if (req.body.targetCarbohydrates !== undefined) {
+        weighInData.targetCarbohydrates = req.body.targetCarbohydrates;
+    }
+    if (req.body.targetFats !== undefined) {
+        weighInData.targetFats = req.body.targetFats;
+    }
     try {
         await insertWeighInData(req.session.userId, weighInData);
         res.status(200).send();
     }
     catch (e) {
-        const uuid = await log(loggingLevels.ERROR, `postWeighInData: ${e.message}`, req.body);
+        const message = e instanceof Error ? e.message : String(e);
+        const uuid = await log(loggingLevels.ERROR, `postWeighInData: ${message}`, req.body);
         res.status(500).send(formatResponse(uuid));
     }
 }
