@@ -7,49 +7,65 @@ async function createNewIngredient(req, res) {
             //ingredient is composed of other existing ingredients
             //all macro information is ignored and instead is tallied from the
             //existing ingredients
-            if (req.body.components.some(component => component.ingredientId == 0) || req.body.components.some(component => component.portionSize == 0)) {
-                res.status(400).send(JSON.stringify({ error: "Not all component IDs or portion sizes are provided" }));
+            if (req.body.components.some((component) => component.ingredientId == 0) ||
+                req.body.components.some((component) => component.portionSize == 0)) {
+                res
+                    .status(400)
+                    .send(JSON.stringify({
+                    error: "Not all component IDs or portion sizes are provided",
+                }));
                 return;
             }
             const newIngredient = await createIngredientFromComponents(req.session.userId, req.body.ingredient.name, req.body.ingredient.description, req.body.components);
-            res.status(201).send(JSON.stringify(newIngredient));
+            const body = newIngredient;
+            res.status(201).send(JSON.stringify(body));
         }
-        else if (req.body.ingredient && req.body.ingredient.name != '') {
+        else if (req.body.ingredient && req.body.ingredient.name != "") {
             const newIngredient = await createIngredientRaw(req.session.userId, req.body.ingredient);
-            res.status(201).send(JSON.stringify(newIngredient));
+            const body = newIngredient;
+            res.status(201).send(JSON.stringify(body));
         }
         else {
             res.status(400).send(JSON.stringify({ error: "Invalid Input" }));
         }
     }
     catch (e) {
-        const uuid = await log(loggingLevels.ERROR, `createNewIngredient: ${e.message}`, req.body);
+        const message = e instanceof Error ? e.message : String(e);
+        const uuid = await log(loggingLevels.ERROR, `createNewIngredient: ${message}`, req.body);
         res.status(500).send(formatResponse(uuid));
     }
 }
 async function deleteIngredient(req, res) {
-    if (!validator.isNumberGEZero(req.params.ingredientId)) {
-        res.status(400).send(JSON.stringify({ error: `A numeric ingredient ID must be provided.` }));
+    const ingredientIdNum = Number(req.params.ingredientId);
+    if (!validator.isNumberGEZero(ingredientIdNum)) {
+        res
+            .status(400)
+            .send(JSON.stringify({
+            error: `A numeric ingredient ID must be provided.`,
+        }));
         return;
     }
     try {
-        const result = await deleteIngredientById(req.session.userId, req.params.ingredientId);
+        const result = await deleteIngredientById(req.session.userId, ingredientIdNum);
         if (result == 0)
-            await log(loggingLevels.INFO, 'deleteIngredient: ID not found.', req.params);
+            await log(loggingLevels.INFO, "deleteIngredient: ID not found.", req.params);
         res.status(200).send();
     }
     catch (e) {
-        const uuid = await log(loggingLevels.ERROR, `deleteIngredient: ${e.message}`, req.params);
+        const message = e instanceof Error ? e.message : String(e);
+        const uuid = await log(loggingLevels.ERROR, `deleteIngredient: ${message}`, req.params);
         res.status(500).send(formatResponse(uuid));
     }
 }
 async function getIngredients(req, res) {
     try {
         const result = await getIngredientsByUserId(req.session.userId);
-        res.status(200).send(JSON.stringify(result.rows));
+        const body = result.rows;
+        res.status(200).send(JSON.stringify(body));
     }
     catch (e) {
-        const uuid = await log(loggingLevels.ERROR, `getIngredients: ${e.message}`, req.session.userId);
+        const message = e instanceof Error ? e.message : String(e);
+        const uuid = await log(loggingLevels.ERROR, `getIngredients: ${message}`, req.session.userId);
         res.status(500).send(formatResponse(uuid));
     }
 }
