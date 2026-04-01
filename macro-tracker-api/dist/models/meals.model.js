@@ -1,22 +1,24 @@
+import { Meal, } from "@macro-tracker/macro-tracker-shared";
 import { query, buildInsert, DEFAULT } from "./pool.js";
-async function createMeal(userId, meal) {
-    let getIngredientsQuery = {
+export async function createMeal(userId, meal) {
+    const getIngredientsQuery = {
         text: `SELECT id, calories, protein, carbohydrates, fats
             FROM ingredients
             WHERE user_id = $1
               AND id IN (${meal.ingredients
-            .map((ingredient, idx) => "$" + (idx + 2))
+            .map((_, idx) => "$" + String(idx + 2))
             .join(",")});`,
         params: [
             userId,
             ...meal.ingredients.map((ingredient) => ingredient.ingredientId),
         ],
     };
-    let mealRecipe = new Array();
-    ingredientsResult = await query(getIngredientsQuery);
-    if (ingredientsResult.rowCount <= 0)
+    const mealRecipe = [];
+    const ingredientsResult = await query(getIngredientsQuery);
+    if (ingredientsResult.rowCount === null || ingredientsResult.rowCount <= 0) {
         throw new Error("No results for provided Ingredients.");
-    let newMeal = {
+    }
+    const newMeal = {
         name: meal.name,
         description: meal.description,
         date: meal.date,
@@ -26,25 +28,43 @@ async function createMeal(userId, meal) {
         carbohydrates: 0,
         fats: 0,
     };
-    ingredientsResult.rows.forEach((ingredient) => {
-        const portionSize = meal.ingredients.find((el) => el.ingredientId == ingredient.id).portionSize;
-        const recipeAssociation = {
+    for (const ingredient of ingredientsResult.rows) {
+        const portionSize = meal.ingredients.find((el) => el.ingredientId === ingredient.id)?.portionSize;
+        if (portionSize === undefined) {
+            throw new Error("No results for provided Ingredients.");
+        }
+        mealRecipe.push({
             ingredientId: ingredient.id,
-            portionSize: portionSize,
-        };
-        mealRecipe.push(recipeAssociation);
+            portionSize,
+        });
         newMeal.calories += ingredient.calories * portionSize;
         newMeal.protein += ingredient.protein * portionSize;
         newMeal.carbohydrates += ingredient.carbohydrates * portionSize;
         newMeal.fats += ingredient.fats * portionSize;
-    });
+    }
     const finalNewMeal = await createMealRaw(userId, newMeal);
-    mealRecipe.forEach((component) => (component.mealId = finalNewMeal.id));
+    const mealId = finalNewMeal.id;
+    if (mealId === undefined) {
+        throw new Error("Meal insert did not return an id");
+    }
+    for (const component of mealRecipe) {
+        component.mealId = mealId;
+    }
     await insertMealRecipe(mealRecipe);
     return finalNewMeal;
 }
-async function createMealRaw(userId, meal) {
-    let fields = [
+export async function createMealRaw(userId, meal) {
+    const normalized = {
+        name: meal.name,
+        description: meal.description,
+        date: meal.date,
+        time: meal.time,
+        calories: (meal.calories || -1) < 0 ? 0 : (meal.calories ?? 0),
+        protein: (meal.protein || -1) < 0 ? 0 : (meal.protein ?? 0),
+        carbohydrates: (meal.carbohydrates || -1) < 0 ? 0 : (meal.carbohydrates ?? 0),
+        fats: (meal.fats || -1) < 0 ? 0 : (meal.fats ?? 0),
+    };
+    const fields = [
         "user_id",
         "name",
         "description",
@@ -55,36 +75,38 @@ async function createMealRaw(userId, meal) {
         "carbohydrates",
         "fats",
     ];
-    let values = [
+    const values = [
         userId,
-        meal.name,
-        meal.description,
-        meal.date || DEFAULT,
-        meal.time || DEFAULT,
-        meal.calories,
-        meal.protein,
-        meal.carbohydrates,
-        meal.fats,
+        normalized.name,
+        normalized.description,
+        normalized.date ?? DEFAULT,
+        normalized.time ?? DEFAULT,
+        normalized.calories,
+        normalized.protein,
+        normalized.carbohydrates,
+        normalized.fats,
     ];
     const [queryFields, queryValues, queryParams] = buildInsert(fields, values);
-    let createMealQuery = {
+    const createMealQuery = {
         text: `INSERT INTO meals ${queryFields}
             VALUES ${queryValues}
             RETURNING *;`,
         params: queryParams,
     };
     const result = await query(createMealQuery);
-    let resultMeal = result.rows[0];
-    //pg returns a date object instead of an ISO string, so it must be converted
-    //to get the YYYY-MM-DD part of the date
-    resultMeal.date = resultMeal.date.toISOString().split("T")[0];
-    //same with the time string
-    resultMeal.time = resultMeal.time.split(".")[0];
-    await updateMacroTotals(userId, resultMeal);
-    return resultMeal;
+    const row = result.rows[0];
+    const mealEntity = Meal.fromDbRow(row);
+    await updateMacroTotals(userId, {
+        date: mealEntity.date,
+        calories: mealEntity.calories,
+        protein: mealEntity.protein,
+        carbohydrates: mealEntity.carbohydrates,
+        fats: mealEntity.fats,
+    });
+    return mealEntity;
 }
-async function getMealsFromDay(userId, daysAgo) {
-    let getMealsQuery = {
+export async function getMealsFromDay(userId, daysAgo) {
+    const getMealsQuery = {
         text: `SELECT *
             FROM meals
             WHERE user_id = $1
@@ -93,14 +115,14 @@ async function getMealsFromDay(userId, daysAgo) {
     };
     try {
         const result = await query(getMealsQuery);
-        return result.rows;
+        return result.rows.map((row) => Meal.fromDbRow(row));
     }
-    catch (e) {
+    catch {
         throw new Error("Invalid Query");
     }
 }
-async function deleteMeal(userId, mealId) {
-    let deleteMealQuery = {
+export async function deleteMeal(userId, mealId) {
+    const deleteMealQuery = {
         text: `DELETE FROM meals
             WHERE user_id = $1
               AND id = $2
@@ -108,19 +130,20 @@ async function deleteMeal(userId, mealId) {
         params: [userId, mealId],
     };
     const result = await query(deleteMealQuery);
-    if (result.rowCount == 1) {
-        let deletedMeal = result.rows[0];
-        //update macro totals but with negative macros
-        deletedMeal.calories *= -1;
-        deletedMeal.protein *= -1;
-        deletedMeal.carbohydrates *= -1;
-        deletedMeal.fats *= -1;
-        deletedMeal.date = deletedMeal.date.toISOString().split("T")[0];
-        await updateMacroTotals(userId, deletedMeal);
+    if (result.rowCount === 1) {
+        const deletedRow = result.rows[0];
+        const deletedMeal = Meal.fromDbRow(deletedRow);
+        await updateMacroTotals(userId, {
+            date: deletedMeal.date,
+            calories: -deletedMeal.calories,
+            protein: -deletedMeal.protein,
+            carbohydrates: -deletedMeal.carbohydrates,
+            fats: -deletedMeal.fats,
+        });
     }
 }
-async function getMealHistoryWithRange(userId, fromDate, toDate) {
-    let getMealHistoryQuery = {
+export async function getMealHistoryWithRange(userId, fromDate, toDate) {
+    const getMealHistoryQuery = {
         text: `SELECT id,
                   name,
                   description,
@@ -139,43 +162,38 @@ async function getMealHistoryWithRange(userId, fromDate, toDate) {
         params: [userId, fromDate, toDate],
     };
     const result = await query(getMealHistoryQuery);
-    return result.rows;
+    return result.rows.map((row) => Meal.fromDbRow(row));
 }
 async function insertMealRecipe(mealRecipe) {
-    let mealRecipeQuery = {
+    const mealRecipeQuery = {
         text: `INSERT INTO meal_ingredients (meal_id, ingredient_id, portion_size)
             VALUES ${mealRecipe
-            .map((el, idx) => {
+            .map((_, idx) => {
             const firstIdx = 3 * idx + 1;
-            return `($${firstIdx},$${firstIdx + 1},$${firstIdx + 2})`;
+            return `($${String(firstIdx)},$${String(firstIdx + 1)},$${String(firstIdx + 2)})`;
         })
             .join(",")};`,
-        params: mealRecipe
-            .map((el) => [el.mealId, el.ingredientId, el.portionSize])
-            .flat(),
+        params: mealRecipe.flatMap((el) => {
+            if (el.mealId === undefined) {
+                throw new Error("mealId required for meal_ingredients insert");
+            }
+            return [el.mealId, el.ingredientId, el.portionSize];
+        }),
     };
     return await query(mealRecipeQuery);
 }
 async function updateMacroTotals(userId, meal) {
-    //I'm sure there is some sort of UPSERT method you can use on postgresql
-    //that will do this all on the database side, this is a temporary implementation
-    //until I research how to do that.
-    //get current macro totals
-    let getMacroTotalsQuery = {
+    const getMacroTotalsQuery = {
         text: `SELECT date, calories, protein, carbohydrates, fats
             FROM macro_totals
             WHERE user_id = $1
               AND date = $2;`,
         params: [userId, meal.date],
     };
-    let result = await query(getMacroTotalsQuery);
-    let upsertQuery = {
-        text: ``,
-        params: [],
-    };
-    //if they exist
-    if (result.rowCount == 1) {
-        let macroTotals = result.rows[0];
+    const existing = await query(getMacroTotalsQuery);
+    let upsertQuery;
+    if (existing.rowCount === 1) {
+        const macroTotals = existing.rows[0];
         macroTotals.calories += meal.calories;
         macroTotals.protein += meal.protein;
         macroTotals.carbohydrates += meal.carbohydrates;
@@ -195,7 +213,6 @@ async function updateMacroTotals(userId, meal) {
                 macroTotals.date.toISOString().split("T")[0],
             ],
         };
-        //if they don't
     }
     else {
         upsertQuery = {
@@ -213,19 +230,19 @@ async function updateMacroTotals(userId, meal) {
     }
     await query(upsertQuery);
 }
-async function updateMealIsRecurring(mealId, userId, isRecurring) {
-    let updateQuery = {
+export async function updateMealIsRecurring(mealId, userId, isRecurring) {
+    const updateQuery = {
         text: `UPDATE meals
             SET is_recurring = $1
             WHERE id = $2
               AND user_id = $3;`,
         params: [isRecurring, mealId, userId],
     };
-    let result = await query(updateQuery);
-    return result.rowCount;
+    const result = await query(updateQuery);
+    return result.rowCount ?? 0;
 }
-async function selectRecurringMeals(userId) {
-    let selectQuery = {
+export async function selectRecurringMeals(userId) {
+    const selectQuery = {
         text: `SELECT name,
                   description,
                   date,
@@ -242,36 +259,36 @@ async function selectRecurringMeals(userId) {
             AND outer_meals.user_id = $1;`,
         params: [userId],
     };
-    let result = await query(selectQuery);
-    return result.rows;
+    const result = await query(selectQuery);
+    return result.rows.map((row) => Meal.fromPartialRow(row));
 }
-async function insertMealsFromRecurringUpdate(newMeals, newMacroTotals) {
-    let mealsValues = ``;
-    let mealsParams = [];
+export async function insertMealsFromRecurringUpdate(newMeals, newMacroTotals) {
+    let mealsValues = "";
+    const mealsParams = [];
     let counter = 1;
-    for (meal of newMeals) {
-        mealsValues += ` ($${counter++}, $${counter++}, $${counter++}, $${counter++}, $${counter++}, 
-                $${counter++}, $${counter++}, $${counter++}, $${counter++}, $${counter++}),`;
+    for (const meal of newMeals) {
+        mealsValues += ` ($${String(counter++)}, $${String(counter++)}, $${String(counter++)}, $${String(counter++)}, $${String(counter++)}, 
+                $${String(counter++)}, $${String(counter++)}, $${String(counter++)}, $${String(counter++)}, $${String(counter++)}),`;
         mealsParams.push(meal.userId, meal.name, meal.description, meal.date, meal.time, meal.calories, meal.protein, meal.carbohydrates, meal.fats, meal.isRecurring);
     }
     mealsValues = mealsValues.slice(0, mealsValues.length - 1);
-    let insertMealsQuery = {
+    const insertMealsQuery = {
         text: `INSERT INTO meals
             (user_id, name, description, date, time, calories, protein, carbohydrates, fats, is_recurring)
             VALUES${mealsValues};`,
         params: mealsParams,
     };
     await query(insertMealsQuery);
-    let macrosValues = ``;
-    let macrosParams = [];
+    let macrosValues = "";
+    const macrosParams = [];
     counter = 1;
-    for (macros of newMacroTotals) {
-        macrosValues += ` ($${counter++}, $${counter++}, $${counter++}, 
-                      $${counter++}, $${counter++}, $${counter++}),`;
+    for (const macros of newMacroTotals) {
+        macrosValues += ` ($${String(counter++)}, $${String(counter++)}, $${String(counter++)}, 
+                      $${String(counter++)}, $${String(counter++)}, $${String(counter++)}),`;
         macrosParams.push(macros.userId, macros.date, macros.calories, macros.protein, macros.carbohydrates, macros.fats);
     }
     macrosValues = macrosValues.slice(0, macrosValues.length - 1);
-    let insertMacrosQuery = {
+    const insertMacrosQuery = {
         text: `INSERT INTO macro_totals 
             (user_id, date, calories, protein, carbohydrates, fats) 
             VALUES${macrosValues};`,
@@ -279,5 +296,4 @@ async function insertMealsFromRecurringUpdate(newMeals, newMacroTotals) {
     };
     await query(insertMacrosQuery);
 }
-export { createMeal, createMealRaw, getMealsFromDay, getMealHistoryWithRange, deleteMeal, updateMealIsRecurring, selectRecurringMeals, insertMealsFromRecurringUpdate, };
 //# sourceMappingURL=meals.model.js.map

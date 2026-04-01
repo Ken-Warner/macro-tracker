@@ -1,4 +1,6 @@
 node_modules
+macro-tracker-api/node_modules
+macro-tracker-shared/node_modules
 .gitignore
 macro-tracker-client/*
 .env

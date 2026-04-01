@@ -1,5 +1,6 @@
+import { WeighInData } from "@macro-tracker/macro-tracker-shared";
 import { query, DEFAULT, buildInsert } from "./pool.js";
-async function insertWeighInData(userId, weighInData) {
+export async function insertWeighInData(userId, weighInData) {
     const fields = [
         "user_id",
         "weight",
@@ -12,25 +13,26 @@ async function insertWeighInData(userId, weighInData) {
     const values = [
         userId,
         weighInData.weight,
-        weighInData.date || DEFAULT,
-        weighInData.targetCalories || DEFAULT,
-        weighInData.targetProtein || DEFAULT,
-        weighInData.targetCarbohydrates || DEFAULT,
-        weighInData.targetFats || DEFAULT,
+        weighInData.date ?? DEFAULT,
+        weighInData.targetCalories ?? DEFAULT,
+        weighInData.targetProtein ?? DEFAULT,
+        weighInData.targetCarbohydrates ?? DEFAULT,
+        weighInData.targetFats ?? DEFAULT,
     ];
     const [queryFields, queryValues, queryParams] = buildInsert(fields, values);
-    let insertWeighInDataQuery = {
+    const insertWeighInDataQuery = {
         text: `INSERT INTO user_weights ${queryFields}
             VALUES ${queryValues}
             RETURNING *;`,
         params: queryParams,
     };
     const result = await query(insertWeighInDataQuery);
-    if (result.rowCount != 1)
+    if (result.rowCount !== 1) {
         throw new Error("Unable to insert new weight");
+    }
 }
-async function selectRecentWeighInData(userId) {
-    let weighInDataQuery = {
+export async function selectRecentWeighInData(userId) {
+    const weighInDataQuery = {
         text: `SELECT weight,
                   date,
                   target_calories,
@@ -44,10 +46,14 @@ async function selectRecentWeighInData(userId) {
         params: [userId],
     };
     const result = await query(weighInDataQuery);
-    return result.rows[0];
+    const row = result.rows[0];
+    if (!row) {
+        return undefined;
+    }
+    return WeighInData.fromRecentRow(row);
 }
-async function selectWeighInDataForDateRange(userId, fromDate, toDate) {
-    let weighInDataQuery = {
+export async function selectWeighInDataForDateRange(userId, fromDate, toDate) {
+    const weighInDataQuery = {
         text: `SELECT date, weight
             FROM user_weights
             WHERE user_id = $1
@@ -56,7 +62,6 @@ async function selectWeighInDataForDateRange(userId, fromDate, toDate) {
         params: [userId, fromDate, toDate],
     };
     const result = await query(weighInDataQuery);
-    return result.rows;
+    return result.rows.map((row) => WeighInData.fromRangeRow(row));
 }
-export { insertWeighInData, selectRecentWeighInData, selectWeighInDataForDateRange, };
 //# sourceMappingURL=weighIn.model.js.map

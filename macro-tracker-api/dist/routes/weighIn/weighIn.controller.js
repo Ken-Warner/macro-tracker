@@ -17,14 +17,8 @@ async function getWeighInData(req, res) {
         return;
     }
     try {
-        let weighInData = await selectWeighInDataForDateRange(req.session.userId, fromDate, toDate);
-        weighInData = weighInData.map((el) => {
-            return {
-                date: el.date.toISOString().split("T")[0],
-                weight: el.weight,
-            };
-        });
-        const body = weighInData;
+        const weighInData = await selectWeighInDataForDateRange(req.session.userId, fromDate, toDate);
+        const body = weighInData.map((el) => el.toRangeJSON());
         res.status(200).send(JSON.stringify(body));
     }
     catch (e) {
@@ -39,14 +33,7 @@ async function getRecentWeighInData(req, res) {
         if (weighInData == undefined) {
             return res.status(404).send();
         }
-        const apiResult = {
-            date: weighInData.date.toISOString().split("T")[0],
-            weight: weighInData.weight,
-            targetCalories: weighInData.target_calories,
-            targetProtein: weighInData.target_protein,
-            targetCarbohydrates: weighInData.target_carbohydrates,
-            targetFats: weighInData.target_fats,
-        };
+        const apiResult = weighInData.toRecentJSON();
         res.status(200).send(JSON.stringify(apiResult));
     }
     catch (e) {

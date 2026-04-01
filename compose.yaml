@@ -1,6 +1,8 @@
 services:
   api:
-    build: ./macro-tracker-api
+    build:
+      context: .
+      dockerfile: macro-tracker-api/dockerfile
     image: kenw1991/macro-tracker-api
     ports:
       - "80:${PORT}"

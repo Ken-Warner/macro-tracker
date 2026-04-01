@@ -17,12 +17,20 @@ async function createNewIngredient(req, res) {
                 return;
             }
             const newIngredient = await createIngredientFromComponents(req.session.userId, req.body.ingredient.name, req.body.ingredient.description, req.body.components);
-            const body = newIngredient;
+            if (!newIngredient) {
+                res.status(500).send(formatResponse(await log(loggingLevels.ERROR, "createNewIngredient: insert returned no row", req.body)));
+                return;
+            }
+            const body = newIngredient.toJSON();
             res.status(201).send(JSON.stringify(body));
         }
         else if (req.body.ingredient && req.body.ingredient.name != "") {
             const newIngredient = await createIngredientRaw(req.session.userId, req.body.ingredient);
-            const body = newIngredient;
+            if (!newIngredient) {
+                res.status(500).send(formatResponse(await log(loggingLevels.ERROR, "createNewIngredient: insert returned no row", req.body)));
+                return;
+            }
+            const body = newIngredient.toJSON();
             res.status(201).send(JSON.stringify(body));
         }
         else {
@@ -60,7 +68,7 @@ async function deleteIngredient(req, res) {
 async function getIngredients(req, res) {
     try {
         const result = await getIngredientsByUserId(req.session.userId);
-        const body = result.rows;
+        const body = result.map((row) => row.toJSON());
         res.status(200).send(JSON.stringify(body));
     }
     catch (e) {

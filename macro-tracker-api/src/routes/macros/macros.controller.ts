@@ -43,23 +43,15 @@ async function getMacrosFromDateRange(
   }
 
   try {
-    let macroData = await selectMacrosFromDateRange(
-      req.session.userId,
+    const macroData = await selectMacrosFromDateRange(
+      req.session.userId!,
       fromDate,
       toDate,
     );
 
-    macroData = macroData.map((el: { date: Date; calories: number; protein: number; carbohydrates: number; fats: number }) => {
-      return {
-        date: el.date.toISOString().split("T")[0],
-        calories: el.calories,
-        protein: el.protein,
-        carbohydrates: el.carbohydrates,
-        fats: el.fats,
-      };
-    });
-
-    const body: GetMacrosFromDateRangeResponse = macroData;
+    const body: GetMacrosFromDateRangeResponse = macroData.map((el) =>
+      el.toJSON(),
+    ) as GetMacrosFromDateRangeResponse;
     res.status(200).send(JSON.stringify(body));
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
@@ -77,23 +69,16 @@ async function getTodaysMacros(
   res: Response,
 ) {
   try {
-    const queryResult = await selectTodaysMacros(
-      req.session.userId,
+    const macro = await selectTodaysMacros(
+      req.session.userId!,
       req.query.today,
     );
 
-    const qr = queryResult as {
-      calories?: number;
-      protein?: number;
-      carbohydrates?: number;
-      fats?: number;
-    };
-
     const apiResult: GetTodaysMacrosResponse = {
-      calories: qr.calories ?? 0,
-      protein: qr.protein ?? 0,
-      carbohydrates: qr.carbohydrates ?? 0,
-      fats: qr.fats ?? 0,
+      calories: macro.calories,
+      protein: macro.protein,
+      carbohydrates: macro.carbohydrates,
+      fats: macro.fats,
     };
     if (req.query.today !== undefined) {
       apiResult.date = req.query.today;

@@ -7,13 +7,14 @@ import {
   updateMealIsRecurring,
   selectRecurringMeals,
   insertMealsFromRecurringUpdate,
+  type RecurringMealBatchRow,
+  type MacroTotalsBatchRow,
 } from "../../models/meals.model.js";
 import validator from "../../Utilities/validator.js";
 import { log, loggingLevels, formatResponse } from "../../Utilities/logger.js";
 import type { Request, Response } from "express";
 import type {
   CreateComposedMealRequest,
-  CreateComposedMealResponse,
   CreateMealRawRequest,
   CreateMealRawResponse,
   GetMealHistoryRequestQuery,
@@ -23,17 +24,6 @@ import type {
   MealHistoryMeal,
   PutMealIsRecurringRequest,
 } from "@macro-tracker/macro-tracker-shared";
-
-type RecurringMealRow = {
-  name: string;
-  description: string | null;
-  date: Date;
-  time: string;
-  calories: number;
-  protein: number;
-  carbohydrates: number;
-  fats: number;
-};
 
 async function createNewMeal(
   req: Request<unknown, unknown, CreateComposedMealRequest>,
@@ -79,12 +69,9 @@ async function createNewMeal(
   }
 
   try {
-    const newMeal = (await createMeal(
-      req.session.userId,
-      meal,
-    )) as CreateComposedMealResponse;
+    const newMeal = await createMeal(req.session.userId!, meal);
 
-    res.status(201).send(JSON.stringify(newMeal));
+    res.status(201).send(JSON.stringify(newMeal.toJSON()));
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     const uuid = await log(
@@ -120,10 +107,10 @@ async function createNewMealRaw(
       time: req.body.time,
     };
 
-    const newMeal = await createMealRaw(req.session.userId, rawInput);
+    const newMeal = await createMealRaw(req.session.userId!, rawInput);
 
     const responseMeal: CreateMealRawResponse = {
-      id: newMeal.id,
+      id: newMeal.id!,
       name: newMeal.name,
       description: newMeal.description,
       calories: newMeal.calories,
@@ -170,23 +157,25 @@ async function getMealHistory(
   }
 
   try {
+    const sessionUserId = req.session.userId!;
+
     const mealHistoryWithoutRecurring = await getMealHistoryWithRange(
-      req.session.userId,
+      sessionUserId,
       fromDate,
       toDate,
     );
 
-    let newMeals: unknown[] = [];
-    let newMacroTotals: unknown[] = [];
+    const newMeals: RecurringMealBatchRow[] = [];
+    const newMacroTotals: MacroTotalsBatchRow[] = [];
 
     if (
       (mealHistoryWithoutRecurring.length > 0 &&
-        mealHistoryWithoutRecurring[0].date.toISOString().split("T")[0] !==
-          toDate) ||
+        mealHistoryWithoutRecurring[0]!.date !== toDate) ||
       mealHistoryWithoutRecurring.length === 0
     ) {
-      const recurringMeals = await selectRecurringMeals(req.session.userId);
+      const recurringMeals = await selectRecurringMeals(sessionUserId);
       if (recurringMeals.length > 0) {
+        const templateMeal = recurringMeals[0]!;
         const recurringMacroTotals = recurringMeals.reduce(
           (
             acc: {
@@ -195,12 +184,7 @@ async function getMealHistory(
               carbohydrates: number;
               fats: number;
             },
-            curr: {
-              calories: number;
-              protein: number;
-              carbohydrates: number;
-              fats: number;
-            },
+            curr,
           ) => {
             acc.calories += curr.calories;
             acc.protein += curr.protein;
@@ -218,24 +202,28 @@ async function getMealHistory(
         );
 
         const toDateObj = new Date(toDate + "T00:00:00");
-        let currentDate = new Date(recurringMeals[0].date);
+        let currentDate = new Date(templateMeal.date + "T00:00:00");
         currentDate.setDate(currentDate.getDate() + 1);
 
         while (currentDate <= toDateObj) {
           newMeals.push(
-            ...recurringMeals.map((recurringMeal: RecurringMealRow) => {
-              return {
-                ...recurringMeal,
-                date: new Date(currentDate),
-                userId: req.session.userId,
-                isRecurring: true,
-              };
-            }),
+            ...recurringMeals.map((recurringMeal) => ({
+              userId: sessionUserId,
+              name: recurringMeal.name,
+              description: recurringMeal.description,
+              date: new Date(currentDate),
+              time: recurringMeal.time,
+              calories: recurringMeal.calories,
+              protein: recurringMeal.protein,
+              carbohydrates: recurringMeal.carbohydrates,
+              fats: recurringMeal.fats,
+              isRecurring: true,
+            })),
           );
           newMacroTotals.push({
             ...recurringMacroTotals,
             date: new Date(currentDate),
-            userId: req.session.userId,
+            userId: sessionUserId,
           });
 
           currentDate.setDate(currentDate.getDate() + 1);
@@ -301,10 +289,9 @@ async function getMeals(
   }
 
   try {
-    const meals = (await getMealsFromDay(
-      req.session.userId,
-      daysAgo,
-    )) as GetMealsResponse;
+    const meals = (await getMealsFromDay(req.session.userId!, daysAgo)).map(
+      (m) => m.toJSON(),
+    ) as GetMealsResponse;
 
     res.status(200).send(JSON.stringify(meals));
   } catch (e) {
@@ -330,7 +317,7 @@ async function deleteMealById(
   }
 
   try {
-    await deleteMeal(req.session.userId, req.params.id);
+    await deleteMeal(req.session.userId!, req.params.id);
 
     res.status(200).send();
   } catch (e) {
@@ -351,7 +338,7 @@ async function putMealIsRecurring(
   try {
     const result = await updateMealIsRecurring(
       req.params.id,
-      req.session.userId,
+      req.session.userId!,
       req.body.isRecurring,
     );
 

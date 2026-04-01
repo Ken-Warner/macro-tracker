@@ -27,13 +27,11 @@ async function createNewUser(req, res) {
             res.status(400).send(JSON.stringify({ error: `Invalid Email Address.` }));
             return;
         }
-        const result = await createUser(req.body.username, req.body.password, req.body.emailAddress);
-        const userId = String(result);
-        req.session.username = req.body.username;
+        const user = await createUser(req.body.username, req.body.password, req.body.emailAddress);
+        const userId = String(user.id);
+        req.session.username = user.username;
         req.session.userId = userId;
-        res
-            .status(201)
-            .send(JSON.stringify({ userId, username: req.body.username }));
+        res.status(201).send(JSON.stringify(user.toJSON()));
     }
     catch (e) {
         const message = e instanceof Error ? e.message : String(e);
@@ -56,7 +54,7 @@ async function logUserIn(req, res) {
     }
     try {
         const user = await getUser(req.body.username, req.body.password);
-        req.session.userId = user.id;
+        req.session.userId = String(user.id);
         req.session.username = user.username;
         if (req.body.rememberMe == true) {
             req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; //30 days
@@ -66,9 +64,7 @@ async function logUserIn(req, res) {
             req.session.cookie.expires = undefined;
         }
         req.session.save();
-        res
-            .status(200)
-            .send(JSON.stringify({ userId: user.id, username: user.username }));
+        res.status(200).send(JSON.stringify(user.toJSON()));
     }
     catch (e) {
         const message = e instanceof Error ? e.message : String(e);

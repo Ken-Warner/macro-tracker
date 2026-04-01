@@ -35,19 +35,17 @@ async function createNewUser(req: Request<{}, {}, UserCreateRequest>, res: Respo
       return;
     }
 
-    const result = await createUser(
+    const user = await createUser(
       req.body.username,
       req.body.password,
       req.body.emailAddress,
     );
-    const userId = String(result);
+    const userId = String(user.id);
 
-    req.session.username = req.body.username;
+    req.session.username = user.username;
     req.session.userId = userId;
 
-    res
-      .status(201)
-      .send(JSON.stringify({ userId, username: req.body.username }));
+    res.status(201).send(JSON.stringify(user.toJSON()));
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     const uuid = await log(
@@ -79,7 +77,7 @@ async function logUserIn(req: Request<{}, {}, UserLoginRequest>, res: Response) 
   try {
     const user = await getUser(req.body.username, req.body.password);
 
-    req.session.userId = user.id;
+    req.session.userId = String(user.id);
     req.session.username = user.username;
 
     if (req.body.rememberMe == true) {
@@ -91,9 +89,7 @@ async function logUserIn(req: Request<{}, {}, UserLoginRequest>, res: Response) 
 
     req.session.save();
 
-    res
-      .status(200)
-      .send(JSON.stringify({ userId: user.id, username: user.username }));
+    res.status(200).send(JSON.stringify(user.toJSON()));
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     const uuid = await log(

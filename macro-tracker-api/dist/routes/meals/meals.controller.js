@@ -30,8 +30,8 @@ async function createNewMeal(req, res) {
         return;
     }
     try {
-        const newMeal = (await createMeal(req.session.userId, meal));
-        res.status(201).send(JSON.stringify(newMeal));
+        const newMeal = await createMeal(req.session.userId, meal);
+        res.status(201).send(JSON.stringify(newMeal.toJSON()));
     }
     catch (e) {
         const message = e instanceof Error ? e.message : String(e);
@@ -91,15 +91,16 @@ async function getMealHistory(req, res) {
         return;
     }
     try {
-        const mealHistoryWithoutRecurring = await getMealHistoryWithRange(req.session.userId, fromDate, toDate);
-        let newMeals = [];
-        let newMacroTotals = [];
+        const sessionUserId = req.session.userId;
+        const mealHistoryWithoutRecurring = await getMealHistoryWithRange(sessionUserId, fromDate, toDate);
+        const newMeals = [];
+        const newMacroTotals = [];
         if ((mealHistoryWithoutRecurring.length > 0 &&
-            mealHistoryWithoutRecurring[0].date.toISOString().split("T")[0] !==
-                toDate) ||
+            mealHistoryWithoutRecurring[0].date !== toDate) ||
             mealHistoryWithoutRecurring.length === 0) {
-            const recurringMeals = await selectRecurringMeals(req.session.userId);
+            const recurringMeals = await selectRecurringMeals(sessionUserId);
             if (recurringMeals.length > 0) {
+                const templateMeal = recurringMeals[0];
                 const recurringMacroTotals = recurringMeals.reduce((acc, curr) => {
                     acc.calories += curr.calories;
                     acc.protein += curr.protein;
@@ -113,21 +114,25 @@ async function getMealHistory(req, res) {
                     fats: 0,
                 });
                 const toDateObj = new Date(toDate + "T00:00:00");
-                let currentDate = new Date(recurringMeals[0].date);
+                let currentDate = new Date(templateMeal.date + "T00:00:00");
                 currentDate.setDate(currentDate.getDate() + 1);
                 while (currentDate <= toDateObj) {
-                    newMeals.push(...recurringMeals.map((recurringMeal) => {
-                        return {
-                            ...recurringMeal,
-                            date: new Date(currentDate),
-                            userId: req.session.userId,
-                            isRecurring: true,
-                        };
-                    }));
+                    newMeals.push(...recurringMeals.map((recurringMeal) => ({
+                        userId: sessionUserId,
+                        name: recurringMeal.name,
+                        description: recurringMeal.description,
+                        date: new Date(currentDate),
+                        time: recurringMeal.time,
+                        calories: recurringMeal.calories,
+                        protein: recurringMeal.protein,
+                        carbohydrates: recurringMeal.carbohydrates,
+                        fats: recurringMeal.fats,
+                        isRecurring: true,
+                    })));
                     newMacroTotals.push({
                         ...recurringMacroTotals,
                         date: new Date(currentDate),
-                        userId: req.session.userId,
+                        userId: sessionUserId,
                     });
                     currentDate.setDate(currentDate.getDate() + 1);
                 }
@@ -170,7 +175,7 @@ async function getMeals(req, res) {
         return;
     }
     try {
-        const meals = (await getMealsFromDay(req.session.userId, daysAgo));
+        const meals = (await getMealsFromDay(req.session.userId, daysAgo)).map((m) => m.toJSON());
         res.status(200).send(JSON.stringify(meals));
     }
     catch (e) {

@@ -2,9 +2,9 @@ import pg from "pg";
 
 const { Pool } = pg;
 
-const DEFAULT = Symbol("default");
+export const DEFAULT = Symbol("default");
 
-const pool = new Pool({
+export const pool = new Pool({
   host: process.env.DB_HOST || "127.0.0.1",
   user: process.env.DB_USER || "postgres",
   password: process.env.DB_PASSWORD || "test123",
@@ -12,14 +12,17 @@ const pool = new Pool({
   port: Number(process.env.DB_PORT) || 5432,
 });
 
-async function query({ text, params = [] }) {
+export async function query(
+  args: { text: string; params?: unknown[] },
+): Promise<pg.QueryResult> {
   return new Promise((resolve, reject) => {
-    if (!text) {
+    if (!args.text) {
       reject({ message: "Invalid query" });
       return;
     }
 
-    pool.query(text, params, (err, res) => {
+    const params = args.params ?? [];
+    pool.query(args.text, params, (err, res) => {
       if (err) {
         reject(err);
         return;
@@ -29,30 +32,30 @@ async function query({ text, params = [] }) {
   });
 }
 
-//Builds a field and value list dynamically for a query respecting
-//default vlaues in the value list
-function buildInsert(fieldList, valueList) {
-  if (fieldList.length !== valueList.length)
+// Builds field and value lists for INSERT, respecting DEFAULT placeholders.
+export function buildInsert(
+  fieldList: string[],
+  valueList: Array<unknown | typeof DEFAULT>,
+): [string, string, unknown[]] {
+  if (fieldList.length !== valueList.length) {
     throw new Error("Parameters and values must be of equal length");
+  }
 
   const queryFields = `(${fieldList.join(",")})`;
 
   let counter = 0;
-  let queryParams = [];
+  const queryParams: unknown[] = [];
 
-  const queryValueList = valueList.map((element, index) => {
-    if (element == DEFAULT) {
+  const queryValueList = valueList.map((element) => {
+    if (element === DEFAULT) {
       return "DEFAULT";
-    } else {
-      counter += 1;
-      queryParams.push(element);
-      return "$" + counter;
     }
+    counter += 1;
+    queryParams.push(element);
+    return `$${String(counter)}`;
   });
 
   const queryValues = `(${queryValueList.join(",")})`;
 
   return [queryFields, queryValues, queryParams];
 }
-
-export { query, buildInsert, DEFAULT, pool };

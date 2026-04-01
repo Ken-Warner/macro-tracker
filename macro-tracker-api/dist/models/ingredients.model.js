@@ -1,6 +1,7 @@
+import { Ingredient } from "@macro-tracker/macro-tracker-shared";
 import { query } from "./pool.js";
-async function createIngredientRaw(userId, ingredient) {
-    let createIngredientQuery = {
+export async function createIngredientRaw(userId, ingredient) {
+    const createIngredientQuery = {
         text: `INSERT INTO ingredients
             (user_id, name, description, calories, protein, carbohydrates, fats)
             VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -8,100 +9,100 @@ async function createIngredientRaw(userId, ingredient) {
         params: [
             userId,
             ingredient.name,
-            ingredient.description || '',
-            ingredient.calories || 0,
-            ingredient.protein || 0,
-            ingredient.carbohydrates || 0,
-            ingredient.fats || 0,
+            ingredient.description ?? "",
+            ingredient.calories ?? 0,
+            ingredient.protein ?? 0,
+            ingredient.carbohydrates ?? 0,
+            ingredient.fats ?? 0,
         ],
     };
     const result = await query(createIngredientQuery);
-    if (result.rowCount == 1)
-        return result.rows[0];
+    if (result.rowCount === 1) {
+        return Ingredient.fromDbRow(result.rows[0]);
+    }
+    return undefined;
 }
-async function createIngredientFromComponents(userId, name, description, components) {
-    //select all components with the provided ids
-    let getComponentsQuery = {
+export async function createIngredientFromComponents(userId, name, description, components) {
+    const getComponentsQuery = {
         text: `SELECT id, calories, protein, carbohydrates, fats
             FROM ingredients
             WHERE user_id = $1
-            AND id IN (${components.map((component, idx) => '$' + (idx + 2)).join(',')});`,
-        params: [
-            userId,
-            ...components.map(component => component.ingredientId),
-        ],
+            AND id IN (${components
+            .map((_, idx) => "$" + String(idx + 2))
+            .join(",")});`,
+        params: [userId, ...components.map((c) => c.ingredientId)],
     };
-    let newIngredient = {};
-    let componentsForNewIngredient;
-    let recipeAssociations = new Array();
-    componentsForNewIngredient = await query(getComponentsQuery);
-    if (componentsForNewIngredient.rowCount != components.length)
-        throw new Error('Ingredient not retrieved with ID');
-    newIngredient = {
+    const newIngredient = {
         name,
-        description,
         calories: 0,
         protein: 0,
         carbohydrates: 0,
         fats: 0,
+        ...(description !== undefined ? { description } : {}),
     };
-    //tally up the macros for each of the component ingredients
-    componentsForNewIngredient.rows.forEach(row => {
-        const portionSize = components.find(el => el.ingredientId == row.id).portionSize;
-        const recipe = {
+    const componentsForNewIngredient = await query(getComponentsQuery);
+    if (componentsForNewIngredient.rowCount !== components.length) {
+        throw new Error("Ingredient not retrieved with ID");
+    }
+    const recipeAssociations = [];
+    for (const row of componentsForNewIngredient.rows) {
+        const portionSize = components.find((el) => el.ingredientId === row.id)?.portionSize ?? 0;
+        recipeAssociations.push({
             componentIngredientId: row.id,
-            portionSize: portionSize,
-        };
-        //also build recipe associations to create new recipe
-        recipeAssociations.push(recipe);
-        newIngredient.calories += (row.calories * portionSize);
-        newIngredient.protein += (row.protein * portionSize);
-        newIngredient.carbohydrates += (row.carbohydrates * portionSize);
-        newIngredient.fats += (row.fats * portionSize);
-    });
-    //before returning the ingredient, the new ingredient's recipe must be saved in the recipes table
+            portionSize,
+        });
+        newIngredient.calories =
+            (newIngredient.calories ?? 0) + row.calories * portionSize;
+        newIngredient.protein =
+            (newIngredient.protein ?? 0) + row.protein * portionSize;
+        newIngredient.carbohydrates =
+            (newIngredient.carbohydrates ?? 0) + row.carbohydrates * portionSize;
+        newIngredient.fats = (newIngredient.fats ?? 0) + row.fats * portionSize;
+    }
     const finalNewIngredient = await createIngredientRaw(userId, newIngredient);
-    recipeAssociations.forEach(ingredient => {
-        ingredient.parentIngredientId = finalNewIngredient.id;
-    });
+    if (!finalNewIngredient) {
+        return undefined;
+    }
+    for (const ing of recipeAssociations) {
+        ing.parentIngredientId = finalNewIngredient.id;
+    }
     await insertRecipeComponents(recipeAssociations);
     return finalNewIngredient;
 }
-async function deleteIngredientById(userId, ingredientId) {
-    let deleteIngredientQuery = {
+export async function deleteIngredientById(userId, ingredientId) {
+    const deleteIngredientQuery = {
         text: `UPDATE ingredients
             SET is_deleted = TRUE
             WHERE user_id = $1
               AND id = $2;`,
-        params: [
-            userId,
-            ingredientId,
-        ],
+        params: [userId, ingredientId],
     };
     const result = await query(deleteIngredientQuery);
-    return result.rowCount;
+    return result.rowCount ?? 0;
 }
-async function getIngredientsByUserId(userId) {
-    let selectIngredientsQuery = {
+export async function getIngredientsByUserId(userId) {
+    const selectIngredientsQuery = {
         text: `SELECT *
             FROM ingredients
             WHERE user_id = $1;`,
-        params: [
-            userId,
-        ],
+        params: [userId],
     };
-    return await query(selectIngredientsQuery);
+    const result = await query(selectIngredientsQuery);
+    return result.rows.map((row) => Ingredient.fromDbRow(row));
 }
 async function insertRecipeComponents(recipeComponents) {
-    let insertRecipeQuery = {
+    const insertRecipeQuery = {
         text: `INSERT INTO recipes (parent_ingredient_id, component_ingredient_id, portion_size)
-            VALUES ${recipeComponents.map((el, idx) => {
-            const firstidx = (3 * idx) + 1;
-            return `($${firstidx},$${firstidx + 1}, $${firstidx + 2})`;
-        }).join(',')};`,
-        params: recipeComponents.map(el => [el.parentIngredientId, el.componentIngredientId, el.portionSize]).flat()
+            VALUES ${recipeComponents
+            .map((_, idx) => {
+            const firstidx = 3 * idx + 1;
+            return `($${String(firstidx)},$${String(firstidx + 1)}, $${String(firstidx + 2)})`;
+        })
+            .join(",")};`,
+        params: recipeComponents
+            .map((el) => [el.parentIngredientId, el.componentIngredientId, el.portionSize])
+            .flat(),
     };
     return await query(insertRecipeQuery);
 }
-export { createIngredientRaw, createIngredientFromComponents, deleteIngredientById, getIngredientsByUserId, };
 //# sourceMappingURL=ingredients.model.js.map

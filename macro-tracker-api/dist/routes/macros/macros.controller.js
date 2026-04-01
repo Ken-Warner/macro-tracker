@@ -17,17 +17,8 @@ async function getMacrosFromDateRange(req, res) {
         return;
     }
     try {
-        let macroData = await selectMacrosFromDateRange(req.session.userId, fromDate, toDate);
-        macroData = macroData.map((el) => {
-            return {
-                date: el.date.toISOString().split("T")[0],
-                calories: el.calories,
-                protein: el.protein,
-                carbohydrates: el.carbohydrates,
-                fats: el.fats,
-            };
-        });
-        const body = macroData;
+        const macroData = await selectMacrosFromDateRange(req.session.userId, fromDate, toDate);
+        const body = macroData.map((el) => el.toJSON());
         res.status(200).send(JSON.stringify(body));
     }
     catch (e) {
@@ -38,13 +29,12 @@ async function getMacrosFromDateRange(req, res) {
 }
 async function getTodaysMacros(req, res) {
     try {
-        const queryResult = await selectTodaysMacros(req.session.userId, req.query.today);
-        const qr = queryResult;
+        const macro = await selectTodaysMacros(req.session.userId, req.query.today);
         const apiResult = {
-            calories: qr.calories ?? 0,
-            protein: qr.protein ?? 0,
-            carbohydrates: qr.carbohydrates ?? 0,
-            fats: qr.fats ?? 0,
+            calories: macro.calories,
+            protein: macro.protein,
+            carbohydrates: macro.carbohydrates,
+            fats: macro.fats,
         };
         if (req.query.today !== undefined) {
             apiResult.date = req.query.today;

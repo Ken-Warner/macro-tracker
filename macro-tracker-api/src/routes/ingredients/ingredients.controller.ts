@@ -45,23 +45,39 @@ async function createNewIngredient(
       }
 
       const newIngredient = await createIngredientFromComponents(
-        req.session.userId,
+        req.session.userId!,
         req.body.ingredient.name,
         req.body.ingredient.description,
         req.body.components,
       );
 
-      const body: CreateIngredientResponse =
-        newIngredient as CreateIngredientResponse;
+      if (!newIngredient) {
+        res.status(500).send(formatResponse(await log(
+          loggingLevels.ERROR,
+          "createNewIngredient: insert returned no row",
+          req.body,
+        )));
+        return;
+      }
+
+      const body: CreateIngredientResponse = newIngredient.toJSON();
       res.status(201).send(JSON.stringify(body));
     } else if (req.body.ingredient && req.body.ingredient.name != "") {
       const newIngredient = await createIngredientRaw(
-        req.session.userId,
+        req.session.userId!,
         req.body.ingredient,
       );
 
-      const body: CreateIngredientResponse =
-        newIngredient as CreateIngredientResponse;
+      if (!newIngredient) {
+        res.status(500).send(formatResponse(await log(
+          loggingLevels.ERROR,
+          "createNewIngredient: insert returned no row",
+          req.body,
+        )));
+        return;
+      }
+
+      const body: CreateIngredientResponse = newIngredient.toJSON();
       res.status(201).send(JSON.stringify(body));
     } else {
       res.status(400).send(JSON.stringify({ error: "Invalid Input" }));
@@ -95,7 +111,7 @@ async function deleteIngredient(
 
   try {
     const result = await deleteIngredientById(
-      req.session.userId,
+      req.session.userId!,
       ingredientIdNum,
     );
 
@@ -116,9 +132,9 @@ async function deleteIngredient(
 
 async function getIngredients(req: Request, res: Response) {
   try {
-    const result = await getIngredientsByUserId(req.session.userId);
+    const result = await getIngredientsByUserId(req.session.userId!);
 
-    const body: GetIngredientsResponse = result.rows as GetIngredientsResponse;
+    const body: GetIngredientsResponse = result.map((row) => row.toJSON());
     res.status(200).send(JSON.stringify(body));
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);

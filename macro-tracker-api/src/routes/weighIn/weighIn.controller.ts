@@ -39,19 +39,15 @@ async function getWeighInData(
   }
 
   try {
-    let weighInData = await selectWeighInDataForDateRange(
-      req.session.userId,
+    const weighInData = await selectWeighInDataForDateRange(
+      req.session.userId!,
       fromDate,
       toDate,
     );
-    weighInData = weighInData.map((el: { date: Date; weight: number }) => {
-      return {
-        date: el.date.toISOString().split("T")[0],
-        weight: el.weight,
-      };
-    });
 
-    const body: GetWeighInDataResponse = weighInData;
+    const body: GetWeighInDataResponse = weighInData.map((el) =>
+      el.toRangeJSON(),
+    );
     res.status(200).send(JSON.stringify(body));
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
@@ -66,20 +62,14 @@ async function getWeighInData(
 
 async function getRecentWeighInData(req: Request, res: Response) {
   try {
-    const weighInData = await selectRecentWeighInData(req.session.userId);
+    const weighInData = await selectRecentWeighInData(req.session.userId!);
 
     if (weighInData == undefined) {
       return res.status(404).send();
     }
 
-    const apiResult: GetRecentWeighInDataResponse = {
-      date: weighInData.date.toISOString().split("T")[0],
-      weight: weighInData.weight,
-      targetCalories: weighInData.target_calories,
-      targetProtein: weighInData.target_protein,
-      targetCarbohydrates: weighInData.target_carbohydrates,
-      targetFats: weighInData.target_fats,
-    };
+    const apiResult: GetRecentWeighInDataResponse =
+      weighInData.toRecentJSON();
 
     res.status(200).send(JSON.stringify(apiResult));
   } catch (e) {
@@ -131,7 +121,7 @@ async function postWeighInData(
   }
 
   try {
-    await insertWeighInData(req.session.userId, weighInData);
+    await insertWeighInData(req.session.userId!, weighInData);
 
     res.status(200).send();
   } catch (e) {
