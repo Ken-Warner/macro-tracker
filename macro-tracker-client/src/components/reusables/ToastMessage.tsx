@@ -1,6 +1,17 @@
 import { useState, useEffect } from "react";
 
-export default function ToastMessage({ toast, onFinished }) {
+export interface Toast {
+  type: "error" | "message";
+  message: string;
+}
+
+export default function ToastMessage({
+  toast,
+  onFinished,
+}: {
+  toast: Toast;
+  onFinished: () => void;
+}) {
   const [isSliding, setIsSliding] = useState(false);
 
   useEffect(() => {

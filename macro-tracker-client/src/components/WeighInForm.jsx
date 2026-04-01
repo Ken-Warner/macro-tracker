@@ -54,7 +54,8 @@ export default function WeighInForm() {
 
         const currentWeighIn = await getMostRecentWeighIn();
         if (currentWeighIn != "") {
-          lastWeighInData.current = setCurrentWeight(lastWeighInData.weight);
+          setCurrentWeight(currentWeighIn.weight);
+          lastWeighInData.current = currentWeighIn;
         } else {
           return;
         }

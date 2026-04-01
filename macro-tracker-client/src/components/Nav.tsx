@@ -1,4 +1,12 @@
-export default function Nav({ navItems, selectedNavItem, onClick }) {
+export default function Nav({
+  navItems,
+  selectedNavItem,
+  onClick,
+}: {
+  navItems: string[];
+  selectedNavItem: string;
+  onClick: (navItem: string) => void;
+}) {
   return (
     <nav>
       {navItems.map((navItem) => (

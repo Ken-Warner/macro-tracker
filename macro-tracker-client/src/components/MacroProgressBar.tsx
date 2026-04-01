@@ -3,6 +3,11 @@ export default function MacroProgressBar({
   targetMacroValue,
   macroLabel,
   macroColor,
+}: {
+  currentMacroValue: number;
+  targetMacroValue: number;
+  macroLabel: string;
+  macroColor: string;
 }) {
   const targetsSet = targetMacroValue > 0;
   const progressPercentage =
