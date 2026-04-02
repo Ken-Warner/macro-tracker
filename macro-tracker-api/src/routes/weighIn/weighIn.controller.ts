@@ -48,6 +48,7 @@ async function getWeighInData(
     const body: GetWeighInDataResponse = weighInData.map((el) =>
       el.toRangeJSON(),
     );
+
     res.status(200).send(JSON.stringify(body));
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
@@ -68,8 +69,7 @@ async function getRecentWeighInData(req: Request, res: Response) {
       return res.status(404).send();
     }
 
-    const apiResult: GetRecentWeighInDataResponse =
-      weighInData.toRecentJSON();
+    const apiResult: GetRecentWeighInDataResponse = weighInData.toRecentJSON();
 
     res.status(200).send(JSON.stringify(apiResult));
   } catch (e) {

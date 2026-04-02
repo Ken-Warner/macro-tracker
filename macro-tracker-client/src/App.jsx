@@ -20,7 +20,7 @@ import {
 
 const tempUser = {
   userId: 1,
-  username: "Ken",
+  username: "KenTest1",
 };
 
 const tempMeals = [

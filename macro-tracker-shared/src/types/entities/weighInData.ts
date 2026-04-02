@@ -31,6 +31,24 @@ export class WeighInData {
     );
   }
 
+  static fromRecentJSON(json: {
+    date: string;
+    weight: number;
+    targetCalories: number | null;
+    targetProtein: number | null;
+    targetCarbohydrates: number | null;
+    targetFats: number | null;
+  }): WeighInData {
+    return new WeighInData(
+      new Date(json.date),
+      json.weight,
+      json.targetCalories,
+      json.targetProtein,
+      json.targetCarbohydrates,
+      json.targetFats,
+    );
+  }
+
   /** Range list item: ISO date string + weight. */
   toRangeJSON(): { date: string; weight: number } {
     return {

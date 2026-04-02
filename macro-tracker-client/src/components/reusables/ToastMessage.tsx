@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
 export interface Toast {
-  type: "error" | "message";
+  type: "error" | "good";
   message: string;
 }
 

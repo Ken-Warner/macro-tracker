@@ -19,6 +19,14 @@ export declare class WeighInData {
         target_carbohydrates: number | null;
         target_fats: number | null;
     }): WeighInData;
+    static fromRecentJSON(json: {
+        date: string;
+        weight: number;
+        targetCalories: number | null;
+        targetProtein: number | null;
+        targetCarbohydrates: number | null;
+        targetFats: number | null;
+    }): WeighInData;
     /** Range list item: ISO date string + weight. */
     toRangeJSON(): {
         date: string;

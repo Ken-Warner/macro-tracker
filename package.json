@@ -2,8 +2,15 @@
   "name": "macro-tracker",
   "private": true,
   "workspaces": [
-    "macro-tracker-api",
+    "macro-tracker-shared",
     "macro-tracker-client",
-    "macro-tracker-shared"
-  ]
+    "macro-tracker-api"
+  ],
+  "scripts": {
+    "build-all": "npm run build --workspaces",
+    "build-api": "npm run build --workspace=macro-tracker-api",
+    "build-client": "npm run build --workspace=macro-tracker-client",
+    "build-shared": "npm run build --workspace=macro-tracker-shared",
+    "docker-build-up": "docker compose up --build -d"
+  }
 }

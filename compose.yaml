@@ -15,6 +15,7 @@ services:
       DB_DATABASE: ${DB_DATABASE}
       SESSION_SECRET: ${SESSION_SECRET}
       NODE_ENV: ${NODE_ENV}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-}
     depends_on:
       db:
         condition: service_healthy

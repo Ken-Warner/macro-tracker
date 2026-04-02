@@ -20,6 +20,9 @@ export class WeighInData {
     static fromRecentRow(row) {
         return new WeighInData(row.date, row.weight, row.target_calories, row.target_protein, row.target_carbohydrates, row.target_fats);
     }
+    static fromRecentJSON(json) {
+        return new WeighInData(new Date(json.date), json.weight, json.targetCalories, json.targetProtein, json.targetCarbohydrates, json.targetFats);
+    }
     /** Range list item: ISO date string + weight. */
     toRangeJSON() {
         return {

@@ -9,6 +9,13 @@ import apiRouter from "./routes/api.router.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const pgSession = connectPgSimple(session);
 
+const sessionCookieSecure =
+  process.env.SESSION_COOKIE_SECURE === "true"
+    ? true
+    : process.env.SESSION_COOKIE_SECURE === "false"
+      ? false
+      : process.env.NODE_ENV === "PROD";
+
 const app = express();
 
 app.set("trust proxy", 1);
@@ -18,6 +25,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use(express.urlencoded({ extended: true }));
+
 app.use(
   session({
     store: new pgSession({
@@ -30,7 +38,7 @@ app.use(
     proxy: true,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "PROD" ? true : false,
+      secure: sessionCookieSecure,
     },
   }),
 );

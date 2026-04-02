@@ -1,7 +1,14 @@
 import type { weighIn } from "../types/weighIn";
-import type { CreateMealRawRequest } from "@macro-tracker/macro-tracker-shared";
+import type {
+  CreateMealRawRequest,
+  GetMealHistoryResponse,
+} from "@macro-tracker/macro-tracker-shared";
+import { WeighInData } from "@macro-tracker/macro-tracker-shared";
 
-export async function getMealHistoryFromRange(fromDate: Date, toDate: Date) {
+export async function getMealHistoryFromRange(
+  fromDate: Date,
+  toDate: Date,
+): Promise<APIResult<GetMealHistoryResponse>> {
   const searchParams = new URLSearchParams({
     fromDate: fromDate.toISOString().split("T")[0],
     toDate: toDate.toISOString().split("T")[0],
@@ -12,9 +19,17 @@ export async function getMealHistoryFromRange(fromDate: Date, toDate: Date) {
   );
 
   if (apiResult.ok) {
-    return await apiResult.json();
+    return {
+      ok: true,
+      status: apiResult.status,
+      body: await apiResult.json(),
+    };
   } else {
-    throw new Error("Unable to get meal history");
+    return {
+      ok: false,
+      status: apiResult.status,
+      errorMessage: "Unable to get meal history",
+    };
   }
 }
 
@@ -33,7 +48,7 @@ export async function getTodaysMacros(today: Date) {
 }
 
 export async function getUserLogout() {
-  const apiResult = await fetch("/api/users/logout");
+  const apiResult = await fetch(`/api/users/logout`);
   if (!apiResult.ok) throw new Error("An error occurred while logging out.");
 }
 
@@ -43,7 +58,7 @@ export async function postCreateNewUser(
   confirmedPassword: string,
   email: string,
 ) {
-  const apiResult = await fetch("/api/users/create", {
+  const apiResult = await fetch(`/api/users/create`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -69,7 +84,7 @@ export async function postUserLogin(
   password: string,
   rememberMe: boolean,
 ) {
-  const apiResult = await fetch("/api/users/login", {
+  const apiResult = await fetch(`/api/users/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -90,7 +105,9 @@ export async function postUserLogin(
 }
 
 export async function deleteMeal(mealId: number) {
-  const apiResult = await fetch(`/api/meals/${mealId}`, { method: "DELETE" });
+  const apiResult = await fetch(`/api/meals/${mealId}`, {
+    method: "DELETE",
+  });
 
   if (apiResult.ok) {
     return true;
@@ -109,19 +126,29 @@ export async function putMealRecurring(mealId: number, isRecurring: boolean) {
   return apiResult.ok;
 }
 
-export async function getMostRecentWeighIn() {
-  const apiResult = await fetch("/api/weighIn/recent");
-  if (apiResult.ok) {
-    return await apiResult.json();
-  } else if (apiResult.status === 404) {
-    return "";
+export async function getMostRecentWeighIn(): Promise<APIResult<WeighInData>> {
+  const apiResult = await fetch(`/api/weighIn/recent`);
+
+  if (!apiResult.ok) {
+    return {
+      ok: false,
+      status: apiResult.status,
+      errorMessage: "Could not retrieve weigh in data.",
+    };
   } else {
-    throw new Error("Could not retrieve weigh in data.");
+    const tmp = WeighInData.fromRecentJSON(await apiResult.json());
+    console.log(tmp);
+
+    return {
+      ok: true,
+      status: apiResult.status,
+      body: WeighInData.fromRecentJSON(await apiResult.json()),
+    };
   }
 }
 
 export async function postWeighIn(weighInData: weighIn) {
-  const apiResult = await fetch("/api/weighIn", {
+  const apiResult = await fetch(`/api/weighIn`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(weighInData),
@@ -131,7 +158,7 @@ export async function postWeighIn(weighInData: weighIn) {
 }
 
 export async function postMealNonComposed(newMeal: CreateMealRawRequest) {
-  const apiResult = await fetch("/api/meals/nonComposed", {
+  const apiResult = await fetch(`/api/meals/nonComposed`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(newMeal),
@@ -146,3 +173,15 @@ export async function postMealNonComposed(newMeal: CreateMealRawRequest) {
     throw new Error("There was a problem adding the new meal.");
   }
 }
+
+export type APIResult<T> =
+  | {
+      ok: true;
+      status: number;
+      body: T;
+    }
+  | {
+      ok: false;
+      status: number;
+      errorMessage: string;
+    };
