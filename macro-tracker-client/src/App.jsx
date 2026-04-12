@@ -166,7 +166,7 @@ export default function App() {
       try {
         const recentWeighInData = await getMostRecentWeighIn();
 
-        if (recentWeighInData === "") {
+        if (recentWeighInData.ok === false) {
           return;
         }
 

@@ -137,12 +137,11 @@ export async function getMostRecentWeighIn(): Promise<APIResult<WeighInData>> {
     };
   } else {
     const tmp = WeighInData.fromRecentJSON(await apiResult.json());
-    console.log(tmp);
 
     return {
       ok: true,
       status: apiResult.status,
-      body: WeighInData.fromRecentJSON(await apiResult.json()),
+      body: tmp,
     };
   }
 }

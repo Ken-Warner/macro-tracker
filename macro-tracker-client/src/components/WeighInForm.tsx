@@ -68,12 +68,10 @@ export default function WeighInForm() {
         setIsLoading(true);
 
         const apiResult = await getMostRecentWeighIn();
-        if (apiResult.ok) {
-          setCurrentWeight(apiResult.body.weight);
-          lastWeighInData.current = apiResult.body;
-        } else {
+        if (!apiResult.ok) {
           return;
         }
+        lastWeighInData.current = apiResult.body;
 
         //Meals API Data
         const today = new Date(
@@ -109,6 +107,7 @@ export default function WeighInForm() {
             break;
           }
         setMealsConsistent(consistent);
+        setCurrentWeight(apiResult.body.weight);
       } catch {
         setToast({
           type: "error",
@@ -131,15 +130,6 @@ export default function WeighInForm() {
       try {
         setIsLoading(true);
 
-        // const formData = {
-        //   weight: weighInForm.current.currentWeight.value,
-        //   date: weighInForm.current.date.value,
-        //   targetCalories: weighInForm.current.elements.targetCalories.value,
-        //   targetCarbohydrates:
-        //     weighInForm.current.elements.targetCarbohydrates.value,
-        //   targetProtein: weighInForm.current.elements.targetProtein.value,
-        //   targetFats: weighInForm.current.elements.targetFats.value,
-        // };
         const formData = new FormData(weighInForm.current);
         const weighInData: weighIn = {
           date: new Date(String(formData.get("date"))),
