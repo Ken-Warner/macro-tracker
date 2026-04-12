@@ -1,6 +1,7 @@
 import type { weighIn } from "../types/weighIn";
 import type {
   CreateMealRawRequest,
+  GetIngredientsResponse,
   GetMealHistoryResponse,
 } from "@macro-tracker/macro-tracker-shared";
 import { WeighInData } from "@macro-tracker/macro-tracker-shared";
@@ -124,6 +125,26 @@ export async function putMealRecurring(mealId: number, isRecurring: boolean) {
   });
 
   return apiResult.ok;
+}
+
+export async function getIngredients(): Promise<
+  APIResult<GetIngredientsResponse>
+> {
+  const apiResult = await fetch(`/api/ingredients`);
+
+  if (apiResult.ok) {
+    return {
+      ok: true,
+      status: apiResult.status,
+      body: (await apiResult.json()) as GetIngredientsResponse,
+    };
+  } else {
+    return {
+      ok: false,
+      status: apiResult.status,
+      errorMessage: "Unable to get ingredients",
+    };
+  }
 }
 
 export async function getMostRecentWeighIn(): Promise<APIResult<WeighInData>> {

@@ -9,6 +9,7 @@ import ToastMessage from "./components/reusables/ToastMessage";
 import MealDay from "./components/MealDay";
 import DailyMacros from "./components/DailyMacros";
 import WeighInForm from "./components/WeighInForm";
+import Pantry from "./components/Pantry";
 import CreateMealDialog from "./components/dialogs/CreateMealDialog";
 
 import {
@@ -145,11 +146,11 @@ export default function App() {
   const [isAllExpanded, setIsAllExpanded] = useState(false);
 
   //Application Data States
-  const [user, setUser] = useState({});
+  const [user, setUser] = useState(tempUser);
   const isUserLoggedIn = user.userId !== undefined;
-  const [meals, setMeals] = useState([]);
+  const [meals, setMeals] = useState(tempMeals);
   const [recentWeighInData, setRecentWeighInData] = useState({});
-  const [todaysMacros, setTodaysMacros] = useState({});
+  const [todaysMacros, setTodaysMacros] = useState(tempMacros);
 
   //Dialog States
   const [createMealDialogOpen, setCreateMealDialogOpen] = useState(false);
@@ -382,7 +383,7 @@ export default function App() {
         )}
         {isUserLoggedIn && selectedNavItem === navItems.PANTRY && (
           <ContainerItem gridArea="general-form-container" itemHeader="Pantry">
-            🚧 Under construction 🚧
+            <Pantry />
           </ContainerItem>
         )}
         {isUserLoggedIn && selectedNavItem === navItems.SETTINGS && (

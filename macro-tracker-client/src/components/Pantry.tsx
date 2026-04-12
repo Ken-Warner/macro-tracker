@@ -1,0 +1,103 @@
+import { useEffect, useState } from "react";
+import Loader from "./Loader";
+import { getIngredients } from "../utilities/api";
+import type { IngredientRow } from "@macro-tracker/macro-tracker-shared";
+
+export default function Pantry() {
+  const [ingredients, setIngredients] = useState<IngredientRow[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      setIsLoading(true);
+      setLoadError(null);
+      const result = await getIngredients();
+      if (cancelled) return;
+      if (result.ok) {
+        setIngredients(result.body);
+      } else {
+        setLoadError(result.errorMessage);
+        setIngredients([]);
+      }
+      setIsLoading(false);
+    }
+
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  function handleNewIngredient(): void {
+    /* placeholder */
+  }
+
+  function handleIngredientClick(ingredient: IngredientRow): void {
+    /* placeholder */
+    console.log(ingredient);
+  }
+
+  const q = searchQuery.trim().toLowerCase();
+  const filteredIngredients =
+    q === ""
+      ? ingredients
+      : ingredients.filter((row) => row.name.toLowerCase().includes(q));
+
+  return (
+    <>
+      <button type="button" className="button" onClick={handleNewIngredient}>
+        New Ingredient
+      </button>
+      <form
+        className="form"
+        onSubmit={(event) => {
+          event.preventDefault();
+        }}
+      >
+        <label htmlFor="pantry-search">Search ingredients</label>
+        <input
+          id="pantry-search"
+          className="input"
+          type="search"
+          value={searchQuery}
+          onChange={(event) => setSearchQuery(event.target.value)}
+          autoComplete="off"
+        />
+      </form>
+
+      {isLoading ? (
+        <Loader size={1.5} thickness={3} />
+      ) : loadError ? (
+        <p>{loadError}</p>
+      ) : ingredients.length === 0 ? (
+        <p>Your pantry is empty :(</p>
+      ) : filteredIngredients.length === 0 ? (
+        <p>No ingredients match your search.</p>
+      ) : (
+        filteredIngredients.map((row) => (
+          <div
+            key={row.id}
+            className="accordion-item"
+            onClick={() => {
+              handleIngredientClick(row);
+            }}
+          >
+            <div className="accordion-item-title">{row.name}</div>
+            <div className="accordion-item-macro-grid">
+              <div className="calories color-calories">{row.calories ?? 0}</div>
+              <div className="protein color-protein">{row.protein ?? 0}</div>
+              <div className="carbohydrates color-carbohydrates">
+                {row.carbohydrates ?? 0}
+              </div>
+              <div className="fats color-fats">{row.fats ?? 0}</div>
+            </div>
+          </div>
+        ))
+      )}
+    </>
+  );
+}
