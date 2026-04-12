@@ -1,0 +1,19 @@
+FROM node:latest
+
+WORKDIR /app
+
+ENV PORT=80
+
+# API depends on `file:../macro-tracker-shared`; both packages must live under /app.
+COPY macro-tracker-shared ./macro-tracker-shared
+WORKDIR /app/macro-tracker-shared
+RUN npm install && npm run build
+
+# Destination must be absolute: WORKDIR is still /app/macro-tracker-shared.
+COPY macro-tracker-api /app/macro-tracker-api
+WORKDIR /app/macro-tracker-api
+RUN npm install && npm run build
+
+USER node
+
+CMD ["npm", "start"]

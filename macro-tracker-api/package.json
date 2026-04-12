@@ -1,0 +1,35 @@
+{
+  "name": "macro-tracker-api",
+  "version": "1.0.0",
+  "description": "API for the macro tracker",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "nodemon --exec ts-node src/server.ts",
+    "watch": "tsc -w"
+  },
+  "author": "Ken Warner",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/connect-pg-simple": "^7.0.3",
+    "@types/express": "^5.0.6",
+    "@types/express-session": "^1.18.2",
+    "@types/node": "^25.5.0",
+    "@types/pg": "^8.20.0",
+    "nodemon": "^3.1.14",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.2"
+  },
+  "dependencies": {
+    "body-parser": "^2.2.2",
+    "connect-pg-simple": "^10.0.0",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "pg": "^8.20.0",
+    "@macro-tracker/macro-tracker-shared": "file:../macro-tracker-shared"
+  },
+  "type": "module",
+  "module": "nodenext"
+}

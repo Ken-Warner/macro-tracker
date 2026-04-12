@@ -1,6 +1,6 @@
-node_modules/
+macro-tracker-api/node_modules/
+macro-tracker-api/public
 macro-tracker-client/node_modules/
-.dockerignore
-/.env
-public/*
+.env
 data
+node_modules

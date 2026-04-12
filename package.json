@@ -1,22 +1,16 @@
 {
-  "name": "macrotracker",
-  "version": "1.0.0",
-  "main": "index.js",
+  "name": "macro-tracker",
+  "private": true,
+  "workspaces": [
+    "macro-tracker-shared",
+    "macro-tracker-client",
+    "macro-tracker-api"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "watch": "nodemon server.js",
-    "start": "node server.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "connect-pg-simple": "^10.0.0",
-    "cookie-parser": "^1.4.6",
-    "express": "^4.18.2",
-    "express-session": "^1.17.3",
-    "nodemon": "^3.0.1",
-    "pg": "^8.11.3"
-  },
-  "description": ""
+    "build:all": "npm run build --workspaces",
+    "build:api": "npm run build --workspace=macro-tracker-api",
+    "build:client": "npm run build --workspace=macro-tracker-client",
+    "build:shared": "npm run build --workspace=macro-tracker-shared",
+    "docker:build:up": "docker compose up --build -d"
+  }
 }
