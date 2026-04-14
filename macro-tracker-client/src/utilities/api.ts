@@ -1,6 +1,8 @@
 import type { weighIn } from "../types/weighIn";
 import type {
+  CreateIngredientResponse,
   CreateMealRawRequest,
+  CreateNewIngredientRequest,
   GetIngredientsResponse,
   GetMealHistoryResponse,
 } from "@macro-tracker/macro-tracker-shared";
@@ -143,6 +145,74 @@ export async function getIngredients(): Promise<
       ok: false,
       status: apiResult.status,
       errorMessage: "Unable to get ingredients",
+    };
+  }
+}
+
+export async function createNewIngredient(
+  request: CreateNewIngredientRequest,
+): Promise<APIResult<CreateIngredientResponse>> {
+  const apiResult = await fetch(`/api/ingredients`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+
+  if (apiResult.ok) {
+    return {
+      ok: true,
+      status: apiResult.status,
+      body: (await apiResult.json()) as CreateIngredientResponse,
+    };
+  }
+
+  let errorMessage = "Unable to create ingredient";
+  try {
+    const json: unknown = await apiResult.json();
+    if (
+      typeof json === "object" &&
+      json !== null &&
+      "error" in json &&
+      typeof (json as { error: unknown }).error === "string"
+    ) {
+      errorMessage = (json as { error: string }).error;
+    } else if (
+      typeof json === "object" &&
+      json !== null &&
+      "errorMessage" in json &&
+      typeof (json as { errorMessage: unknown }).errorMessage === "string"
+    ) {
+      errorMessage = (json as { errorMessage: string }).errorMessage;
+    }
+  } catch {
+    /* keep default */
+  }
+
+  return {
+    ok: false,
+    status: apiResult.status,
+    errorMessage,
+  };
+}
+
+export async function deleteIngredient(
+  ingredientId: number,
+): Promise<APIResult<null>> {
+  const apiResult = await fetch(`/api/ingredients/${ingredientId}`, {
+    method: "DELETE",
+  });
+
+  if (apiResult.ok) {
+    return {
+      ok: true,
+      status: apiResult.status,
+      body: null,
+    };
+  } else {
+    return {
+      ok: false,
+      status: apiResult.status,
+      errorMessage: "Unable to delete ingredient",
     };
   }
 }

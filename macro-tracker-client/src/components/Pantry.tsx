@@ -1,13 +1,22 @@
 import { useEffect, useState } from "react";
 import Loader from "./Loader";
+import CreateIngredientDialog from "./dialogs/CreateIngredientDialog";
+import IngredientDialog from "./dialogs/IngredientDialog";
+import ToastMessage from "./reusables/ToastMessage";
+import type { Toast } from "./reusables/ToastMessage";
 import { getIngredients } from "../utilities/api";
 import type { IngredientRow } from "@macro-tracker/macro-tracker-shared";
 
 export default function Pantry() {
   const [ingredients, setIngredients] = useState<IngredientRow[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [selectedIngredient, setSelectedIngredient] =
+    useState<IngredientRow | null>(null);
+  const [createIngredientOpen, setCreateIngredientOpen] = useState(false);
+  const [toast, setToast] = useState<Toast | null>(null);
+  const isToastDisplayed = toast != null;
 
   useEffect(() => {
     let cancelled = false;
@@ -33,12 +42,11 @@ export default function Pantry() {
   }, []);
 
   function handleNewIngredient(): void {
-    /* placeholder */
+    setCreateIngredientOpen(true);
   }
 
   function handleIngredientClick(ingredient: IngredientRow): void {
-    /* placeholder */
-    console.log(ingredient);
+    setSelectedIngredient(ingredient);
   }
 
   const q = searchQuery.trim().toLowerCase();
@@ -49,6 +57,9 @@ export default function Pantry() {
 
   return (
     <>
+      {isToastDisplayed ? (
+        <ToastMessage toast={toast} onFinished={() => setToast(null)} />
+      ) : null}
       <button type="button" className="button" onClick={handleNewIngredient}>
         New Ingredient
       </button>
@@ -98,6 +109,29 @@ export default function Pantry() {
           </div>
         ))
       )}
+      <CreateIngredientDialog
+        isOpen={createIngredientOpen}
+        onClose={() => setCreateIngredientOpen(false)}
+        onCreated={(row) => {
+          setIngredients((prev) => [...prev, row]);
+          setToast({
+            type: "good",
+            message: `Created ingredient "${row.name}".`,
+          });
+          setCreateIngredientOpen(false);
+        }}
+        onCreateError={(message) => {
+          setToast({ type: "error", message });
+        }}
+      />
+      <IngredientDialog
+        isOpen={selectedIngredient !== null}
+        onClose={() => setSelectedIngredient(null)}
+        ingredient={selectedIngredient}
+        onDeleted={(ingredientId) =>
+          setIngredients((prev) => prev.filter((row) => row.id !== ingredientId))
+        }
+      />
     </>
   );
 }
