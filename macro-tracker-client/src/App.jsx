@@ -146,11 +146,11 @@ export default function App() {
   const [isAllExpanded, setIsAllExpanded] = useState(false);
 
   //Application Data States
-  const [user, setUser] = useState(tempUser);
+  const [user, setUser] = useState({});
   const isUserLoggedIn = user.userId !== undefined;
-  const [meals, setMeals] = useState(tempMeals);
+  const [meals, setMeals] = useState([]);
   const [recentWeighInData, setRecentWeighInData] = useState({});
-  const [todaysMacros, setTodaysMacros] = useState(tempMacros);
+  const [todaysMacros, setTodaysMacros] = useState({});
 
   //Dialog States
   const [createMealDialogOpen, setCreateMealDialogOpen] = useState(false);

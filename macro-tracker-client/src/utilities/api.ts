@@ -1,5 +1,6 @@
 import type { weighIn } from "../types/weighIn";
 import type {
+  CreateComposedMealRequest,
   CreateIngredientResponse,
   CreateMealRawRequest,
   CreateNewIngredientRequest,
@@ -259,6 +260,33 @@ export async function postMealNonComposed(newMeal: CreateMealRawRequest) {
   } else if (apiResult.status === 400) {
     const jsonResult = await apiResult.json();
     throw new Error(jsonResult.error);
+  } else {
+    throw new Error("There was a problem adding the new meal.");
+  }
+}
+
+/** Composed meal (`POST /api/meals`). Normalizes `is_recurring` to `isRecurring` for UI state. */
+export async function postMealComposed(meal: CreateComposedMealRequest) {
+  const apiResult = await fetch(`/api/meals`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(meal),
+  });
+
+  if (apiResult.ok) {
+    const json = (await apiResult.json()) as Record<string, unknown>;
+    const { is_recurring: isRecurringSnake, ...rest } = json;
+    return {
+      ...rest,
+      isRecurring: Boolean(isRecurringSnake),
+    };
+  } else if (apiResult.status === 400) {
+    const jsonResult = await apiResult.json();
+    throw new Error(
+      typeof jsonResult.error === "string"
+        ? jsonResult.error
+        : "Invalid meal request",
+    );
   } else {
     throw new Error("There was a problem adding the new meal.");
   }

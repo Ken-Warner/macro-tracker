@@ -213,6 +213,75 @@ nav span:hover {
   justify-content: space-around;
 }
 
+/* Create meal dialog — tabs & pantry picker */
+.create-meal-tab-row {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  width: 90%;
+  margin: 0 auto 12px;
+}
+
+.create-meal-tab-row .button {
+  flex: 1;
+  margin: 5px 0;
+}
+
+.button.button-tab-active {
+  background-color: var(--call-to-action-highlight);
+  border-color: var(--complement);
+}
+
+.create-meal-ingredient-scroll {
+  max-height: 200px;
+  overflow-y: auto;
+  width: 90%;
+  margin: 8px auto;
+  border: 1px solid var(--complement);
+  border-radius: 5px;
+  padding: 4px;
+}
+
+.create-meal-selected-heading {
+  width: 90%;
+  margin: 12px auto 4px;
+  font-size: 1.05em;
+}
+
+.create-meal-portion-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  width: 90%;
+  margin: 6px auto;
+}
+
+.create-meal-portion-row .portion-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.create-meal-portion-controls {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.create-meal-portion-controls .button {
+  width: auto;
+  padding: 6px 12px;
+  margin: 0;
+  min-width: 2.25rem;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
 /* Forms */
 form label {
   display: block;
@@ -228,6 +297,26 @@ form label {
   margin: 0 auto;
   font-size: 1.2em;
   border-radius: 5px;
+}
+
+/* Overrides .input width — portion field must stay narrow so ingredient names fit */
+.create-meal-portion-controls .input.create-meal-portion-input::-webkit-outer-spin-button,
+.create-meal-portion-controls .input.create-meal-portion-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+
+.create-meal-portion-controls .input.create-meal-portion-input {
+  width: 3rem;
+  max-width: 3rem;
+  margin: 0;
+  padding: 4px 2px;
+  font-size: 1em;
+  text-align: center;
+  flex-shrink: 0;
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
 .remember-me {
   margin: 10px auto;
