@@ -1,15 +1,31 @@
-/** Authenticated user entity; safe to use on client and server. */
 export class User {
-  constructor(
-    public readonly id: number,
-    public readonly username: string,
-  ) {}
+  public readonly id: number;
+  public readonly username: string;
+  public readonly emailAddress: string | undefined;
 
-  static fromLoginRow(row: { id: number; username: string }): User {
-    return new User(row.id, row.username);
+  constructor(id: number, username: string, emailAddress?: string) {
+    this.id = id;
+    this.username = username;
+    this.emailAddress = emailAddress;
   }
 
-  /** Shape used by login / create session responses (`userId` as string). */
+  static fromModel(id: number, username: string): User {
+    return new User(id, username);
+  }
+
+  static fromJson(data: any): User {
+    if (
+      data == null ||
+      typeof data !== "object" ||
+      typeof data.id !== "number" ||
+      typeof data.username !== "string"
+    ) {
+      throw new Error("Invalid user data");
+    }
+
+    return new User(data.id, data.username);
+  }
+
   toJSON(): { userId: string; username: string } {
     return { userId: String(this.id), username: this.username };
   }

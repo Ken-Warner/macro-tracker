@@ -1,6 +1,8 @@
 macro-tracker-api/node_modules/
 macro-tracker-api/public
 macro-tracker-client/node_modules/
+macro-tracker-shared/dist
+macro-tracker-api/dist
 .env
 data
 node_modules

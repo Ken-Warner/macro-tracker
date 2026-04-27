@@ -8,6 +8,19 @@ import type {
   GetMealHistoryResponse,
 } from "@macro-tracker/macro-tracker-shared";
 import { WeighInData } from "@macro-tracker/macro-tracker-shared";
+import { User } from "@macro-tracker/macro-tracker-shared";
+
+export type APIResult<T> =
+  | {
+      ok: true;
+      status: number;
+      body: T;
+    }
+  | {
+      ok: false;
+      status: number;
+      errorMessage: string;
+    };
 
 export async function getMealHistoryFromRange(
   fromDate: Date,
@@ -74,7 +87,7 @@ export async function postCreateNewUser(
   });
 
   if (apiResult.ok) {
-    return await apiResult.json();
+    return User.fromJson(await apiResult.json());
   } else if (apiResult.status === 400) {
     const jsonResult = await apiResult.json();
     throw new Error(jsonResult.errorMessage);
@@ -99,7 +112,7 @@ export async function postUserLogin(
   });
 
   if (apiResult.ok) {
-    return await apiResult.json();
+    return User.fromJson(await apiResult.json());
   } else if (apiResult.status === 400) {
     const jsonResult = await apiResult.json();
     throw new Error(jsonResult.errorMessage);
@@ -291,15 +304,3 @@ export async function postMealComposed(meal: CreateComposedMealRequest) {
     throw new Error("There was a problem adding the new meal.");
   }
 }
-
-export type APIResult<T> =
-  | {
-      ok: true;
-      status: number;
-      body: T;
-    }
-  | {
-      ok: false;
-      status: number;
-      errorMessage: string;
-    };

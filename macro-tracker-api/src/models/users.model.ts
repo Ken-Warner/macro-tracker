@@ -15,8 +15,7 @@ export async function getUser(
   const result = await query(getUserQuery);
 
   if (result.rowCount === 1) {
-    const row = result.rows[0] as { id: number; username: string };
-    return User.fromLoginRow(row);
+    return User.fromModel(result.rows[0].id, result.rows[0].username);
   }
   throw new Error("Incorrect username or password");
 }
@@ -39,8 +38,7 @@ export async function createUser(
   };
 
   const usernameCheckResult = await query(usernameCheck);
-  const countRow = usernameCheckResult.rows[0] as { count: string };
-  if (Number(countRow.count) > 0) {
+  if (usernameCheckResult.rows[0].count > 0) {
     throw new Error("Username already exists");
   }
 
