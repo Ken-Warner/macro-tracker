@@ -2,9 +2,15 @@ import { getUser, createUser } from "../../models/users.model.js";
 import validator from "../../Utilities/validator.js";
 import { log, loggingLevels, formatResponse } from "../../Utilities/logger.js";
 import type { Request, Response } from "express";
-import type { UserCreateRequest, UserLoginRequest } from "@macro-tracker/macro-tracker-shared";
+import type {
+  UserCreateRequest,
+  UserLoginRequest,
+} from "@macro-tracker/macro-tracker-shared";
 
-async function createNewUser(req: Request<{}, {}, UserCreateRequest>, res: Response) {
+export async function createNewUser(
+  req: Request<{}, {}, UserCreateRequest>,
+  res: Response,
+) {
   if (req.session.userId && req.session.username) {
     res.status(400).send(JSON.stringify({ error: `User already logged in. ` }));
     return;
@@ -57,7 +63,10 @@ async function createNewUser(req: Request<{}, {}, UserCreateRequest>, res: Respo
   }
 }
 
-async function logUserIn(req: Request<{}, {}, UserLoginRequest>, res: Response) {
+export async function logUserIn(
+  req: Request<{}, {}, UserLoginRequest>,
+  res: Response,
+) {
   if (req.session.userId && req.session.username) {
     res.status(200).send(
       JSON.stringify({
@@ -101,12 +110,10 @@ async function logUserIn(req: Request<{}, {}, UserLoginRequest>, res: Response) 
   }
 }
 
-function logUserOut(req: Request, res: Response) {
+export function logUserOut(req: Request, res: Response) {
   req.session.destroy((error: unknown) => {
     if (error) return res.status(500).send();
     res.clearCookie("connect.sid");
     res.status(200).send();
   });
 }
-
-export { logUserIn, logUserOut, createNewUser };

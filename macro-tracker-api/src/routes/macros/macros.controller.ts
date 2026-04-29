@@ -5,19 +5,13 @@ import {
 import validator from "../../Utilities/validator.js";
 import { log, loggingLevels, formatResponse } from "../../Utilities/logger.js";
 import type { Request, Response } from "express";
-import type {
-  GetMacrosFromDateRangeRequestQuery,
-  GetMacrosFromDateRangeResponse,
-  GetTodaysMacrosRequestQuery,
-  GetTodaysMacrosResponse,
-} from "@macro-tracker/macro-tracker-shared";
 
-async function getMacrosFromDateRange(
+export async function getMacrosFromDateRange(
   req: Request<
     unknown,
     unknown,
     unknown,
-    Partial<GetMacrosFromDateRangeRequestQuery>
+    Partial<{ fromDate: string; toDate: string }>
   >,
   res: Response,
 ) {
@@ -49,10 +43,7 @@ async function getMacrosFromDateRange(
       toDate,
     );
 
-    const body: GetMacrosFromDateRangeResponse = macroData.map((el) =>
-      el.toJSON(),
-    ) as GetMacrosFromDateRangeResponse;
-    res.status(200).send(JSON.stringify(body));
+    res.status(200).send(JSON.stringify(macroData));
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     const uuid = await log(
@@ -64,27 +55,30 @@ async function getMacrosFromDateRange(
   }
 }
 
-async function getTodaysMacros(
-  req: Request<unknown, unknown, unknown, Partial<GetTodaysMacrosRequestQuery>>,
+export async function getTodaysMacros(
+  req: Request<unknown, unknown, unknown, Partial<{ today: string }>>,
   res: Response,
 ) {
+  if (!req.query.today || !validator.isValidDate(req.query.today)) {
+    res.status(400).send(
+      JSON.stringify({
+        error: `You must provide a date in the format YYYY-MM-DD`,
+      }),
+    );
+    return;
+  }
+
   try {
-    const macro = await selectTodaysMacros(
+    const todaysMacros = await selectTodaysMacros(
       req.session.userId!,
       req.query.today,
     );
 
-    const apiResult: GetTodaysMacrosResponse = {
-      calories: macro.calories,
-      protein: macro.protein,
-      carbohydrates: macro.carbohydrates,
-      fats: macro.fats,
-    };
-    if (req.query.today !== undefined) {
-      apiResult.date = req.query.today;
+    if (todaysMacros.date === undefined) {
+      todaysMacros.date = req.query.today;
     }
 
-    res.status(200).send(JSON.stringify(apiResult));
+    res.status(200).send(JSON.stringify(todaysMacros));
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     const uuid = await log(
@@ -95,5 +89,3 @@ async function getTodaysMacros(
     res.status(500).send(formatResponse(uuid));
   }
 }
-
-export { getMacrosFromDateRange, getTodaysMacros };

@@ -1,14 +1,6 @@
 import { MacroData } from "@macro-tracker/macro-tracker-shared";
 import { query } from "./pool.js";
 
-type MacroTotalsRow = {
-  date: Date;
-  calories: number;
-  protein: number;
-  carbohydrates: number;
-  fats: number;
-};
-
 export async function selectMacrosFromDateRange(
   userId: string,
   fromDate: string,
@@ -26,8 +18,15 @@ export async function selectMacrosFromDateRange(
 
   const result = await query(selectMacrosQuery);
 
-  return (result.rows as MacroTotalsRow[]).map((row) =>
-    MacroData.fromDbRow(row),
+  return result.rows.map(
+    (row) =>
+      new MacroData(
+        row.date.toISOString().split("T")[0],
+        row.calories,
+        row.protein,
+        row.carbohydrates,
+        row.fats,
+      ),
   );
 }
 
@@ -51,11 +50,17 @@ export async function selectTodaysMacros(
   const queryResult = await query(selectTodaysMacrosQuery);
 
   if (queryResult.rowCount === 0) {
-    return MacroData.empty();
+    return new MacroData();
   }
-  const result = queryResult.rows[0] as MacroTotalsRow;
-  if (result.date.toISOString().split("T")[0] !== today) {
-    return MacroData.empty();
+  const resultDate = queryResult.rows[0].date.toISOString().split("T")[0];
+  if (resultDate !== today) {
+    return new MacroData();
   }
-  return MacroData.fromDbRow(result);
+  return new MacroData(
+    resultDate,
+    queryResult.rows[0].calories,
+    queryResult.rows[0].protein,
+    queryResult.rows[0].carbohydrates,
+    queryResult.rows[0].fats,
+  );
 }

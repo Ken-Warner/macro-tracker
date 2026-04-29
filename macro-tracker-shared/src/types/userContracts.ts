@@ -1,13 +1,3 @@
-export interface UserLoginResponse {
-  userId: string;
-  username: string;
-}
-
-export interface UserCreateResponse {
-  userId: string;
-  username: string;
-}
-
 export interface UserCreateRequest {
   username: string;
   password: string;

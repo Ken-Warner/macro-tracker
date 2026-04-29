@@ -1,50 +1,21 @@
-/** One day of macro totals from `macro_totals`. */
 export class MacroData {
+  public date: string | undefined;
+  public calories: number;
+  public protein: number;
+  public carbohydrates: number;
+  public fats: number;
+
   constructor(
-    public readonly date: string | undefined,
-    public readonly calories: number,
-    public readonly protein: number,
-    public readonly carbohydrates: number,
-    public readonly fats: number,
-  ) {}
-
-  static fromDbRow(row: {
-    date: Date;
-    calories: number;
-    protein: number;
-    carbohydrates: number;
-    fats: number;
-  }): MacroData {
-    return new MacroData(
-      row.date.toISOString().split("T")[0],
-      row.calories,
-      row.protein,
-      row.carbohydrates,
-      row.fats,
-    );
-  }
-
-  /** When there is no row or it is not “today”, API still returns zeroed macros. */
-  static empty(): MacroData {
-    return new MacroData(undefined, 0, 0, 0, 0);
-  }
-
-  toJSON(): {
-    date?: string;
-    calories: number;
-    protein: number;
-    carbohydrates: number;
-    fats: number;
-  } {
-    const base = {
-      calories: this.calories,
-      protein: this.protein,
-      carbohydrates: this.carbohydrates,
-      fats: this.fats,
-    };
-    if (this.date !== undefined) {
-      return { ...base, date: this.date };
-    }
-    return base;
+    date: string | undefined = undefined,
+    calories: number = 0,
+    protein: number = 0,
+    carbohydrates: number = 0,
+    fats: number = 0,
+  ) {
+    this.date = date;
+    this.calories = calories;
+    this.protein = protein;
+    this.carbohydrates = carbohydrates;
+    this.fats = fats;
   }
 }
