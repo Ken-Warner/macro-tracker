@@ -7,8 +7,11 @@ import type {
   GetIngredientsResponse,
   GetMealHistoryResponse,
 } from "@macro-tracker/macro-tracker-shared";
-import { WeighInData } from "@macro-tracker/macro-tracker-shared";
-import { User } from "@macro-tracker/macro-tracker-shared";
+import {
+  MacroData,
+  WeighInData,
+  User,
+} from "@macro-tracker/macro-tracker-shared";
 
 export type APIResult<T> =
   | {
@@ -58,7 +61,14 @@ export async function getTodaysMacros(today: Date) {
   const apiResult = await fetch(`/api/macros/today?${searchParams.toString()}`);
 
   if (apiResult.ok) {
-    return await apiResult.json();
+    const jsonResult = await apiResult.json();
+    return new MacroData(
+      jsonResult.date,
+      jsonResult.calories,
+      jsonResult.protein,
+      jsonResult.carbohydrates,
+      jsonResult.fats,
+    );
   } else {
     throw new Error("Unable to get current macro totals");
   }
