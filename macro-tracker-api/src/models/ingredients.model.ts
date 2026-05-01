@@ -19,11 +19,11 @@ type DbIngredientRow = {
   id: number;
   user_id: number;
   name: string;
-  description: string | null;
-  calories: number | null;
-  protein: number | null;
-  carbohydrates: number | null;
-  fats: number | null;
+  description: string;
+  calories: number;
+  protein: number;
+  carbohydrates: number;
+  fats: number;
   is_deleted: boolean;
 };
 
@@ -35,6 +35,7 @@ type ComponentDbRow = {
   fats: number;
 };
 
+//TODO update to use ingredient entity
 export async function createIngredientRaw(
   userId: string,
   ingredient: RawIngredientInput,
@@ -58,11 +59,24 @@ export async function createIngredientRaw(
   const result = await query(createIngredientQuery);
 
   if (result.rowCount === 1) {
-    return Ingredient.fromDbRow(result.rows[0] as DbIngredientRow);
+    let ingredient = new Ingredient(
+      result.rows[0].name,
+      result.rows[0].calories,
+      result.rows[0].protein,
+      result.rows[0].carbohydrates,
+      result.rows[0].fats,
+    );
+
+    ingredient.userId = result.rows[0].user_id;
+    ingredient.id = result.rows[0].id;
+    ingredient.description = result.rows[0].description;
+
+    return ingredient;
   }
   return undefined;
 }
 
+//TODO update to use ingredient entity
 export async function createIngredientFromComponents(
   userId: string,
   name: string,
@@ -133,6 +147,7 @@ export async function createIngredientFromComponents(
   return finalNewIngredient;
 }
 
+//TODO update to use ingredient entity
 export async function deleteIngredientById(
   userId: string,
   ingredientId: number,
@@ -150,6 +165,7 @@ export async function deleteIngredientById(
   return result.rowCount ?? 0;
 }
 
+//TODO update to use ingredient entity
 export async function getIngredientsByUserId(
   userId: string,
 ): Promise<Ingredient[]> {
@@ -161,9 +177,20 @@ export async function getIngredientsByUserId(
   };
 
   const result = await query(selectIngredientsQuery);
-  return (result.rows as DbIngredientRow[]).map((row) =>
-    Ingredient.fromDbRow(row),
-  );
+  return (result.rows as DbIngredientRow[]).map((row) => {
+    let ingredient = new Ingredient(
+      row.name,
+      row.calories,
+      row.protein,
+      row.carbohydrates,
+      row.fats,
+    );
+    ingredient.userId = row.user_id;
+    ingredient.id = row.id;
+    ingredient.description = row.description;
+    ingredient.isDeleted = row.is_deleted;
+    return ingredient;
+  });
 }
 
 async function insertRecipeComponents(
@@ -183,7 +210,11 @@ async function insertRecipeComponents(
               .join(",")};`,
 
     params: recipeComponents
-      .map((el) => [el.parentIngredientId, el.componentIngredientId, el.portionSize])
+      .map((el) => [
+        el.parentIngredientId,
+        el.componentIngredientId,
+        el.portionSize,
+      ])
       .flat(),
   };
 

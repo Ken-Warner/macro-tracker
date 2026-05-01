@@ -34,13 +34,11 @@ async function createNewIngredient(
             component.portionSize == 0,
         )
       ) {
-        res
-          .status(400)
-          .send(
-            JSON.stringify({
-              error: "Not all component IDs or portion sizes are provided",
-            }),
-          );
+        res.status(400).send(
+          JSON.stringify({
+            error: "Not all component IDs or portion sizes are provided",
+          }),
+        );
         return;
       }
 
@@ -52,11 +50,17 @@ async function createNewIngredient(
       );
 
       if (!newIngredient) {
-        res.status(500).send(formatResponse(await log(
-          loggingLevels.ERROR,
-          "createNewIngredient: insert returned no row",
-          req.body,
-        )));
+        res
+          .status(500)
+          .send(
+            formatResponse(
+              await log(
+                loggingLevels.ERROR,
+                "createNewIngredient: insert returned no row",
+                req.body,
+              ),
+            ),
+          );
         return;
       }
 
@@ -69,11 +73,17 @@ async function createNewIngredient(
       );
 
       if (!newIngredient) {
-        res.status(500).send(formatResponse(await log(
-          loggingLevels.ERROR,
-          "createNewIngredient: insert returned no row",
-          req.body,
-        )));
+        res
+          .status(500)
+          .send(
+            formatResponse(
+              await log(
+                loggingLevels.ERROR,
+                "createNewIngredient: insert returned no row",
+                req.body,
+              ),
+            ),
+          );
         return;
       }
 
@@ -99,13 +109,11 @@ async function deleteIngredient(
 ) {
   const ingredientIdNum = Number(req.params.ingredientId);
   if (!validator.isNumberGEZero(ingredientIdNum)) {
-    res
-      .status(400)
-      .send(
-        JSON.stringify({
-          error: `A numeric ingredient ID must be provided.`,
-        }),
-      );
+    res.status(400).send(
+      JSON.stringify({
+        error: `A numeric ingredient ID must be provided.`,
+      }),
+    );
     return;
   }
 
@@ -116,7 +124,11 @@ async function deleteIngredient(
     );
 
     if (result == 0)
-      await log(loggingLevels.INFO, "deleteIngredient: ID not found.", req.params);
+      await log(
+        loggingLevels.INFO,
+        "deleteIngredient: ID not found.",
+        req.params,
+      );
 
     res.status(200).send();
   } catch (e) {
