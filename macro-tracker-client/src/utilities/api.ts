@@ -122,7 +122,8 @@ export async function postUserLogin(
   });
 
   if (apiResult.ok) {
-    return User.fromJson(await apiResult.json());
+    const jsonResult = await apiResult.json();
+    return User.fromJson(jsonResult);
   } else if (apiResult.status === 400) {
     const jsonResult = await apiResult.json();
     throw new Error(jsonResult.errorMessage);

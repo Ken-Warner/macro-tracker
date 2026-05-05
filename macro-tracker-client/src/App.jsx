@@ -20,7 +20,7 @@ import {
 } from "./utilities/api.js";
 
 const tempUser = {
-  userId: 1,
+  id: 1,
   username: "KenTest1",
 };
 
@@ -147,7 +147,7 @@ export default function App() {
 
   //Application Data States
   const [user, setUser] = useState({});
-  const isUserLoggedIn = user.userId !== undefined;
+  const isUserLoggedIn = user.id !== undefined;
   const [meals, setMeals] = useState([]);
   const [recentWeighInData, setRecentWeighInData] = useState({});
   const [todaysMacros, setTodaysMacros] = useState({});

@@ -17,8 +17,8 @@ export class User {
     if (
       data == null ||
       typeof data !== "object" ||
-      typeof data.id !== "number" ||
-      typeof data.username !== "string"
+      !("id" in data) ||
+      !("username" in data)
     ) {
       throw new Error("Invalid user data");
     }
@@ -26,7 +26,7 @@ export class User {
     return new User(data.id, data.username);
   }
 
-  toJSON(): { userId: string; username: string } {
-    return { userId: String(this.id), username: this.username };
+  toJSON(): { id: string; username: string } {
+    return { id: String(this.id), username: this.username };
   }
 }

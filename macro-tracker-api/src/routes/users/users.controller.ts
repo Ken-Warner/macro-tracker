@@ -6,6 +6,7 @@ import type {
   UserCreateRequest,
   UserLoginRequest,
 } from "@macro-tracker/macro-tracker-shared";
+import { User } from "@macro-tracker/macro-tracker-shared";
 
 export async function createNewUser(
   req: Request<{}, {}, UserCreateRequest>,
@@ -68,12 +69,13 @@ export async function logUserIn(
   res: Response,
 ) {
   if (req.session.userId && req.session.username) {
-    res.status(200).send(
-      JSON.stringify({
-        userId: req.session.userId,
-        username: req.session.username,
-      }),
-    );
+    res
+      .status(200)
+      .send(
+        JSON.stringify(
+          new User(Number(req.session.userId), req.session.username).toJSON(),
+        ),
+      );
     return;
   }
 
