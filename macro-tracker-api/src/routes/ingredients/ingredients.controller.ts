@@ -1,5 +1,5 @@
 import {
-  createIngredientRaw,
+  createIngredient,
   deleteIngredientById,
   getIngredientsByUserId,
 } from "../../models/ingredients.model.js";
@@ -21,7 +21,7 @@ async function createNewIngredient(
     if (!req.body.ingredient || req.body.ingredient.name === "") {
       return res.status(400).send(JSON.stringify({ error: "Invalid Input" }));
     }
-    const newIngredient = await createIngredientRaw(
+    const newIngredient = await createIngredient(
       req.session.userId!,
       req.body.ingredient,
     );

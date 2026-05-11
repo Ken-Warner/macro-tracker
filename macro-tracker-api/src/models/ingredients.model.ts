@@ -22,8 +22,7 @@ type DbIngredientRow = {
   is_deleted: boolean;
 };
 
-//TODO update to use ingredient entity
-export async function createIngredientRaw(
+export async function createIngredient(
   userId: string,
   ingredient: RawIngredientInput,
 ): Promise<Ingredient | undefined> {
