@@ -1,10 +1,4 @@
-/** Line item when creating an ingredient from existing ingredients (`POST /` with `components`). */
-export interface ComposedIngredientComponent {
-  ingredientId: number;
-  portionSize: number;
-}
-
-/** Request body for `POST /` (raw macros or composed from `components`). */
+/** Request body for `POST /` (raw macros). */
 export interface CreateNewIngredientRequest {
   ingredient: {
     name: string;
@@ -14,7 +8,6 @@ export interface CreateNewIngredientRequest {
     carbohydrates?: number;
     fats?: number;
   };
-  components?: ComposedIngredientComponent[];
 }
 
 /** Ingredient row as returned from list/create (`GET /`, `POST /` `201`). */

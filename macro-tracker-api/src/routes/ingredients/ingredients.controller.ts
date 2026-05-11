@@ -1,6 +1,5 @@
 import {
   createIngredientRaw,
-  createIngredientFromComponents,
   deleteIngredientById,
   getIngredientsByUserId,
 } from "../../models/ingredients.model.js";
@@ -8,7 +7,6 @@ import { log, loggingLevels, formatResponse } from "../../Utilities/logger.js";
 import validator from "../../Utilities/validator.js";
 import type { Request, Response } from "express";
 import type {
-  ComposedIngredientComponent,
   CreateIngredientResponse,
   CreateNewIngredientRequest,
   DeleteIngredientRequestParams,
@@ -20,78 +18,31 @@ async function createNewIngredient(
   res: Response,
 ) {
   try {
-    if (req.body.components && req.body.components.length > 0) {
-      //ingredient is composed of other existing ingredients
-      //all macro information is ignored and instead is tallied from the
-      //existing ingredients
-      if (
-        req.body.components.some(
-          (component: ComposedIngredientComponent) =>
-            component.ingredientId == 0,
-        ) ||
-        req.body.components.some(
-          (component: ComposedIngredientComponent) =>
-            component.portionSize == 0,
-        )
-      ) {
-        res.status(400).send(
-          JSON.stringify({
-            error: "Not all component IDs or portion sizes are provided",
-          }),
-        );
-        return;
-      }
-
-      const newIngredient = await createIngredientFromComponents(
-        req.session.userId!,
-        req.body.ingredient.name,
-        req.body.ingredient.description,
-        req.body.components,
-      );
-
-      if (!newIngredient) {
-        res
-          .status(500)
-          .send(
-            formatResponse(
-              await log(
-                loggingLevels.ERROR,
-                "createNewIngredient: insert returned no row",
-                req.body,
-              ),
-            ),
-          );
-        return;
-      }
-
-      const body: CreateIngredientResponse = newIngredient.toJSON();
-      res.status(201).send(JSON.stringify(body));
-    } else if (req.body.ingredient && req.body.ingredient.name != "") {
-      const newIngredient = await createIngredientRaw(
-        req.session.userId!,
-        req.body.ingredient,
-      );
-
-      if (!newIngredient) {
-        res
-          .status(500)
-          .send(
-            formatResponse(
-              await log(
-                loggingLevels.ERROR,
-                "createNewIngredient: insert returned no row",
-                req.body,
-              ),
-            ),
-          );
-        return;
-      }
-
-      const body: CreateIngredientResponse = newIngredient.toJSON();
-      res.status(201).send(JSON.stringify(body));
-    } else {
-      res.status(400).send(JSON.stringify({ error: "Invalid Input" }));
+    if (!req.body.ingredient || req.body.ingredient.name === "") {
+      return res.status(400).send(JSON.stringify({ error: "Invalid Input" }));
     }
+    const newIngredient = await createIngredientRaw(
+      req.session.userId!,
+      req.body.ingredient,
+    );
+
+    if (!newIngredient) {
+      res
+        .status(500)
+        .send(
+          formatResponse(
+            await log(
+              loggingLevels.ERROR,
+              "createNewIngredient: insert returned no row",
+              req.body,
+            ),
+          ),
+        );
+      return;
+    }
+
+    const body: CreateIngredientResponse = newIngredient.toJSON();
+    res.status(201).send(JSON.stringify(body));
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     const uuid = await log(
