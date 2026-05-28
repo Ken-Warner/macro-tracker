@@ -1,119 +1,30 @@
 import { useState } from "react";
+import {
+  MacroData,
+  User,
+  WeighInData,
+  type GetMealHistoryResponse,
+} from "@macro-tracker/macro-tracker-shared";
 import Container from "./components/Container";
 import ContainerItem from "./components/ContainerItem";
 import Footer from "./components/Footer";
 import Banner from "./components/Banner";
 import Nav from "./components/Nav";
 import Login from "./components/Login";
-import ToastMessage from "./components/reusables/ToastMessage";
+import ToastMessage, { type Toast } from "./components/reusables/ToastMessage";
 import MealDay from "./components/MealDay";
 import DailyMacros from "./components/DailyMacros";
 import WeighInForm from "./components/WeighInForm";
 import Pantry from "./components/Pantry";
 import CreateMealDialog from "./components/dialogs/CreateMealDialog";
+import { EMPTY_MEAL, type Meal } from "./types/meal";
 
 import {
   getMostRecentWeighIn,
   getMealHistoryFromRange,
   getTodaysMacros,
   getUserLogout,
-} from "./utilities/api.js";
-
-const tempUser = {
-  id: 1,
-  username: "KenTest1",
-};
-
-const tempMeals = [
-  {
-    mealsDate: "2026-03-08",
-    meals: [
-      {
-        id: 2,
-        name: "Steak",
-        description: "Steak and veggies.",
-        date: "2024-12-11",
-        time: "16:30:00",
-        calories: 554,
-        protein: 35,
-        carbohydrates: 42,
-        fats: 12,
-        isRecurring: true,
-      },
-      {
-        id: 1,
-        name: "Ramen",
-        description: "ramen noodles from the package",
-        date: "2024-12-11",
-        time: "12:30:00",
-        calories: 254,
-        protein: 11,
-        carbohydrates: 34,
-        fats: 3,
-      },
-    ],
-  },
-  {
-    mealsDate: "2024-12-11",
-    meals: [
-      {
-        id: 2,
-        name: "Steak",
-        description: "Steak and veggies.",
-        date: "2024-12-11",
-        time: "16:30:00",
-        calories: 554,
-        protein: 35,
-        carbohydrates: 42,
-        fats: 12,
-        isRecurring: true,
-      },
-      {
-        id: 1,
-        name: "Ramen",
-        description: "ramen noodles from the package",
-        date: "2024-12-11",
-        time: "12:30:00",
-        calories: 254,
-        protein: 11,
-        carbohydrates: 34,
-        fats: 3,
-      },
-    ],
-  },
-  {
-    mealsDate: "2024-12-10",
-    meals: [
-      {
-        id: 3,
-        name: "Salmon",
-        description: "Salmon as in the fish bruh.",
-        date: "2024-12-10",
-        time: "12:35:00",
-        calories: 400,
-        protein: 14,
-        carbohydrates: 13,
-        fats: 20,
-      },
-    ],
-  },
-];
-
-const tempMacros = {
-  date: "2024-12-11",
-  calories: 1222,
-  carbohydrates: 45,
-  protein: 23,
-  fats: 12,
-};
-
-const initialTodaysMacros = {
-  date: "2024-12-21",
-  calories: 0,
-  protein: 0,
-  carbohydrates: 0,
-  fats: 0,
-};
+} from "./utilities/api";
 
 const navItems = {
   MACROS: "Macros",
@@ -121,75 +32,72 @@ const navItems = {
   METRICS: "Metrics",
   SETTINGS: "Settings",
   SUPPORT: "Support",
-};
+} as const;
 
-const today = new Date(Date.now() - new Date().getTimezoneOffset() * 6000)
+const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
   .toISOString()
   .split("T")[0];
 
-const emptyMeal = {
-  id: 0,
-  name: "",
-  description: "",
-  date: "",
-  time: "",
-  calories: 0,
-  protein: 0,
-  carbohydrates: 0,
-  fats: 0,
-  isRecurring: false,
-};
-
 export default function App() {
-  //UI States
-  const [selectedNavItem, setSelectedNavItem] = useState(navItems.MACROS);
+  const [selectedNavItem, setSelectedNavItem] = useState<string>(
+    navItems.MACROS,
+  );
   const [isAllExpanded, setIsAllExpanded] = useState(false);
 
-  //Application Data States
-  const [user, setUser] = useState({});
-  const isUserLoggedIn = user.id !== undefined;
-  const [meals, setMeals] = useState([]);
-  const [recentWeighInData, setRecentWeighInData] = useState({});
-  const [todaysMacros, setTodaysMacros] = useState({});
+  const [user, setUser] = useState<User | null>(null);
+  const isUserLoggedIn = user !== null;
+  const [meals, setMeals] = useState<GetMealHistoryResponse>([]);
+  const [recentWeighInData, setRecentWeighInData] =
+    useState<WeighInData | null>(null);
+  const [todaysMacros, setTodaysMacros] = useState(() => new MacroData());
 
-  //Dialog States
   const [createMealDialogOpen, setCreateMealDialogOpen] = useState(false);
-  const [mealToCopy, setMealToCopy] = useState(emptyMeal);
+  const [mealToCopy, setMealToCopy] = useState<Meal>(EMPTY_MEAL);
 
-  //Toast Messages
-  const [toast, setToast] = useState(null);
+  const [toast, setToast] = useState<Toast | null>(null);
   const isToastDisplayed = toast != null;
 
-  function handleLogUserIn(user) {
-    setUser(user);
+  function handleLogUserIn(loggedInUser: User) {
+    setUser(loggedInUser);
 
     async function fetchRecentWeighInData() {
       try {
-        const recentWeighInData = await getMostRecentWeighIn();
+        const recentWeighInResult = await getMostRecentWeighIn();
 
-        if (recentWeighInData.ok === false) {
+        if (recentWeighInResult.ok === false) {
           return;
         }
 
-        setRecentWeighInData(recentWeighInData);
+        setRecentWeighInData(recentWeighInResult.body);
       } catch {
         setToast({ type: "error", message: "Unable to get weigh in data" });
       }
     }
 
     async function fetchMealHistory() {
-      const today = new Date(
+      const todayDate = new Date(
         Date.now() - new Date().getTimezoneOffset() * 60000,
       );
 
       const tenDaysAgo = new Date(
-        today.getFullYear(),
-        today.getMonth(),
-        today.getDate() - 10,
+        todayDate.getFullYear(),
+        todayDate.getMonth(),
+        todayDate.getDate() - 10,
       );
 
       try {
-        setMeals(await getMealHistoryFromRange(tenDaysAgo, today));
+        const mealHistoryResult = await getMealHistoryFromRange(
+          tenDaysAgo,
+          todayDate,
+        );
+        if (mealHistoryResult.ok) {
+          setMeals(mealHistoryResult.body);
+        } else {
+          setToast({
+            type: "error",
+            message: "Unable to get meal history",
+          });
+        }
       } catch {
         setToast({
           type: "error",
@@ -198,7 +106,7 @@ export default function App() {
       }
 
       try {
-        setTodaysMacros(await getTodaysMacros(today));
+        setTodaysMacros(await getTodaysMacros(todayDate));
       } catch {
         setToast({
           type: "error",
@@ -207,8 +115,8 @@ export default function App() {
       }
     }
 
-    fetchRecentWeighInData();
-    fetchMealHistory();
+    void fetchRecentWeighInData();
+    void fetchMealHistory();
   }
 
   function handleLogUserOut() {
@@ -216,17 +124,20 @@ export default function App() {
       try {
         await getUserLogout();
       } catch (error) {
-        setToast({ type: "error", message: error.message });
+        setToast({
+          type: "error",
+          message: error instanceof Error ? error.message : "Logout failed",
+        });
       }
     }
-    fetchLogout();
-    setUser({});
+    void fetchLogout();
+    setUser(null);
   }
 
-  function handleAddNewMeal(newMeal) {
-    setMeals((meals) => {
-      return meals.some((meal) => meal.mealsDate === newMeal.date)
-        ? meals.map((mealDay) =>
+  function handleAddNewMeal(newMeal: Meal) {
+    setMeals((currentMeals) => {
+      return currentMeals.some((meal) => meal.mealsDate === newMeal.date)
+        ? currentMeals.map((mealDay) =>
             mealDay.mealsDate !== newMeal.date
               ? {
                   mealsDate: mealDay.mealsDate,
@@ -235,34 +146,34 @@ export default function App() {
               : {
                   mealsDate: mealDay.mealsDate,
                   meals: [...mealDay.meals, newMeal].sort((a, b) =>
-                    a.time < b.time ? -1 : 1,
+                    (a.time ?? "") < (b.time ?? "") ? -1 : 1,
                   ),
                 },
           )
-        : [...meals, { mealsDate: newMeal.date, meals: [newMeal] }];
+        : [...currentMeals, { mealsDate: newMeal.date, meals: [newMeal] }];
     });
 
     if (newMeal.date === todaysMacros.date) {
       setTodaysMacros((macros) => {
-        return {
-          date: macros.date,
-          calories: macros.calories + newMeal.calories,
-          protein: macros.protein + newMeal.protein,
-          carbohydrates: macros.carbohydrates + newMeal.carbohydrates,
-          fats: macros.fats + newMeal.fats,
-        };
+        return new MacroData(
+          macros.date,
+          macros.calories + newMeal.calories,
+          macros.protein + newMeal.protein,
+          macros.carbohydrates + newMeal.carbohydrates,
+          macros.fats + newMeal.fats,
+        );
       });
     }
   }
 
-  function handleClickCopyMeal(meal) {
+  function handleClickCopyMeal(meal: Meal) {
     setMealToCopy(meal);
     setCreateMealDialogOpen(true);
   }
 
-  function handleDeleteMeal(mealToDelete) {
-    setMeals((meals) => {
-      return meals
+  function handleDeleteMeal(mealToDelete: Meal) {
+    setMeals((currentMeals) => {
+      return currentMeals
         .map((mealDay) =>
           mealDay.mealsDate !== mealToDelete.date
             ? { mealsDate: mealDay.mealsDate, meals: [...mealDay.meals] }
@@ -278,18 +189,18 @@ export default function App() {
 
     if (mealToDelete.date === todaysMacros.date) {
       setTodaysMacros((macros) => {
-        return {
-          date: macros.date,
-          calories: macros.calories - mealToDelete.calories,
-          protein: macros.protein - mealToDelete.protein,
-          carbohydrates: macros.carbohydrates - mealToDelete.carbohydrates,
-          fats: macros.fats - mealToDelete.fats,
-        };
+        return new MacroData(
+          macros.date,
+          macros.calories - mealToDelete.calories,
+          macros.protein - mealToDelete.protein,
+          macros.carbohydrates - mealToDelete.carbohydrates,
+          macros.fats - mealToDelete.fats,
+        );
       });
     }
   }
 
-  function handleSetRecurringMeal(mealId, isRecurring) {
+  function handleSetRecurringMeal(mealId: number, isRecurring: boolean) {
     setMeals(
       meals.map((mealDay) => {
         return {
@@ -409,7 +320,7 @@ export default function App() {
         isOpen={createMealDialogOpen}
         onClose={() => {
           setCreateMealDialogOpen(false);
-          setMealToCopy(emptyMeal);
+          setMealToCopy(EMPTY_MEAL);
         }}
         onAddNewMeal={handleAddNewMeal}
         mealToCopy={mealToCopy}

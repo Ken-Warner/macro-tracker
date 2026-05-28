@@ -1,14 +1,35 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type FormEvent } from "react";
+import { User } from "@macro-tracker/macro-tracker-shared";
 import Loader from "./Loader";
-import ToastMessage from "./reusables/ToastMessage";
+import ToastMessage, { type Toast } from "./reusables/ToastMessage";
 import ContainerItem from "./ContainerItem";
 import { postCreateNewUser, postUserLogin } from "../utilities/api";
 
-export default function Login({ onUserLogin }) {
+type LoginProps = {
+  onUserLogin: (user: User) => void;
+};
+
+function getFormFieldValue(form: HTMLFormElement, name: string): string {
+  const field = form.elements.namedItem(name);
+  if (!(field instanceof HTMLInputElement)) {
+    throw new Error(`Missing form field: ${name}`);
+  }
+  return field.value;
+}
+
+function getCheckboxValue(form: HTMLFormElement, name: string): boolean {
+  const field = form.elements.namedItem(name);
+  if (!(field instanceof HTMLInputElement)) {
+    return false;
+  }
+  return field.checked;
+}
+
+export default function Login({ onUserLogin }: LoginProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreatingNewUser, setIsCreatingNewUser] = useState(false);
 
-  const [toast, setToast] = useState(null);
+  const [toast, setToast] = useState<Toast | null>(null);
   const isToastDisplayed = toast != null;
 
   useEffect(() => {
@@ -21,11 +42,12 @@ export default function Login({ onUserLogin }) {
       }
     }
 
-    checkAuth();
+    void checkAuth();
   }, [onUserLogin]);
 
-  function handleSubmitCreateNewUser(event) {
+  function handleSubmitCreateNewUser(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const form = event.currentTarget;
 
     async function fetchCreateUser() {
       try {
@@ -33,24 +55,29 @@ export default function Login({ onUserLogin }) {
 
         onUserLogin(
           await postCreateNewUser(
-            event.target.elements.username.value,
-            event.target.elements.password.value,
-            event.target.elements.confirmPassword.value,
-            event.target.elements.email.value,
+            getFormFieldValue(form, "username"),
+            getFormFieldValue(form, "password"),
+            getFormFieldValue(form, "confirmPassword"),
+            getFormFieldValue(form, "email"),
           ),
         );
       } catch (error) {
-        setToast({ type: "error", message: error.message });
+        setToast({
+          type: "error",
+          message:
+            error instanceof Error ? error.message : "Unable to create user",
+        });
       } finally {
         setIsLoading(false);
       }
     }
 
-    fetchCreateUser();
+    void fetchCreateUser();
   }
 
-  function handleSubmitLogin(event) {
+  function handleSubmitLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const form = event.currentTarget;
 
     async function fetchLogin() {
       try {
@@ -58,18 +85,22 @@ export default function Login({ onUserLogin }) {
 
         onUserLogin(
           await postUserLogin(
-            event.target.elements.username.value,
-            event.target.elements.password.value,
-            event.target.elements.rememberMe.checked,
+            getFormFieldValue(form, "username"),
+            getFormFieldValue(form, "password"),
+            getCheckboxValue(form, "rememberMe"),
           ),
         );
       } catch (error) {
-        setToast({ type: "error", message: error.message });
+        setToast({
+          type: "error",
+          message: error instanceof Error ? error.message : "Unable to log in",
+        });
       } finally {
         setIsLoading(false);
       }
     }
-    fetchLogin();
+
+    void fetchLogin();
   }
 
   return (
@@ -159,7 +190,7 @@ export default function Login({ onUserLogin }) {
                   pattern="^[a-zA-Z0-9_]{4,20}$"
                   title="Letters, numbers, dashes, and underscores up to 20 characters."
                   required
-                  focus="true"
+                  autoFocus
                 />
                 <label htmlFor="password">Password</label>
                 <input
