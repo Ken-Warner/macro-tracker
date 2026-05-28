@@ -1,7 +1,41 @@
 import { useRef, useState, useEffect } from "react";
+import type { MealHistoryDayGroup } from "@macro-tracker/macro-tracker-shared";
+import type { Meal } from "../types/meal";
 import Loader from "./Loader";
-import ToastMessage from "./reusables/ToastMessage";
+import ToastMessage, { type Toast } from "./reusables/ToastMessage";
 import { deleteMeal, putMealRecurring } from "../utilities/api";
+
+type MealDayProps = {
+  mealDay: MealHistoryDayGroup;
+  onDeleteMeal: (meal: Meal) => void;
+  onRecurringChange: (mealId: number, isRecurring: boolean) => void;
+  canBeRecurring?: boolean;
+  handleSetCopyMeal: (meal: Meal) => void;
+  expanded: boolean;
+};
+
+type MealItemProps = {
+  meal: Meal;
+  onDeleteMeal: (meal: Meal) => void;
+  onRecurringChange: (mealId: number, isRecurring: boolean) => void;
+  canBeRecurring?: boolean;
+  handleSetCopyMeal: (meal: Meal) => void;
+};
+
+function toMeal(meal: MealHistoryDayGroup["meals"][number]): Meal {
+  return {
+    id: meal.id ?? 0,
+    name: meal.name,
+    description: meal.description ?? "",
+    date: meal.date,
+    time: meal.time ?? "",
+    calories: meal.calories,
+    protein: meal.protein,
+    carbohydrates: meal.carbohydrates,
+    fats: meal.fats,
+    isRecurring: Boolean(meal.isRecurring ?? meal.is_recurring),
+  };
+}
 
 export default function MealDay({
   mealDay,
@@ -10,9 +44,9 @@ export default function MealDay({
   canBeRecurring = false,
   handleSetCopyMeal,
   expanded,
-}) {
+}: MealDayProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const accordionBody = useRef(null);
+  const accordionBody = useRef<HTMLDivElement>(null);
   let totalCalories = 0;
   let totalProtein = 0;
   let totalCarbohydrates = 0;
@@ -55,14 +89,16 @@ export default function MealDay({
         ref={accordionBody}
         style={
           isExpanded
-            ? { height: accordionBody.current.scrollHeight + "px" }
+            ? {
+                height: `${accordionBody.current?.scrollHeight ?? 0}px`,
+              }
             : { height: "0px" }
         }
       >
         {mealDay.meals.map((meal) => (
-          <Meal
-            key={meal.id}
-            meal={meal}
+          <MealItem
+            key={meal.id ?? `${meal.name}-${meal.time}`}
+            meal={toMeal(meal)}
             onDeleteMeal={onDeleteMeal}
             onRecurringChange={onRecurringChange}
             canBeRecurring={canBeRecurring}
@@ -74,17 +110,17 @@ export default function MealDay({
   );
 }
 
-function Meal({
+function MealItem({
   meal,
   onDeleteMeal,
   onRecurringChange,
   canBeRecurring = false,
   handleSetCopyMeal,
-}) {
+}: MealItemProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const mealItemModal = useRef(null);
+  const mealItemModal = useRef<HTMLDialogElement>(null);
 
-  const [toast, setToast] = useState(null);
+  const [toast, setToast] = useState<Toast | null>(null);
   const isToastDisplayed = toast != null;
 
   function handleDeleteMeal() {
@@ -105,8 +141,8 @@ function Meal({
       }
     }
 
-    fetchDeleteMeal();
-    mealItemModal.current.close();
+    void fetchDeleteMeal();
+    mealItemModal.current?.close();
   }
 
   function handleSetRecurringMeal() {
@@ -120,7 +156,7 @@ function Meal({
 
         if (mealUpdated) {
           onRecurringChange(meal.id, !meal.isRecurring);
-          mealItemModal.current.close();
+          mealItemModal.current?.close();
         } else {
           setToast({ type: "error", message: "Meal not found" });
         }
@@ -131,7 +167,7 @@ function Meal({
       }
     }
 
-    fetchSetRecurringMeal();
+    void fetchSetRecurringMeal();
   }
 
   return (
@@ -141,7 +177,7 @@ function Meal({
       )}
       <div
         className="accordion-item"
-        onClick={() => mealItemModal.current.showModal()}
+        onClick={() => mealItemModal.current?.showModal()}
       >
         <div className="accordion-item-title">
           {meal.name} at {meal.time}&nbsp;
@@ -181,7 +217,7 @@ function Meal({
                 className="button"
                 onClick={() => {
                   handleSetCopyMeal(meal);
-                  mealItemModal.current.close();
+                  mealItemModal.current?.close();
                 }}
               >
                 Copy
@@ -192,7 +228,7 @@ function Meal({
             <button
               className="button"
               type="button"
-              onClick={() => mealItemModal.current.close()}
+              onClick={() => mealItemModal.current?.close()}
             >
               Close
             </button>

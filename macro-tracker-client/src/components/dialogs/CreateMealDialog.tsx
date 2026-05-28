@@ -1,6 +1,15 @@
-import { useRef, useState, useEffect, useCallback } from "react";
+import {
+  useRef,
+  useState,
+  useEffect,
+  useCallback,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
+import type { IngredientRow } from "@macro-tracker/macro-tracker-shared";
+import type { Meal } from "../../types/meal";
 import Loader from "../Loader";
-import ToastMessage from "../reusables/ToastMessage";
+import ToastMessage, { type Toast } from "../reusables/ToastMessage";
 import {
   getIngredients,
   postMealComposed,
@@ -10,10 +19,34 @@ import {
 const PORTION_STEP = 0.25;
 const MIN_PORTION = 0.25;
 
-function snapPortion(n) {
+type CreateMealDialogProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  onAddNewMeal: (meal: Meal) => void;
+  mealToCopy: Meal;
+};
+
+type MealCreationTab = "manual" | "composed";
+
+function snapPortion(n: number): number {
   if (!Number.isFinite(n)) return MIN_PORTION;
   const snapped = Math.round(n / PORTION_STEP) * PORTION_STEP;
   return Math.max(MIN_PORTION, snapped);
+}
+
+function toMealFromApiResponse(data: Record<string, unknown>): Meal {
+  return {
+    id: Number(data.id),
+    name: String(data.name ?? ""),
+    description: String(data.description ?? ""),
+    date: String(data.date ?? ""),
+    time: String(data.time ?? ""),
+    calories: Number(data.calories ?? 0),
+    protein: Number(data.protein ?? 0),
+    carbohydrates: Number(data.carbohydrates ?? 0),
+    fats: Number(data.fats ?? 0),
+    isRecurring: Boolean(data.isRecurring ?? data.is_recurring),
+  };
 }
 
 export default function CreateMealDialog({
@@ -21,21 +54,23 @@ export default function CreateMealDialog({
   onClose,
   onAddNewMeal,
   mealToCopy,
-}) {
-  const createMealModal = useRef(null);
+}: CreateMealDialogProps) {
+  const createMealModal = useRef<HTMLDialogElement>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState(mealToCopy);
-  const [activeTab, setActiveTab] = useState("manual");
+  const [formData, setFormData] = useState<Meal>(mealToCopy);
+  const [activeTab, setActiveTab] = useState<MealCreationTab>("manual");
 
-  const [pantryIngredients, setPantryIngredients] = useState([]);
+  const [pantryIngredients, setPantryIngredients] = useState<IngredientRow[]>(
+    [],
+  );
   const [ingredientsLoading, setIngredientsLoading] = useState(false);
-  const [ingredientsError, setIngredientsError] = useState(null);
+  const [ingredientsError, setIngredientsError] = useState<string | null>(null);
   const [pantrySearch, setPantrySearch] = useState("");
   const [selectedIngredients, setSelectedIngredients] = useState(
-    () => new Map(),
+    () => new Map<number, { portionSize: number }>(),
   );
 
-  const [toast, setToast] = useState(null);
+  const [toast, setToast] = useState<Toast | null>(null);
   const isToastDisplayed = toast != null;
 
   useEffect(() => {
@@ -54,7 +89,7 @@ export default function CreateMealDialog({
       .toISOString()
       .split("T");
 
-    const copiedMealData = {
+    const copiedMealData: Meal = {
       ...mealToCopy,
       date: today[0],
       time: today[1].split(".")[0].slice(0, -3),
@@ -96,15 +131,23 @@ export default function CreateMealDialog({
     };
   }, [isOpen, activeTab]);
 
-  function handleChange(event) {
+  function handleChange(
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) {
     const { name, value } = event.target;
     setFormData((prevValues) => ({
       ...prevValues,
-      [name]: value,
+      [name]:
+        name === "calories" ||
+        name === "protein" ||
+        name === "carbohydrates" ||
+        name === "fats"
+          ? Number(value)
+          : value,
     }));
   }
 
-  const addOrMergeIngredient = useCallback((row) => {
+  const addOrMergeIngredient = useCallback((row: IngredientRow) => {
     setSelectedIngredients((prev) => {
       const next = new Map(prev);
       const existing = next.get(row.id);
@@ -114,7 +157,7 @@ export default function CreateMealDialog({
     });
   }, []);
 
-  const adjustPortion = useCallback((id, delta) => {
+  const adjustPortion = useCallback((id: number, delta: number) => {
     setSelectedIngredients((prev) => {
       const next = new Map(prev);
       const cur = next.get(id);
@@ -126,7 +169,7 @@ export default function CreateMealDialog({
     });
   }, []);
 
-  const setPortionFromInput = useCallback((id, rawValue) => {
+  const setPortionFromInput = useCallback((id: number, rawValue: string) => {
     const n = parseFloat(rawValue);
     setSelectedIngredients((prev) => {
       const next = new Map(prev);
@@ -135,7 +178,7 @@ export default function CreateMealDialog({
     });
   }, []);
 
-  const removeIngredient = useCallback((id) => {
+  const removeIngredient = useCallback((id: number) => {
     setSelectedIngredients((prev) => {
       const next = new Map(prev);
       next.delete(id);
@@ -143,14 +186,14 @@ export default function CreateMealDialog({
     });
   }, []);
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     setIsLoading(true);
     try {
       if (activeTab === "manual") {
         const newMeal = await postMealNonComposed(formData);
-        onAddNewMeal(newMeal);
+        onAddNewMeal(toMealFromApiResponse(newMeal as Record<string, unknown>));
         onClose();
       } else {
         const ingredientsPayload = [...selectedIngredients.entries()].map(
@@ -185,7 +228,7 @@ export default function CreateMealDialog({
         };
 
         const newMeal = await postMealComposed(payload);
-        onAddNewMeal(newMeal);
+        onAddNewMeal(toMealFromApiResponse(newMeal as Record<string, unknown>));
         onClose();
       }
     } catch (error) {
@@ -206,7 +249,7 @@ export default function CreateMealDialog({
           row.name.toLowerCase().includes(q),
         );
 
-  function ingredientNameForId(id) {
+  function ingredientNameForId(id: number) {
     const row = pantryIngredients.find((r) => r.id === id);
     return row ? row.name : `Ingredient #${id}`;
   }
