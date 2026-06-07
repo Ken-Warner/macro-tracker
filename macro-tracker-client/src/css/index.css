@@ -179,6 +179,15 @@ nav span:hover {
 .general-form-container {
   grid-area: generalForm;
 }
+.weight-history {
+  grid-area: weightHistory;
+}
+
+.container.container--metrics {
+  grid-template-areas:
+    ". weightHistory weightHistory ."
+    ". generalForm generalForm .";
+}
 
 /* Buttons */
 .button {
@@ -564,6 +573,11 @@ form label {
       "userInfo"
       "dailyMacros"
       "macroHistory";
+  }
+  .container.container--metrics {
+    grid-template-areas:
+      "weightHistory"
+      "generalForm";
   }
   .error-container {
     left: 10px;

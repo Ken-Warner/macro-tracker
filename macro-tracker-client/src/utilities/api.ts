@@ -6,6 +6,7 @@ import type {
   CreateNewIngredientRequest,
   GetIngredientsResponse,
   GetMealHistoryResponse,
+  GetWeighInDataResponse,
 } from "@macro-tracker/macro-tracker-shared";
 import {
   MacroData,
@@ -238,6 +239,34 @@ export async function deleteIngredient(
       ok: false,
       status: apiResult.status,
       errorMessage: "Unable to delete ingredient",
+    };
+  }
+}
+
+export async function getWeighInDataFromRange(
+  fromDate: Date,
+  toDate: Date,
+): Promise<APIResult<GetWeighInDataResponse>> {
+  const searchParams = new URLSearchParams({
+    fromDate: fromDate.toISOString().split("T")[0],
+    toDate: toDate.toISOString().split("T")[0],
+  });
+
+  const apiResult = await fetch(
+    `/api/weighIn?${searchParams.toString()}`,
+  );
+
+  if (apiResult.ok) {
+    return {
+      ok: true,
+      status: apiResult.status,
+      body: (await apiResult.json()) as GetWeighInDataResponse,
+    };
+  } else {
+    return {
+      ok: false,
+      status: apiResult.status,
+      errorMessage: "Unable to get weigh in history",
     };
   }
 }

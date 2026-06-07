@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import {
   MacroData,
   WeighInData,
@@ -14,6 +14,9 @@ import ToastMessage, { type Toast } from "./components/reusables/ToastMessage";
 import MealDay from "./components/MealDay";
 import DailyMacros from "./components/DailyMacros";
 import WeighInForm from "./components/WeighInForm";
+const WeightHistoryChart = lazy(
+  () => import("./components/WeightHistoryChart"),
+);
 import Pantry from "./components/Pantry";
 import CreateMealDialog from "./components/dialogs/CreateMealDialog";
 import { EMPTY_MEAL, type Meal } from "./types/meal";
@@ -55,6 +58,7 @@ export default function App() {
 
   const [toast, setToast] = useState<Toast | null>(null);
   const isToastDisplayed = toast != null;
+  const [weighInChartRefreshKey, setWeighInChartRefreshKey] = useState(0);
 
   useEffect(() => {
     if (!user) return;
@@ -210,7 +214,11 @@ export default function App() {
           onClick={setSelectedNavItem}
         />
       )}
-      <Container>
+      <Container
+        className={
+          selectedNavItem === navItems.METRICS ? "container--metrics" : undefined
+        }
+      >
         {isLoggedIn && selectedNavItem === navItems.MACROS && (
           <>
             <ContainerItem gridArea="user-info" itemHeader="User Info">
@@ -269,12 +277,26 @@ export default function App() {
           </>
         )}
         {isLoggedIn && selectedNavItem === navItems.METRICS && (
-          <ContainerItem
-            gridArea="general-form-container"
-            itemHeader="Weigh-In"
-          >
-            <WeighInForm />
-          </ContainerItem>
+          <>
+            <ContainerItem
+              gridArea="weight-history"
+              itemHeader="Weight History"
+            >
+              <Suspense fallback={null}>
+                <WeightHistoryChart refreshKey={weighInChartRefreshKey} />
+              </Suspense>
+            </ContainerItem>
+            <ContainerItem
+              gridArea="general-form-container"
+              itemHeader="Weigh-In"
+            >
+              <WeighInForm
+                onWeighInSaved={() =>
+                  setWeighInChartRefreshKey((key) => key + 1)
+                }
+              />
+            </ContainerItem>
+          </>
         )}
         {isLoggedIn && selectedNavItem === navItems.PANTRY && (
           <ContainerItem gridArea="general-form-container" itemHeader="Pantry">

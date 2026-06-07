@@ -1,3 +1,10 @@
-export default function Container({ children }: { children: React.ReactNode }) {
-  return <div className="container">{children}</div>;
+export default function Container({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  const classes = className ? `container ${className}` : "container";
+  return <div className={classes}>{children}</div>;
 }

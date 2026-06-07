@@ -37,7 +37,11 @@ function mapToRange(
   return origin;
 }
 
-export default function WeighInForm() {
+export default function WeighInForm({
+  onWeighInSaved,
+}: {
+  onWeighInSaved?: () => void;
+}) {
   const [currentWeight, setCurrentWeight] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [goalValue, setGoalValue] = useState(0);
@@ -142,6 +146,7 @@ export default function WeighInForm() {
 
         await postWeighIn(weighInData);
         setToast({ type: "good", message: "New Weigh-In Saved!" });
+        onWeighInSaved?.();
       } catch (error) {
         if (error instanceof Error) {
           setToast({ type: "error", message: error.message });
