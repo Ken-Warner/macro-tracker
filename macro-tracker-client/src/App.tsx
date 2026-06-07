@@ -1,7 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   MacroData,
-  User,
   WeighInData,
   type GetMealHistoryResponse,
 } from "@macro-tracker/macro-tracker-shared";
@@ -18,12 +17,12 @@ import WeighInForm from "./components/WeighInForm";
 import Pantry from "./components/Pantry";
 import CreateMealDialog from "./components/dialogs/CreateMealDialog";
 import { EMPTY_MEAL, type Meal } from "./types/meal";
+import { useUser } from "./context/useUser";
 
 import {
   getMostRecentWeighIn,
   getMealHistoryFromRange,
   getTodaysMacros,
-  getUserLogout,
 } from "./utilities/api";
 
 const navItems = {
@@ -39,13 +38,13 @@ const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
   .split("T")[0];
 
 export default function App() {
+  const { user, isLoggedIn, logout } = useUser();
+
   const [selectedNavItem, setSelectedNavItem] = useState<string>(
     navItems.MACROS,
   );
   const [isAllExpanded, setIsAllExpanded] = useState(false);
 
-  const [user, setUser] = useState<User | null>(null);
-  const isUserLoggedIn = user !== null;
   const [meals, setMeals] = useState<GetMealHistoryResponse>([]);
   const [recentWeighInData, setRecentWeighInData] =
     useState<WeighInData | null>(null);
@@ -57,8 +56,8 @@ export default function App() {
   const [toast, setToast] = useState<Toast | null>(null);
   const isToastDisplayed = toast != null;
 
-  function handleLogUserIn(loggedInUser: User) {
-    setUser(loggedInUser);
+  useEffect(() => {
+    if (!user) return;
 
     async function fetchRecentWeighInData() {
       try {
@@ -117,22 +116,7 @@ export default function App() {
 
     void fetchRecentWeighInData();
     void fetchMealHistory();
-  }
-
-  function handleLogUserOut() {
-    async function fetchLogout() {
-      try {
-        await getUserLogout();
-      } catch (error) {
-        setToast({
-          type: "error",
-          message: error instanceof Error ? error.message : "Logout failed",
-        });
-      }
-    }
-    void fetchLogout();
-    setUser(null);
-  }
+  }, [user]);
 
   function handleAddNewMeal(newMeal: Meal) {
     setMeals((currentMeals) => {
@@ -219,7 +203,7 @@ export default function App() {
         <ToastMessage toast={toast} onFinished={() => setToast(null)} />
       )}
       <Banner />
-      {isUserLoggedIn && (
+      {isLoggedIn && (
         <Nav
           navItems={Object.values(navItems)}
           selectedNavItem={selectedNavItem}
@@ -227,12 +211,12 @@ export default function App() {
         />
       )}
       <Container>
-        {isUserLoggedIn && selectedNavItem === navItems.MACROS && (
+        {isLoggedIn && selectedNavItem === navItems.MACROS && (
           <>
             <ContainerItem gridArea="user-info" itemHeader="User Info">
               <p>
-                Logged in as {user.username}. (
-                <span className="link" onClick={handleLogUserOut}>
+                Logged in as {user!.username}. (
+                <span className="link" onClick={logout}>
                   Logout
                 </span>
                 )
@@ -284,7 +268,7 @@ export default function App() {
             </ContainerItem>
           </>
         )}
-        {isUserLoggedIn && selectedNavItem === navItems.METRICS && (
+        {isLoggedIn && selectedNavItem === navItems.METRICS && (
           <ContainerItem
             gridArea="general-form-container"
             itemHeader="Weigh-In"
@@ -292,12 +276,12 @@ export default function App() {
             <WeighInForm />
           </ContainerItem>
         )}
-        {isUserLoggedIn && selectedNavItem === navItems.PANTRY && (
+        {isLoggedIn && selectedNavItem === navItems.PANTRY && (
           <ContainerItem gridArea="general-form-container" itemHeader="Pantry">
             <Pantry />
           </ContainerItem>
         )}
-        {isUserLoggedIn && selectedNavItem === navItems.SETTINGS && (
+        {isLoggedIn && selectedNavItem === navItems.SETTINGS && (
           <ContainerItem
             gridArea="general-form-container"
             itemHeader="Settings"
@@ -305,7 +289,7 @@ export default function App() {
             🚧 Under construction 🚧
           </ContainerItem>
         )}
-        {isUserLoggedIn && selectedNavItem === navItems.SUPPORT && (
+        {isLoggedIn && selectedNavItem === navItems.SUPPORT && (
           <ContainerItem
             gridArea="general-form-container"
             itemHeader="Settings"
@@ -313,7 +297,7 @@ export default function App() {
             🚧 Under construction 🚧
           </ContainerItem>
         )}
-        {!isUserLoggedIn && <Login onUserLogin={handleLogUserIn} />}
+        {!isLoggedIn && <Login />}
       </Container>
       <Footer />
       <CreateMealDialog

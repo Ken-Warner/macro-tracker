@@ -1,13 +1,9 @@
 import { useState, useEffect, type FormEvent } from "react";
-import { User } from "@macro-tracker/macro-tracker-shared";
 import Loader from "./Loader";
 import ToastMessage, { type Toast } from "./reusables/ToastMessage";
 import ContainerItem from "./ContainerItem";
 import { postCreateNewUser, postUserLogin } from "../utilities/api";
-
-type LoginProps = {
-  onUserLogin: (user: User) => void;
-};
+import { useUser } from "../context/useUser";
 
 function getFormFieldValue(form: HTMLFormElement, name: string): string {
   const field = form.elements.namedItem(name);
@@ -25,7 +21,8 @@ function getCheckboxValue(form: HTMLFormElement, name: string): boolean {
   return field.checked;
 }
 
-export default function Login({ onUserLogin }: LoginProps) {
+export default function Login() {
+  const { login } = useUser();
   const [isLoading, setIsLoading] = useState(true);
   const [isCreatingNewUser, setIsCreatingNewUser] = useState(false);
 
@@ -35,7 +32,7 @@ export default function Login({ onUserLogin }: LoginProps) {
   useEffect(() => {
     async function checkAuth() {
       try {
-        onUserLogin(await postUserLogin("", "", false));
+        login(await postUserLogin("", "", false));
       } catch {
       } finally {
         setIsLoading(false);
@@ -43,7 +40,7 @@ export default function Login({ onUserLogin }: LoginProps) {
     }
 
     void checkAuth();
-  }, [onUserLogin]);
+  }, [login]);
 
   function handleSubmitCreateNewUser(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -53,7 +50,7 @@ export default function Login({ onUserLogin }: LoginProps) {
       try {
         setIsLoading(true);
 
-        onUserLogin(
+        login(
           await postCreateNewUser(
             getFormFieldValue(form, "username"),
             getFormFieldValue(form, "password"),
@@ -83,7 +80,7 @@ export default function Login({ onUserLogin }: LoginProps) {
       try {
         setIsLoading(true);
 
-        onUserLogin(
+        login(
           await postUserLogin(
             getFormFieldValue(form, "username"),
             getFormFieldValue(form, "password"),
