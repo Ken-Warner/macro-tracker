@@ -36,6 +36,14 @@ const navItems = {
   SUPPORT: "Support",
 } as const;
 
+const containerClassByNav: Record<string, string> = {
+  [navItems.MACROS]: "container--macros",
+  [navItems.METRICS]: "container--metrics",
+  [navItems.PANTRY]: "container--form",
+  [navItems.SETTINGS]: "container--form",
+  [navItems.SUPPORT]: "container--form",
+};
+
 const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
   .toISOString()
   .split("T")[0];
@@ -216,7 +224,9 @@ export default function App() {
       )}
       <Container
         className={
-          selectedNavItem === navItems.METRICS ? "container--metrics" : undefined
+          isLoggedIn
+            ? containerClassByNav[selectedNavItem]
+            : "container--form"
         }
       >
         {isLoggedIn && selectedNavItem === navItems.MACROS && (
@@ -314,7 +324,7 @@ export default function App() {
         {isLoggedIn && selectedNavItem === navItems.SUPPORT && (
           <ContainerItem
             gridArea="general-form-container"
-            itemHeader="Settings"
+            itemHeader="Support"
           >
             🚧 Under construction 🚧
           </ContainerItem>

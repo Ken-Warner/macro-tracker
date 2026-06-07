@@ -183,9 +183,20 @@ nav span:hover {
   grid-area: weightHistory;
 }
 
+.container.container--macros {
+  grid-template-areas:
+    "userInfo userInfo dailyMacros dailyMacros"
+    ". . macroHistory macroHistory";
+}
+
 .container.container--metrics {
   grid-template-areas:
     ". weightHistory weightHistory ."
+    ". generalForm generalForm .";
+}
+
+.container.container--form {
+  grid-template-areas:
     ". generalForm generalForm .";
 }
 
@@ -574,9 +585,19 @@ form label {
       "dailyMacros"
       "macroHistory";
   }
+  .container.container--macros {
+    grid-template-areas:
+      "userInfo"
+      "dailyMacros"
+      "macroHistory";
+  }
   .container.container--metrics {
     grid-template-areas:
       "weightHistory"
+      "generalForm";
+  }
+  .container.container--form {
+    grid-template-areas:
       "generalForm";
   }
   .error-container {
