@@ -55,12 +55,8 @@ export async function createNewUser(
     res.status(201).send(JSON.stringify(user.toJSON()));
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
-    const uuid = await log(
-      loggingLevels.ERROR,
-      `createNewUser: ${message}`,
-      req.body,
-    );
-    res.status(500).send(formatResponse(uuid));
+    log(loggingLevels.ERROR, `createNewUser: ${message}`, req.body);
+    res.status(500).send(formatResponse());
   }
 }
 
@@ -103,12 +99,8 @@ export async function logUserIn(
     res.status(200).send(JSON.stringify(user.toJSON()));
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
-    const uuid = await log(
-      loggingLevels.ERROR,
-      `logUserIn: ${message}`,
-      req.body,
-    );
-    res.status(500).send(formatResponse(uuid));
+    log(loggingLevels.ERROR, `logUserIn: ${message}`, req.body);
+    res.status(500).send(formatResponse());
   }
 }
 

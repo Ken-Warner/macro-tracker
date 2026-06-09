@@ -45,6 +45,5 @@ export interface WeighInValidationErrorResponse {
 
 /** Server error payload from `formatResponse` (`500`). */
 export interface WeighInServerErrorResponse {
-  errorCode: string;
   errorMessage: string;
 }

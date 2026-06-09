@@ -127,6 +127,5 @@ export interface MealsValidationErrorResponse {
 }
 
 export interface MealsServerErrorResponse {
-  errorCode: string;
   errorMessage: string;
 }

@@ -3,8 +3,10 @@ import { fileURLToPath } from "node:url";
 import express from "express";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
+import { pinoHttp } from "pino-http";
 import { pool } from "./models/pool.js";
 import apiRouter from "./routes/api.router.js";
+import { logger } from "./Utilities/logger.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const pgSession = connectPgSimple(session);
@@ -43,6 +45,7 @@ app.use(
   }),
 );
 
+app.use("/api", pinoHttp({ logger }));
 app.use("/api", apiRouter);
 
 app.all("/*all", (req, res) => {

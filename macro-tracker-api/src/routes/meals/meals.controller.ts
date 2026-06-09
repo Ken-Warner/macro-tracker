@@ -74,12 +74,8 @@ async function createNewMeal(
     res.status(201).send(JSON.stringify(newMeal.toJSON()));
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
-    const uuid = await log(
-      loggingLevels.ERROR,
-      `createNewMeal: ${message}`,
-      req.body,
-    );
-    res.status(500).send(formatResponse(uuid));
+    log(loggingLevels.ERROR, `createNewMeal: ${message}`, req.body);
+    res.status(500).send(formatResponse());
   }
 }
 
@@ -123,14 +119,9 @@ async function createNewMealRaw(
 
     res.status(201).send(JSON.stringify(responseMeal));
   } catch (e) {
-    console.log(e);
     const message = e instanceof Error ? e.message : String(e);
-    const uuid = await log(
-      loggingLevels.ERROR,
-      `createNewMealRaw: ${message}`,
-      req.body,
-    );
-    res.status(500).send(formatResponse(uuid));
+    log(loggingLevels.ERROR, `createNewMealRaw: ${message}`, req.body);
+    res.status(500).send(formatResponse());
   }
 }
 
@@ -263,12 +254,8 @@ async function getMealHistory(
     res.status(200).send(JSON.stringify(deepMealHistory));
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
-    const uuid = await log(
-      loggingLevels.ERROR,
-      `getMealHistory: ${message}`,
-      req.query,
-    );
-    res.status(500).send(formatResponse(uuid));
+    log(loggingLevels.ERROR, `getMealHistory: ${message}`, req.query);
+    res.status(500).send(formatResponse());
   }
 }
 
@@ -296,12 +283,8 @@ async function getMeals(
     res.status(200).send(JSON.stringify(meals));
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
-    const uuid = await log(
-      loggingLevels.ERROR,
-      `getMeals: ${message}`,
-      req.query,
-    );
-    res.status(500).send(formatResponse(uuid));
+    log(loggingLevels.ERROR, `getMeals: ${message}`, req.query);
+    res.status(500).send(formatResponse());
   }
 }
 
@@ -322,12 +305,11 @@ async function deleteMealById(
     res.status(200).send();
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
-    const uuid = await log(
-      loggingLevels.ERROR,
-      `deleteMealById: ${message}`,
-      { userId: req.session.userId, requestParamaters: req.params },
-    );
-    res.status(500).send(formatResponse(uuid));
+    log(loggingLevels.ERROR, `deleteMealById: ${message}`, {
+      userId: req.session.userId,
+      requestParamaters: req.params,
+    });
+    res.status(500).send(formatResponse());
   }
 }
 
@@ -345,12 +327,11 @@ async function putMealIsRecurring(
     res.status(result === 1 ? 200 : 404).send();
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
-    const uuid = await log(
-      loggingLevels.ERROR,
-      `putMealIsRecurring: ${message}`,
-      { userId: req.session.userId, requestParamaters: req.params },
-    );
-    res.status(500).send(formatResponse(uuid));
+    log(loggingLevels.ERROR, `putMealIsRecurring: ${message}`, {
+      userId: req.session.userId,
+      requestParamaters: req.params,
+    });
+    res.status(500).send(formatResponse());
   }
 }
 

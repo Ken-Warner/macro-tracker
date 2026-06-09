@@ -46,12 +46,8 @@ export async function getMacrosFromDateRange(
     res.status(200).send(JSON.stringify(macroData));
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
-    const uuid = await log(
-      loggingLevels.ERROR,
-      `getMacrosFromDateRange: ${message}`,
-      req.query,
-    );
-    res.status(500).send(formatResponse(uuid));
+    log(loggingLevels.ERROR, `getMacrosFromDateRange: ${message}`, req.query);
+    res.status(500).send(formatResponse());
   }
 }
 
@@ -81,11 +77,7 @@ export async function getTodaysMacros(
     res.status(200).send(JSON.stringify(todaysMacros));
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
-    const uuid = await log(
-      loggingLevels.ERROR,
-      `getTodaysMacros: ${message}`,
-      req.query,
-    );
-    res.status(500).send(formatResponse(uuid));
+    log(loggingLevels.ERROR, `getTodaysMacros: ${message}`, req.query);
+    res.status(500).send(formatResponse());
   }
 }

@@ -39,6 +39,5 @@ export interface IngredientsValidationErrorResponse {
 }
 
 export interface IngredientsServerErrorResponse {
-  errorCode: string;
   errorMessage: string;
 }

@@ -27,17 +27,12 @@ async function createNewIngredient(
     );
 
     if (!newIngredient) {
-      res
-        .status(500)
-        .send(
-          formatResponse(
-            await log(
-              loggingLevels.ERROR,
-              "createNewIngredient: insert returned no row",
-              req.body,
-            ),
-          ),
-        );
+      log(
+        loggingLevels.ERROR,
+        "createNewIngredient: insert returned no row",
+        req.body,
+      );
+      res.status(500).send(formatResponse());
       return;
     }
 
@@ -45,12 +40,8 @@ async function createNewIngredient(
     res.status(201).send(JSON.stringify(body));
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
-    const uuid = await log(
-      loggingLevels.ERROR,
-      `createNewIngredient: ${message}`,
-      req.body,
-    );
-    res.status(500).send(formatResponse(uuid));
+    log(loggingLevels.ERROR, `createNewIngredient: ${message}`, req.body);
+    res.status(500).send(formatResponse());
   }
 }
 
@@ -75,21 +66,13 @@ async function deleteIngredient(
     );
 
     if (result == 0)
-      await log(
-        loggingLevels.INFO,
-        "deleteIngredient: ID not found.",
-        req.params,
-      );
+      log(loggingLevels.INFO, "deleteIngredient: ID not found.", req.params);
 
     res.status(200).send();
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
-    const uuid = await log(
-      loggingLevels.ERROR,
-      `deleteIngredient: ${message}`,
-      req.params,
-    );
-    res.status(500).send(formatResponse(uuid));
+    log(loggingLevels.ERROR, `deleteIngredient: ${message}`, req.params);
+    res.status(500).send(formatResponse());
   }
 }
 
@@ -101,12 +84,8 @@ async function getIngredients(req: Request, res: Response) {
     res.status(200).send(JSON.stringify(body));
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
-    const uuid = await log(
-      loggingLevels.ERROR,
-      `getIngredients: ${message}`,
-      req.session.userId,
-    );
-    res.status(500).send(formatResponse(uuid));
+    log(loggingLevels.ERROR, `getIngredients: ${message}`, req.session.userId);
+    res.status(500).send(formatResponse());
   }
 }
 

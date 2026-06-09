@@ -52,12 +52,8 @@ async function getWeighInData(
     res.status(200).send(JSON.stringify(body));
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
-    const uuid = await log(
-      loggingLevels.ERROR,
-      `getWeighInData: ${message}`,
-      req.query,
-    );
-    res.status(500).send(formatResponse(uuid));
+    log(loggingLevels.ERROR, `getWeighInData: ${message}`, req.query);
+    res.status(500).send(formatResponse());
   }
 }
 
@@ -74,12 +70,8 @@ async function getRecentWeighInData(req: Request, res: Response) {
     res.status(200).send(JSON.stringify(apiResult));
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
-    const uuid = await log(
-      loggingLevels.ERROR,
-      `getRecentWeighInData: ${message}`,
-      req.body,
-    );
-    res.status(500).send(formatResponse(uuid));
+    log(loggingLevels.ERROR, `getRecentWeighInData: ${message}`, req.body);
+    res.status(500).send(formatResponse());
   }
 }
 
@@ -126,12 +118,8 @@ async function postWeighInData(
     res.status(200).send();
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
-    const uuid = await log(
-      loggingLevels.ERROR,
-      `postWeighInData: ${message}`,
-      req.body,
-    );
-    res.status(500).send(formatResponse(uuid));
+    log(loggingLevels.ERROR, `postWeighInData: ${message}`, req.body);
+    res.status(500).send(formatResponse());
   }
 }
 
