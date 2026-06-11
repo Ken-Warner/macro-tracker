@@ -2,10 +2,10 @@
 -- PostgreSQL database dump
 --
 
-\restrict jHGfKofHahqHVclxcPmhaJuuYomIcF9RCmOakGDyghb4Y8MisrWjKUYEygemt8w
+\restrict 1UvJtSXzbmkV8WIw9xsQLuf8St4Jdnw17fti5D8GH3OsGke5SeMjtI9k7qkrAwD
 
--- Dumped from database version 18.3 (Debian 18.3-1.pgdg13+1)
--- Dumped by pg_dump version 18.3 (Debian 18.3-1.pgdg13+1)
+-- Dumped from database version 18.4 (Debian 18.4-1.pgdg13+1)
+-- Dumped by pg_dump version 18.4 (Debian 18.4-1.pgdg13+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -32,21 +32,6 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
 
 COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
 
-
---
--- Name: logging_level; Type: TYPE; Schema: public; Owner: postgres
---
-
-CREATE TYPE public.logging_level AS ENUM (
-    'DEBUG',
-    'INFO',
-    'WARNING',
-    'ERROR',
-    'FATAL'
-);
-
-
-ALTER TYPE public.logging_level OWNER TO postgres;
 
 SET default_tablespace = '';
 
@@ -347,21 +332,6 @@ CREATE TABLE public.session (
 ALTER TABLE public.session OWNER TO postgres;
 
 --
--- Name: system_logs; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.system_logs (
-    uuid uuid DEFAULT gen_random_uuid() NOT NULL,
-    level public.logging_level NOT NULL,
-    message text NOT NULL,
-    payload text,
-    create_timestamp timestamp without time zone DEFAULT now()
-);
-
-
-ALTER TABLE public.system_logs OWNER TO postgres;
-
---
 -- Name: user_weights; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -592,14 +562,6 @@ ALTER TABLE ONLY public.session
 
 
 --
--- Name: system_logs system_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.system_logs
-    ADD CONSTRAINT system_logs_pkey PRIMARY KEY (uuid);
-
-
---
 -- Name: user_weights user_weights_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -674,5 +636,5 @@ ALTER TABLE ONLY public.user_weights
 -- PostgreSQL database dump complete
 --
 
-\unrestrict jHGfKofHahqHVclxcPmhaJuuYomIcF9RCmOakGDyghb4Y8MisrWjKUYEygemt8w
+\unrestrict 1UvJtSXzbmkV8WIw9xsQLuf8St4Jdnw17fti5D8GH3OsGke5SeMjtI9k7qkrAwD
 
