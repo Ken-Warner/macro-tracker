@@ -34,6 +34,7 @@ export default function Login() {
       try {
         login(await postUserLogin("", "", false));
       } catch {
+        // No session cookie, login as normal
       } finally {
         setIsLoading(false);
       }
@@ -107,6 +108,7 @@ export default function Login() {
       )}
       {isCreatingNewUser ? (
         <ContainerItem
+          key="create-user"
           gridArea="general-form-container"
           itemHeader="Create User"
         >
@@ -172,7 +174,11 @@ export default function Login() {
           )}
         </ContainerItem>
       ) : (
-        <ContainerItem gridArea="general-form-container" itemHeader="Login">
+        <ContainerItem
+          key="login"
+          gridArea="general-form-container"
+          itemHeader="Login"
+        >
           {isLoading ? (
             <Loader size={1.5} thickness={3} />
           ) : (
