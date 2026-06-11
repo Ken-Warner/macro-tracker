@@ -28,9 +28,14 @@
   padding: 0;
 }
 
+html {
+  overflow-x: clip;
+}
+
 body {
-  width: 100vw;
-  overflow-x: none;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
   background-color: var(--bg-primary);
 }
 
@@ -140,6 +145,8 @@ nav span:hover {
 /* Container */
 .container {
   display: grid;
+  width: 100%;
+  max-width: 100%;
   padding: 5px;
   gap: 5px;
   justify-content: center;
@@ -154,10 +161,14 @@ nav span:hover {
   background-color: var(--bg-body);
   border-radius: 5px;
   color: var(--font-color);
+  min-width: 0;
+  max-width: 100%;
 }
 
 .container-item-body {
   padding: 5px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .container-item-header {
@@ -238,13 +249,18 @@ nav span:hover {
   display: flex;
   flex-direction: row;
   gap: 8px;
-  width: 90%;
-  margin: 0 auto 12px;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 0 12px;
 }
 
 .create-meal-tab-row .button {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto;
   margin: 5px 0;
+  padding: 8px 6px;
+  font-size: clamp(0.75rem, 2.8vw, 1.2em);
 }
 
 .button.button-tab-active {
@@ -599,8 +615,29 @@ form label {
 }
 
 @media only screen and (max-width: 600px) {
+  nav {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 0 8px;
+  }
+
+  nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  nav span {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .create-meal-tab-row .button {
+    padding: 8px 4px;
+  }
+
   .container {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
       "generalForm"
       "userInfo"
