@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useLayoutEffect } from "react";
 import type { MealHistoryDayGroup } from "@macro-tracker/macro-tracker-shared";
 import type { Meal } from "../types/meal";
 import Loader from "./Loader";
@@ -46,6 +46,7 @@ export default function MealDay({
   expanded,
 }: MealDayProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [bodyHeight, setBodyHeight] = useState(0);
   const accordionBody = useRef<HTMLDivElement>(null);
   let totalCalories = 0;
   let totalProtein = 0;
@@ -62,6 +63,12 @@ export default function MealDay({
   useEffect(() => {
     setIsExpanded(expanded);
   }, [expanded]);
+
+  useLayoutEffect(() => {
+    const el = accordionBody.current;
+    if (!el) return;
+    setBodyHeight(isExpanded ? el.scrollHeight : 0);
+  }, [isExpanded, mealDay.meals]);
 
   return (
     <>
@@ -87,13 +94,7 @@ export default function MealDay({
       <div
         className="accordion-body"
         ref={accordionBody}
-        style={
-          isExpanded
-            ? {
-                height: `${accordionBody.current?.scrollHeight ?? 0}px`,
-              }
-            : { height: "0px" }
-        }
+        style={{ height: `${bodyHeight}px` }}
       >
         {mealDay.meals.map((meal) => (
           <MealItem
