@@ -2,8 +2,7 @@ import { defineConfig } from "vite";
 import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import babel from "@rolldown/plugin-babel";
 
-const apiProxyTarget =
-  process.env.API_PROXY_TARGET ?? "http://localhost:80";
+const apiProxyTarget = process.env.API_PROXY_TARGET ?? "http://localhost:80";
 
 // https://vite.dev/config/
 export default defineConfig({

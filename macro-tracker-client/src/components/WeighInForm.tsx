@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useReducer, useState } from "react";
 import Loader from "./Loader";
 import ToastMessage, { type Toast } from "./reusables/ToastMessage";
 import {
@@ -12,9 +12,57 @@ import {
 } from "@macro-tracker/macro-tracker-shared";
 import type { weighIn } from "../types/weighIn";
 
-/* TODO
- - Still erroring on load and submit for some reason. Needs to be fixed and debugged.
-*/
+type TargetMacros = {
+  targetCalories: number;
+  targetProtein: number;
+  targetCarbohydrates: number;
+  targetFats: number;
+};
+
+const emptyTargets: TargetMacros = {
+  targetCalories: 0,
+  targetProtein: 0,
+  targetCarbohydrates: 0,
+  targetFats: 0,
+};
+
+type MacroComputeResult =
+  | { ok: true; targets: TargetMacros }
+  | { ok: false; reason: string };
+
+type WeighInFormState = {
+  currentWeight: number;
+  goalValue: number;
+  date: string;
+  lastWeighIn: WeighInData | null;
+  mealsSinceLastWeighIn: GetMealHistoryResponse;
+  mealsConsistent: boolean;
+  targets: TargetMacros;
+  macroComputeError: string | null;
+  isLoadingInitial: boolean;
+  isSubmitting: boolean;
+};
+
+type WeighInFormAction =
+  | {
+      type: "DATA_LOADED";
+      lastWeighIn: WeighInData;
+      meals: GetMealHistoryResponse;
+      mealsConsistent: boolean;
+    }
+  | { type: "LOAD_FINISHED" }
+  | { type: "WEIGHT_CHANGED"; weight: number }
+  | { type: "GOAL_CHANGED"; goalValue: number }
+  | { type: "DATE_CHANGED"; date: string }
+  | { type: "TARGET_CHANGED"; field: keyof TargetMacros; value: number }
+  | { type: "SUBMIT_START" }
+  | { type: "SUBMIT_END" };
+
+function todayDateString(): string {
+  return new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+    .toISOString()
+    .split("T")[0];
+}
 
 function mapToRange(
   value: number,
@@ -26,15 +74,200 @@ function mapToRange(
   if (!(inMin <= value && value <= inMax))
     throw new Error("Value is not in input range");
 
-  //find ratio of number lines
   const spaceRatio = (outMax - outMin) / (inMax - inMin);
-  //set minimum of input number range to origin
   let origin = value - inMin;
-  //scale vector space
   origin *= spaceRatio;
-  //translate origin to output space minimum
   origin += outMin;
   return origin;
+}
+
+function areMealsConsistent(meals: GetMealHistoryResponse): boolean {
+  const timestamps = meals
+    .map((mealDay) => mealDay.mealsDate.split("-"))
+    .map(([year, month, day]) =>
+      new Date(Number(year), Number(month) - 1, Number(day)).getTime(),
+    )
+    .sort((a, b) => a - b);
+
+  const oneDay = 24 * 60 * 60 * 1000;
+  for (let i = 1; i < timestamps.length; i++) {
+    if (timestamps[i] !== timestamps[i - 1] + oneDay) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function computeTargetMacros({
+  currentWeight,
+  goalValue,
+  lastWeighIn,
+  mealsSinceLastWeighIn,
+}: {
+  currentWeight: number;
+  goalValue: number;
+  lastWeighIn: WeighInData | null;
+  mealsSinceLastWeighIn: GetMealHistoryResponse;
+}): MacroComputeResult {
+  if (currentWeight <= 0) {
+    return { ok: false, reason: "Enter a valid current weight." };
+  }
+  if (!lastWeighIn) {
+    return { ok: false, reason: "No previous weigh-in found." };
+  }
+  if (mealsSinceLastWeighIn.length === 0) {
+    return {
+      ok: false,
+      reason: "No meal history since last weigh-in. Targets cannot be calculated.",
+    };
+  }
+
+  const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000);
+
+  const lastWeighInDate = new Date(lastWeighIn.date);
+  lastWeighInDate.setMinutes(
+    lastWeighInDate.getMinutes() - lastWeighInDate.getTimezoneOffset(),
+  );
+
+  const daysBetween = Math.max(
+    1,
+    Math.floor(
+      (today.getTime() - lastWeighInDate.getTime()) / (1000 * 60 * 60 * 24),
+    ),
+  );
+
+  const totalCalories = mealsSinceLastWeighIn.reduce(
+    (mealDayCalories, mealDay) =>
+      mealDayCalories +
+      mealDay.meals.reduce(
+        (mealCalories, meal) => mealCalories + meal.calories,
+        0,
+      ),
+    0,
+  );
+
+  const caloriesPerDay = totalCalories / daysBetween;
+
+  const calorieSurplusDeficitPerDay =
+    ((lastWeighIn.weight - currentWeight) * 3500 * -1) / daysBetween;
+
+  const maintanenceCalories = caloriesPerDay - calorieSurplusDeficitPerDay;
+
+  const targetCalories =
+    Math.round((maintanenceCalories + goalValue) / 50) * 50;
+
+  if (targetCalories < 1200) {
+    return {
+      ok: false,
+      reason: `Calculated calories (${targetCalories}) are below the safe minimum of 1200. Adjust your goal or override targets manually.`,
+    };
+  }
+
+  const targetProtein = Math.round(
+    (goalValue < 0
+      ? mapToRange(goalValue, -750, 0, 1, 0.5)
+      : mapToRange(goalValue, 0, 750, 0.5, 1.5)) * currentWeight,
+  );
+
+  const targetFats = Math.round(
+    mapToRange(goalValue, -750, 750, 0.35, 0.5) * currentWeight,
+  );
+
+  const targetCarbohydrates =
+    Math.round((targetCalories - 4 * targetProtein - 9 * targetFats) / 4 / 5) *
+    5;
+
+  return {
+    ok: true,
+    targets: {
+      targetCalories,
+      targetProtein,
+      targetCarbohydrates,
+      targetFats,
+    },
+  };
+}
+
+function withRecalculatedTargets(state: WeighInFormState): WeighInFormState {
+  const result = computeTargetMacros({
+    currentWeight: state.currentWeight,
+    goalValue: state.goalValue,
+    lastWeighIn: state.lastWeighIn,
+    mealsSinceLastWeighIn: state.mealsSinceLastWeighIn,
+  });
+
+  if (result.ok) {
+    return { ...state, targets: result.targets, macroComputeError: null };
+  }
+
+  return {
+    ...state,
+    targets: emptyTargets,
+    macroComputeError: result.reason,
+  };
+}
+
+function weighInFormReducer(
+  state: WeighInFormState,
+  action: WeighInFormAction,
+): WeighInFormState {
+  switch (action.type) {
+    case "DATA_LOADED": {
+      const nextState: WeighInFormState = {
+        ...state,
+        lastWeighIn: action.lastWeighIn,
+        mealsSinceLastWeighIn: action.meals,
+        mealsConsistent: action.mealsConsistent,
+        currentWeight: action.lastWeighIn.weight,
+        isLoadingInitial: false,
+      };
+      return withRecalculatedTargets(nextState);
+    }
+    case "LOAD_FINISHED":
+      return { ...state, isLoadingInitial: false };
+    case "WEIGHT_CHANGED":
+      return withRecalculatedTargets({
+        ...state,
+        currentWeight: action.weight,
+      });
+    case "GOAL_CHANGED":
+      return withRecalculatedTargets({ ...state, goalValue: action.goalValue });
+    case "DATE_CHANGED":
+      return { ...state, date: action.date };
+    case "TARGET_CHANGED":
+      return {
+        ...state,
+        targets: { ...state.targets, [action.field]: action.value },
+        macroComputeError: null,
+      };
+    case "SUBMIT_START":
+      return { ...state, isSubmitting: true };
+    case "SUBMIT_END":
+      return { ...state, isSubmitting: false };
+    default:
+      return state;
+  }
+}
+
+const initialState: WeighInFormState = {
+  currentWeight: 0,
+  goalValue: 0,
+  date: todayDateString(),
+  lastWeighIn: null,
+  mealsSinceLastWeighIn: [],
+  mealsConsistent: true,
+  targets: emptyTargets,
+  macroComputeError: null,
+  isLoadingInitial: true,
+  isSubmitting: false,
+};
+
+function goalTextFor(goalValue: number): string {
+  if (goalValue < -500) return "Aggressively Losing Weight";
+  if (goalValue < 0) return "Losing Weight";
+  if (goalValue === 0) return "Maintaining Weight";
+  if (goalValue < 500) return "Gaining Weight";
+  return "Aggressively Gaining Weight";
 }
 
 export default function WeighInForm({
@@ -42,106 +275,72 @@ export default function WeighInForm({
 }: {
   onWeighInSaved?: () => void;
 }) {
-  const [currentWeight, setCurrentWeight] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [goalValue, setGoalValue] = useState(0);
-  const [mealsConsistent, setMealsConsistent] = useState(true);
-
+  const [state, dispatch] = useReducer(weighInFormReducer, initialState);
   const [toast, setToast] = useState<Toast | null>(null);
   const isToastDisplayed = toast != null;
 
-  const weighInForm = useRef<HTMLFormElement>(null);
-  const mealsSinceLastWeighIn = useRef<GetMealHistoryResponse>([]);
-  const lastWeighInData = useRef<WeighInData>(null);
-
-  const goalText =
-    goalValue < -500
-      ? "Aggressively Losing Weight"
-      : goalValue < 0
-        ? "Losing Weight"
-        : goalValue === 0
-          ? "Maintaining Weight"
-          : goalValue < 500
-            ? "Gaining Weight"
-            : "Aggressively Gaining Weight";
+  const isBusy = state.isLoadingInitial || state.isSubmitting;
 
   useEffect(() => {
     async function fetchData() {
       try {
-        //Weigh In API Data
-        setIsLoading(true);
-
         const apiResult = await getMostRecentWeighIn();
         if (!apiResult.ok) {
+          setToast({
+            type: "error",
+            message: apiResult.errorMessage,
+          });
+          dispatch({ type: "LOAD_FINISHED" });
           return;
         }
-        lastWeighInData.current = apiResult.body;
 
-        //Meals API Data
         const today = new Date(
           Date.now() - new Date().getTimezoneOffset() * 60000,
         );
-
-        const lastWeighInDate = new Date(lastWeighInData.current.date);
+        const lastWeighInDate = new Date(apiResult.body.date);
 
         const mealHistoryResult = await getMealHistoryFromRange(
           lastWeighInDate,
           today,
         );
-        if (mealHistoryResult.ok) {
-          mealsSinceLastWeighIn.current = mealHistoryResult.body;
-        } else {
+        if (!mealHistoryResult.ok) {
+          setToast({
+            type: "error",
+            message: mealHistoryResult.errorMessage,
+          });
+          dispatch({ type: "LOAD_FINISHED" });
           return;
         }
 
-        const timestamps = mealsSinceLastWeighIn.current
-          .map((mealDay) => mealDay.mealsDate.split("-"))
-          .map(([day, month, year]) =>
-            new Date(Number(year), Number(month), Number(day)).getTime(),
-          )
-          .sort();
-        let consistent = true;
-        const oneDay = 24 * 60 * 60 * 1000;
-        for (const timestamp in timestamps)
-          if (
-            timestamps[timestamp] !==
-            timestamps[Number(timestamp) - 1] + oneDay
-          ) {
-            consistent = false;
-            break;
-          }
-        setMealsConsistent(consistent);
-        setCurrentWeight(apiResult.body.weight);
+        dispatch({
+          type: "DATA_LOADED",
+          lastWeighIn: apiResult.body,
+          meals: mealHistoryResult.body,
+          mealsConsistent: areMealsConsistent(mealHistoryResult.body),
+        });
       } catch {
         setToast({
           type: "error",
           message: "An error occurred retrieving data since last weigh in.",
         });
-      } finally {
-        setIsLoading(false);
+        dispatch({ type: "LOAD_FINISHED" });
       }
     }
 
-    fetchData();
+    void fetchData();
   }, []);
 
   function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    async function fetchPostWeighInData() {
-      if (!weighInForm.current) return;
-
+    async function submitWeighIn() {
       try {
-        setIsLoading(true);
+        dispatch({ type: "SUBMIT_START" });
 
-        const formData = new FormData(weighInForm.current);
         const weighInData: weighIn = {
-          date: new Date(String(formData.get("date"))),
-          weight: Number(formData.get("currentWeight")),
-          targetCalories: Number(formData.get("targetCalories")),
-          targetProtein: Number(formData.get("targetProtein")),
-          targetCarbohydrates: Number(formData.get("targetCarbohydrates")),
-          targetFats: Number(formData.get("targetFats")),
+          date: state.date,
+          weight: state.currentWeight,
+          ...state.targets,
         };
 
         await postWeighIn(weighInData);
@@ -154,178 +353,160 @@ export default function WeighInForm({
           setToast({ type: "error", message: "An unknown error occurred" });
         }
       } finally {
-        setIsLoading(false);
+        dispatch({ type: "SUBMIT_END" });
       }
     }
 
-    fetchPostWeighInData();
+    void submitWeighIn();
   }
 
-  function handleCurrentWeightChange(e: React.ChangeEvent<HTMLInputElement>) {
-    if (e.target.value.length < 2) return;
-    setCurrentWeight(Number(e.target.value));
-  }
-
-  useEffect(() => {
-    if (currentWeight <= 0) return;
-    if (!weighInForm.current) return;
-    if (mealsSinceLastWeighIn.current.length === 0) return;
-    if (!lastWeighInData.current) return;
-
-    const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000);
-
-    const lastWeighIn = new Date(lastWeighInData.current.date);
-    lastWeighIn.setMinutes(
-      lastWeighIn.getMinutes() - lastWeighIn.getTimezoneOffset(),
-    );
-
-    const daysBetween = Math.floor(
-      (today.getTime() - lastWeighIn.getTime()) / (1000 * 60 * 60 * 24),
-    );
-
-    const totalCalories = mealsSinceLastWeighIn.current.reduce(
-      (mealDayCalories, mealDay) =>
-        mealDayCalories +
-        mealDay.meals.reduce(
-          (mealCalories, meal) => mealCalories + meal.calories,
-          0,
-        ),
-      0,
-    );
-
-    const caloriesPerDay = totalCalories / daysBetween;
-
-    const calorieSurplusDeficitPerDay =
-      ((lastWeighInData.current.weight - currentWeight) * 3500 * -1) /
-      daysBetween;
-
-    const maintanenceCalories = caloriesPerDay - calorieSurplusDeficitPerDay;
-
-    const targetCalories =
-      Math.round((maintanenceCalories + Number(goalValue)) / 50) * 50;
-    if (targetCalories < 1200) return;
-
-    const targetProtein = Math.round(
-      (goalValue < 0
-        ? mapToRange(goalValue, -750, 0, 1, 0.5)
-        : mapToRange(goalValue, 0, 750, 0.5, 1.5)) * currentWeight,
-    );
-
-    const targetFats = Math.round(
-      mapToRange(goalValue, -750, 750, 0.35, 0.5) * currentWeight,
-    );
-
-    const targetCarbohydrates =
-      Math.round(
-        (targetCalories - 4 * targetProtein - 9 * targetFats) / 4 / 5,
-      ) * 5;
-
-    const elements = weighInForm.current
-      .elements as HTMLFormControlsCollection & {
-      targetCalories: HTMLInputElement;
-      targetProtein: HTMLInputElement;
-      targetCarbohydrates: HTMLInputElement;
-      targetFats: HTMLInputElement;
-    };
-
-    elements.targetCalories.value = targetCalories.toString();
-    elements.targetProtein.value = targetProtein.toString();
-    elements.targetCarbohydrates.value = targetCarbohydrates.toString();
-    elements.targetFats.value = targetFats.toString();
-  }, [goalValue, currentWeight]);
+  const canSubmit =
+    state.currentWeight > 0 &&
+    !state.isSubmitting &&
+    !state.isLoadingInitial &&
+    state.lastWeighIn != null;
 
   return (
     <>
       {isToastDisplayed && (
         <ToastMessage toast={toast} onFinished={() => setToast(null)} />
       )}
-      {!isLoading ? (
-        <>
-          <div>
-            <p>
-              Last Weigh-In:{" "}
-              {lastWeighInData.current?.date.toLocaleDateString()}
-            </p>
-            <p>Previous Weight: {lastWeighInData.current?.weight}</p>
-            {!mealsConsistent && (
-              <p>
-                There seems to be missing days in your meal history. This is
-                going to affect your targets. It is recommended to override
-                them.
-              </p>
-            )}
+      <div className="weigh-in-form">
+        {isBusy && (
+          <div className="weigh-in-form__loader">
+            <Loader size={3} />
           </div>
-          <form className="form" onSubmit={handleSubmit} ref={weighInForm}>
-            <label htmlFor="date">Date</label>
-            <input
-              type="date"
-              name="date"
-              className="input"
-              defaultValue={
-                new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
-                  .toISOString()
-                  .split("T")[0]
-              }
-            />
-            <label htmlFor="currentWeight">Current Weight</label>
-            <input
-              type="number"
-              name="currentWeight"
-              className="input"
-              defaultValue={currentWeight}
-              onChange={handleCurrentWeightChange}
-            />
-            <label htmlFor="weightObjective">
-              Goal: {goalText}({goalValue})
-            </label>
-            <input
-              type="range"
-              name="objective"
-              className="slider"
-              value={goalValue}
-              onChange={(e) => setGoalValue(Number(e.target.value))}
-              step={50}
-              max={750}
-              min={-750}
-            />
-            <label htmlFor="targetCalories">New Target Calories</label>
-            <input
-              type="number"
-              name="targetCalories"
-              className="input"
-              defaultValue={0}
-            />
-            <label htmlFor="targetProtein">New Target Protein</label>
-            <input
-              type="number"
-              name="targetProtein"
-              className="input"
-              defaultValue={0}
-            />
-            <label htmlFor="targetCarbohydrates">
-              New Target Carbohydrates
-            </label>
-            <input
-              type="number"
-              name="targetCarbohydrates"
-              className="input"
-              defaultValue={0}
-            />
-            <label htmlFor="targetFats">New Target Fats</label>
-            <input
-              type="number"
-              name="targetFats"
-              className="input"
-              defaultValue={0}
-            />
-            <button className="button submit" type="submit">
-              Accept
-            </button>
-          </form>
-        </>
-      ) : (
-        <Loader size={3} />
-      )}
+        )}
+        <div>
+          <p>
+            Last Weigh-In:{" "}
+            {state.lastWeighIn?.date.toLocaleDateString() ?? "—"}
+          </p>
+          <p>Previous Weight: {state.lastWeighIn?.weight ?? "—"}</p>
+          {!state.mealsConsistent && (
+            <p>
+              There seems to be missing days in your meal history. This is
+              going to affect your targets. It is recommended to override them.
+            </p>
+          )}
+          {state.macroComputeError && (
+            <p>{state.macroComputeError}</p>
+          )}
+        </div>
+        <form className="form" onSubmit={handleSubmit}>
+          <label htmlFor="weigh-in-date">Date</label>
+          <input
+            type="date"
+            id="weigh-in-date"
+            name="date"
+            className="input"
+            value={state.date}
+            onChange={(e) =>
+              dispatch({ type: "DATE_CHANGED", date: e.target.value })
+            }
+          />
+          <label htmlFor="currentWeight">Current Weight</label>
+          <input
+            type="number"
+            id="currentWeight"
+            name="currentWeight"
+            className="input"
+            value={state.currentWeight || ""}
+            onChange={(e) =>
+              dispatch({
+                type: "WEIGHT_CHANGED",
+                weight: e.target.value === "" ? 0 : Number(e.target.value),
+              })
+            }
+          />
+          <label htmlFor="weightObjective">
+            Goal: {goalTextFor(state.goalValue)} ({state.goalValue})
+          </label>
+          <input
+            type="range"
+            id="weightObjective"
+            name="objective"
+            className="slider"
+            value={state.goalValue}
+            onChange={(e) =>
+              dispatch({
+                type: "GOAL_CHANGED",
+                goalValue: Number(e.target.value),
+              })
+            }
+            step={50}
+            max={750}
+            min={-750}
+          />
+          <label htmlFor="targetCalories">New Target Calories</label>
+          <input
+            type="number"
+            id="targetCalories"
+            name="targetCalories"
+            className="input"
+            value={state.targets.targetCalories}
+            onChange={(e) =>
+              dispatch({
+                type: "TARGET_CHANGED",
+                field: "targetCalories",
+                value: Number(e.target.value),
+              })
+            }
+          />
+          <label htmlFor="targetProtein">New Target Protein</label>
+          <input
+            type="number"
+            id="targetProtein"
+            name="targetProtein"
+            className="input"
+            value={state.targets.targetProtein}
+            onChange={(e) =>
+              dispatch({
+                type: "TARGET_CHANGED",
+                field: "targetProtein",
+                value: Number(e.target.value),
+              })
+            }
+          />
+          <label htmlFor="targetCarbohydrates">New Target Carbohydrates</label>
+          <input
+            type="number"
+            id="targetCarbohydrates"
+            name="targetCarbohydrates"
+            className="input"
+            value={state.targets.targetCarbohydrates}
+            onChange={(e) =>
+              dispatch({
+                type: "TARGET_CHANGED",
+                field: "targetCarbohydrates",
+                value: Number(e.target.value),
+              })
+            }
+          />
+          <label htmlFor="targetFats">New Target Fats</label>
+          <input
+            type="number"
+            id="targetFats"
+            name="targetFats"
+            className="input"
+            value={state.targets.targetFats}
+            onChange={(e) =>
+              dispatch({
+                type: "TARGET_CHANGED",
+                field: "targetFats",
+                value: Number(e.target.value),
+              })
+            }
+          />
+          <button
+            className="button submit"
+            type="submit"
+            disabled={!canSubmit}
+          >
+            Accept
+          </button>
+        </form>
+      </div>
     </>
   );
 }
