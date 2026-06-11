@@ -68,22 +68,22 @@ export default function App() {
   const isToastDisplayed = toast != null;
   const [weighInChartRefreshKey, setWeighInChartRefreshKey] = useState(0);
 
+  async function refreshRecentWeighInData() {
+    try {
+      const recentWeighInResult = await getMostRecentWeighIn();
+
+      if (recentWeighInResult.ok === false) {
+        return;
+      }
+
+      setRecentWeighInData(recentWeighInResult.body);
+    } catch {
+      setToast({ type: "error", message: "Unable to get weigh in data" });
+    }
+  }
+
   useEffect(() => {
     if (!user) return;
-
-    async function fetchRecentWeighInData() {
-      try {
-        const recentWeighInResult = await getMostRecentWeighIn();
-
-        if (recentWeighInResult.ok === false) {
-          return;
-        }
-
-        setRecentWeighInData(recentWeighInResult.body);
-      } catch {
-        setToast({ type: "error", message: "Unable to get weigh in data" });
-      }
-    }
 
     async function fetchMealHistory() {
       const todayDate = new Date(
@@ -126,7 +126,7 @@ export default function App() {
       }
     }
 
-    void fetchRecentWeighInData();
+    void refreshRecentWeighInData();
     void fetchMealHistory();
   }, [user]);
 
@@ -301,9 +301,10 @@ export default function App() {
               itemHeader="Weigh-In"
             >
               <WeighInForm
-                onWeighInSaved={() =>
-                  setWeighInChartRefreshKey((key) => key + 1)
-                }
+                onWeighInSaved={() => {
+                  setWeighInChartRefreshKey((key) => key + 1);
+                  void refreshRecentWeighInData();
+                }}
               />
             </ContainerItem>
           </>
