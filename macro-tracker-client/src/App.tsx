@@ -68,15 +68,17 @@ export default function App() {
   const isToastDisplayed = toast != null;
   const [weighInChartRefreshKey, setWeighInChartRefreshKey] = useState(0);
 
+  async function getRecentWeighInData(): Promise<WeighInData | null> {
+    const recentWeighInResult = await getMostRecentWeighIn();
+    return recentWeighInResult.ok ? recentWeighInResult.body : null;
+  }
+
   async function refreshRecentWeighInData() {
     try {
-      const recentWeighInResult = await getMostRecentWeighIn();
-
-      if (recentWeighInResult.ok === false) {
-        return;
+      const data = await getRecentWeighInData();
+      if (data !== null) {
+        setRecentWeighInData(data);
       }
-
-      setRecentWeighInData(recentWeighInResult.body);
     } catch {
       setToast({ type: "error", message: "Unable to get weigh in data" });
     }
@@ -84,6 +86,17 @@ export default function App() {
 
   useEffect(() => {
     if (!user) return;
+
+    async function fetchRecentWeighIn() {
+      try {
+        const data = await getRecentWeighInData();
+        if (data !== null) {
+          setRecentWeighInData(data);
+        }
+      } catch {
+        setToast({ type: "error", message: "Unable to get weigh in data" });
+      }
+    }
 
     async function fetchMealHistory() {
       const todayDate = new Date(
@@ -126,7 +139,7 @@ export default function App() {
       }
     }
 
-    void refreshRecentWeighInData();
+    void fetchRecentWeighIn();
     void fetchMealHistory();
   }, [user]);
 
