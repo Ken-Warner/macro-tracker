@@ -576,6 +576,15 @@ form label {
   color: var(--font-color);
 }
 
+.meal-modal-time {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 1.1em;
+}
+.meal-modal-description {
+  margin: 10px 8px;
+}
+
 .weigh-in-form {
   position: relative;
 }
