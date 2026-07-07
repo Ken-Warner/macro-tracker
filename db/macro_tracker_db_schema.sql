@@ -46,10 +46,10 @@ CREATE TABLE public.ingredients (
     user_id integer NOT NULL,
     name text NOT NULL,
     description text,
-    calories integer,
-    protein integer,
-    carbohydrates integer,
-    fats integer,
+    calories real,
+    protein real,
+    carbohydrates real,
+    fats real,
     is_deleted boolean DEFAULT false
 );
 
@@ -140,63 +140,6 @@ ALTER SEQUENCE public.macro_totals_user_id_seq OWNED BY public.macro_totals.user
 
 
 --
--- Name: meal_ingredients; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.meal_ingredients (
-    meal_id integer NOT NULL,
-    ingredient_id integer NOT NULL,
-    portion_size real
-);
-
-
-ALTER TABLE public.meal_ingredients OWNER TO postgres;
-
---
--- Name: meal_ingredients_ingredient_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.meal_ingredients_ingredient_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.meal_ingredients_ingredient_id_seq OWNER TO postgres;
-
---
--- Name: meal_ingredients_ingredient_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.meal_ingredients_ingredient_id_seq OWNED BY public.meal_ingredients.ingredient_id;
-
-
---
--- Name: meal_ingredients_meal_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.meal_ingredients_meal_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.meal_ingredients_meal_id_seq OWNER TO postgres;
-
---
--- Name: meal_ingredients_meal_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.meal_ingredients_meal_id_seq OWNED BY public.meal_ingredients.meal_id;
-
-
---
 -- Name: meals; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -259,63 +202,6 @@ ALTER SEQUENCE public.meals_user_id_seq OWNER TO postgres;
 --
 
 ALTER SEQUENCE public.meals_user_id_seq OWNED BY public.meals.user_id;
-
-
---
--- Name: recipes; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.recipes (
-    parent_ingredient_id integer NOT NULL,
-    component_ingredient_id integer NOT NULL,
-    portion_size real
-);
-
-
-ALTER TABLE public.recipes OWNER TO postgres;
-
---
--- Name: recipes_component_ingredient_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.recipes_component_ingredient_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.recipes_component_ingredient_id_seq OWNER TO postgres;
-
---
--- Name: recipes_component_ingredient_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.recipes_component_ingredient_id_seq OWNED BY public.recipes.component_ingredient_id;
-
-
---
--- Name: recipes_parent_ingredient_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.recipes_parent_ingredient_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.recipes_parent_ingredient_id_seq OWNER TO postgres;
-
---
--- Name: recipes_parent_ingredient_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.recipes_parent_ingredient_id_seq OWNED BY public.recipes.parent_ingredient_id;
 
 
 --
@@ -451,20 +337,6 @@ ALTER TABLE ONLY public.macro_totals ALTER COLUMN user_id SET DEFAULT nextval('p
 
 
 --
--- Name: meal_ingredients meal_id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.meal_ingredients ALTER COLUMN meal_id SET DEFAULT nextval('public.meal_ingredients_meal_id_seq'::regclass);
-
-
---
--- Name: meal_ingredients ingredient_id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.meal_ingredients ALTER COLUMN ingredient_id SET DEFAULT nextval('public.meal_ingredients_ingredient_id_seq'::regclass);
-
-
---
 -- Name: meals id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -476,20 +348,6 @@ ALTER TABLE ONLY public.meals ALTER COLUMN id SET DEFAULT nextval('public.meals_
 --
 
 ALTER TABLE ONLY public.meals ALTER COLUMN user_id SET DEFAULT nextval('public.meals_user_id_seq'::regclass);
-
-
---
--- Name: recipes parent_ingredient_id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.recipes ALTER COLUMN parent_ingredient_id SET DEFAULT nextval('public.recipes_parent_ingredient_id_seq'::regclass);
-
-
---
--- Name: recipes component_ingredient_id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.recipes ALTER COLUMN component_ingredient_id SET DEFAULT nextval('public.recipes_component_ingredient_id_seq'::regclass);
 
 
 --
@@ -530,27 +388,11 @@ ALTER TABLE ONLY public.macro_totals
 
 
 --
--- Name: meal_ingredients meal_ingredients_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.meal_ingredients
-    ADD CONSTRAINT meal_ingredients_pkey PRIMARY KEY (meal_id, ingredient_id);
-
-
---
 -- Name: meals meals_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.meals
     ADD CONSTRAINT meals_pkey PRIMARY KEY (id);
-
-
---
--- Name: recipes recipes_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.recipes
-    ADD CONSTRAINT recipes_pkey PRIMARY KEY (parent_ingredient_id, component_ingredient_id);
 
 
 --
@@ -606,22 +448,6 @@ ALTER TABLE ONLY public.macro_totals
 
 ALTER TABLE ONLY public.meals
     ADD CONSTRAINT meals_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
-
-
---
--- Name: recipes recipes_component_ingredient_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.recipes
-    ADD CONSTRAINT recipes_component_ingredient_id_fkey FOREIGN KEY (component_ingredient_id) REFERENCES public.ingredients(id);
-
-
---
--- Name: recipes recipes_parent_ingredient_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.recipes
-    ADD CONSTRAINT recipes_parent_ingredient_id_fkey FOREIGN KEY (parent_ingredient_id) REFERENCES public.ingredients(id);
 
 
 --

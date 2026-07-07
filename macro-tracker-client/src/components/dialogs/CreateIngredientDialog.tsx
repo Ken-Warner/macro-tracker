@@ -130,6 +130,8 @@ export default function CreateIngredientDialog({
               type="number"
               name="calories"
               className="input"
+              step="0.1"
+              min="0"
               value={formData.calories}
               onChange={handleChange}
               onFocus={(event) => event.target.select()}
@@ -140,6 +142,8 @@ export default function CreateIngredientDialog({
               type="number"
               name="protein"
               className="input"
+              step="0.1"
+              min="0"
               value={formData.protein}
               onChange={handleChange}
               onFocus={(event) => event.target.select()}
@@ -152,6 +156,8 @@ export default function CreateIngredientDialog({
               type="number"
               name="carbohydrates"
               className="input"
+              step="0.1"
+              min="0"
               value={formData.carbohydrates}
               onChange={handleChange}
               onFocus={(event) => event.target.select()}
@@ -162,6 +168,8 @@ export default function CreateIngredientDialog({
               type="number"
               name="fats"
               className="input"
+              step="0.1"
+              min="0"
               value={formData.fats}
               onChange={handleChange}
               onFocus={(event) => event.target.select()}

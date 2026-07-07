@@ -103,12 +103,6 @@ export async function createMeal(
     ],
   };
 
-  const mealRecipe: Array<{
-    mealId?: number;
-    ingredientId: number;
-    portionSize: number;
-  }> = [];
-
   const ingredientsResult = await query(getIngredientsQuery);
 
   if (ingredientsResult.rowCount === null || ingredientsResult.rowCount <= 0) {
@@ -134,29 +128,18 @@ export async function createMeal(
       throw new Error("No results for provided Ingredients.");
     }
 
-    mealRecipe.push({
-      ingredientId: ingredient.id,
-      portionSize,
-    });
-
     newMeal.calories += ingredient.calories * portionSize;
     newMeal.protein += ingredient.protein * portionSize;
     newMeal.carbohydrates += ingredient.carbohydrates * portionSize;
     newMeal.fats += ingredient.fats * portionSize;
   }
 
-  const finalNewMeal = await createMealRaw(userId, newMeal);
-  const mealId = finalNewMeal.id;
-  if (mealId === undefined) {
-    throw new Error("Meal insert did not return an id");
-  }
+  newMeal.calories = Math.round(newMeal.calories);
+  newMeal.protein = Math.round(newMeal.protein);
+  newMeal.carbohydrates = Math.round(newMeal.carbohydrates);
+  newMeal.fats = Math.round(newMeal.fats);
 
-  for (const component of mealRecipe) {
-    component.mealId = mealId;
-  }
-  await insertMealRecipe(mealRecipe);
-
-  return finalNewMeal;
+  return await createMealRaw(userId, newMeal);
 }
 
 export async function createMealRaw(
@@ -168,11 +151,12 @@ export async function createMealRaw(
     description: meal.description,
     date: meal.date,
     time: meal.time,
-    calories: (meal.calories || -1) < 0 ? 0 : (meal.calories ?? 0),
-    protein: (meal.protein || -1) < 0 ? 0 : (meal.protein ?? 0),
-    carbohydrates:
+    calories: Math.round((meal.calories || -1) < 0 ? 0 : (meal.calories ?? 0)),
+    protein: Math.round((meal.protein || -1) < 0 ? 0 : (meal.protein ?? 0)),
+    carbohydrates: Math.round(
       (meal.carbohydrates || -1) < 0 ? 0 : (meal.carbohydrates ?? 0),
-    fats: (meal.fats || -1) < 0 ? 0 : (meal.fats ?? 0),
+    ),
+    fats: Math.round((meal.fats || -1) < 0 ? 0 : (meal.fats ?? 0)),
   };
 
   const fields = [
@@ -300,32 +284,6 @@ export async function getMealHistoryWithRange(
   return (result.rows as MealHistoryDbRow[]).map((row) =>
     Meal.fromDbRow(row),
   );
-}
-
-async function insertMealRecipe(
-  mealRecipe: Array<{
-    mealId?: number;
-    ingredientId: number;
-    portionSize: number;
-  }>,
-) {
-  const mealRecipeQuery = {
-    text: `INSERT INTO meal_ingredients (meal_id, ingredient_id, portion_size)
-            VALUES ${mealRecipe
-              .map((_, idx) => {
-                const firstIdx = 3 * idx + 1;
-                return `($${String(firstIdx)},$${String(firstIdx + 1)},$${String(firstIdx + 2)})`;
-              })
-              .join(",")};`,
-    params: mealRecipe.flatMap((el) => {
-      if (el.mealId === undefined) {
-        throw new Error("mealId required for meal_ingredients insert");
-      }
-      return [el.mealId, el.ingredientId, el.portionSize];
-    }),
-  };
-
-  return await query(mealRecipeQuery);
 }
 
 async function updateMacroTotals(

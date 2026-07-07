@@ -5,6 +5,7 @@ import IngredientDialog from "./dialogs/IngredientDialog";
 import ToastMessage from "./reusables/ToastMessage";
 import type { Toast } from "./reusables/ToastMessage";
 import { getIngredients } from "../utilities/api";
+import { formatMacro } from "../utilities/formatMacro";
 import type { IngredientRow } from "@macro-tracker/macro-tracker-shared";
 
 export default function Pantry() {
@@ -99,12 +100,12 @@ export default function Pantry() {
           >
             <div className="accordion-item-title">{row.name}</div>
             <div className="accordion-item-macro-grid">
-              <div className="calories color-calories">{row.calories ?? 0}</div>
-              <div className="protein color-protein">{row.protein ?? 0}</div>
+              <div className="calories color-calories">{formatMacro(row.calories)}</div>
+              <div className="protein color-protein">{formatMacro(row.protein)}</div>
               <div className="carbohydrates color-carbohydrates">
-                {row.carbohydrates ?? 0}
+                {formatMacro(row.carbohydrates)}
               </div>
-              <div className="fats color-fats">{row.fats ?? 0}</div>
+              <div className="fats color-fats">{formatMacro(row.fats)}</div>
             </div>
           </div>
         ))

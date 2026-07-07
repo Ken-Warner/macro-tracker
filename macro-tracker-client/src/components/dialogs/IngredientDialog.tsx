@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import Loader from "../Loader";
 import type { IngredientRow } from "@macro-tracker/macro-tracker-shared";
 import { deleteIngredient } from "../../utilities/api";
+import { formatMacro } from "../../utilities/formatMacro";
 
 type IngredientDialogProps = {
   isOpen: boolean;
@@ -83,10 +84,10 @@ export default function IngredientDialog({
               [
                 ["Name", ingredient.name],
                 ["Description", displayDescription ?? "—"],
-                ["Calories", String(ingredient.calories ?? 0)],
-                ["Protein", String(ingredient.protein ?? 0)],
-                ["Carbohydrates", String(ingredient.carbohydrates ?? 0)],
-                ["Fats", String(ingredient.fats ?? 0)],
+                ["Calories", formatMacro(ingredient.calories)],
+                ["Protein", formatMacro(ingredient.protein)],
+                ["Carbohydrates", formatMacro(ingredient.carbohydrates)],
+                ["Fats", formatMacro(ingredient.fats)],
               ] as const
             ).map(([label, value]) => (
               <li

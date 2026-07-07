@@ -15,6 +15,7 @@ import {
   postMealComposed,
   postMealNonComposed,
 } from "../../utilities/api";
+import { formatMacro } from "../../utilities/formatMacro";
 
 const PORTION_STEP = 0.25;
 const MIN_PORTION = 0.25;
@@ -433,15 +434,17 @@ export default function CreateMealDialog({
                           <div className="accordion-item-title">{row.name}</div>
                           <div className="accordion-item-macro-grid">
                             <div className="calories color-calories">
-                              {row.calories ?? 0}
+                              {formatMacro(row.calories)}
                             </div>
                             <div className="protein color-protein">
-                              {row.protein ?? 0}
+                              {formatMacro(row.protein)}
                             </div>
                             <div className="carbohydrates color-carbohydrates">
-                              {row.carbohydrates ?? 0}
+                              {formatMacro(row.carbohydrates)}
                             </div>
-                            <div className="fats color-fats">{row.fats ?? 0}</div>
+                            <div className="fats color-fats">
+                              {formatMacro(row.fats)}
+                            </div>
                           </div>
                         </div>
                       ))}
