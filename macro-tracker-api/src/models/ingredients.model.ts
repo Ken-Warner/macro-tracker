@@ -1,5 +1,7 @@
+import type pg from "pg";
 import { Ingredient } from "@macro-tracker/macro-tracker-shared";
-import { query } from "./pool.js";
+import { DEFAULT_PANTRY_INGREDIENTS } from "../data/defaultPantryIngredients.js";
+import { query, queryWithClient } from "./pool.js";
 
 type RawIngredientInput = {
   name: string;
@@ -60,6 +62,41 @@ export async function createIngredient(
     return ingredient;
   }
   return undefined;
+}
+
+export async function seedDefaultIngredients(
+  userId: string,
+  client: pg.PoolClient,
+): Promise<void> {
+  if (DEFAULT_PANTRY_INGREDIENTS.length === 0) {
+    return;
+  }
+
+  const valuePlaceholders: string[] = [];
+  const params: unknown[] = [userId];
+  let paramIndex = 2;
+
+  for (const ingredient of DEFAULT_PANTRY_INGREDIENTS) {
+    valuePlaceholders.push(
+      `($1, $${String(paramIndex)}, $${String(paramIndex + 1)}, $${String(paramIndex + 2)}, $${String(paramIndex + 3)}, $${String(paramIndex + 4)}, $${String(paramIndex + 5)})`,
+    );
+    params.push(
+      ingredient.name,
+      ingredient.description,
+      ingredient.calories,
+      ingredient.protein,
+      ingredient.carbohydrates,
+      ingredient.fats,
+    );
+    paramIndex += 6;
+  }
+
+  await queryWithClient(client, {
+    text: `INSERT INTO ingredients
+            (user_id, name, description, calories, protein, carbohydrates, fats)
+            VALUES ${valuePlaceholders.join(", ")};`,
+    params,
+  });
 }
 
 //TODO update to use ingredient entity

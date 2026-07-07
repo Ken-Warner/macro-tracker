@@ -1,5 +1,6 @@
 import { User } from "@macro-tracker/macro-tracker-shared";
-import { query } from "./pool.js";
+import { seedDefaultIngredients } from "./ingredients.model.js";
+import { query, queryWithClient, withTransaction } from "./pool.js";
 
 export async function getUser(
   username: string,
@@ -42,7 +43,10 @@ export async function createUser(
     throw new Error("Username already exists");
   }
 
-  const insertResult = await query(insertUserQuery);
-  const idRow = insertResult.rows[0] as { id: number };
-  return new User(idRow.id, username);
+  return withTransaction(async (client) => {
+    const insertResult = await queryWithClient(client, insertUserQuery);
+    const idRow = insertResult.rows[0] as { id: number };
+    await seedDefaultIngredients(String(idRow.id), client);
+    return new User(idRow.id, username);
+  });
 }

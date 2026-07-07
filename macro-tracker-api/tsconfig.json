@@ -24,5 +24,6 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowJs": true // remove once fully converted
-  }
+  },
+  "include": ["src/**/*"]
 }

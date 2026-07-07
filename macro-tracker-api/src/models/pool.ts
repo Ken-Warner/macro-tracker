@@ -12,8 +12,10 @@ export const pool = new Pool({
   port: Number(process.env.DB_PORT) || 5432,
 });
 
+type QueryArgs = { text: string; params?: unknown[] };
+
 export async function query(
-  args: { text: string; params?: unknown[] },
+  args: QueryArgs,
 ): Promise<pg.QueryResult> {
   return new Promise((resolve, reject) => {
     if (!args.text) {
@@ -30,6 +32,33 @@ export async function query(
       resolve(res);
     });
   });
+}
+
+export async function queryWithClient(
+  client: pg.PoolClient,
+  args: QueryArgs,
+): Promise<pg.QueryResult> {
+  if (!args.text) {
+    throw new Error("Invalid query");
+  }
+  return client.query(args.text, args.params ?? []);
+}
+
+export async function withTransaction<T>(
+  fn: (client: pg.PoolClient) => Promise<T>,
+): Promise<T> {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const result = await fn(client);
+    await client.query("COMMIT");
+    return result;
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 // Builds field and value lists for INSERT, respecting DEFAULT placeholders.
