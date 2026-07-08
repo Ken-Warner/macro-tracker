@@ -1,67 +1,92 @@
 name,description,calories,protein,carbohydrates,fats
+
+#Vegetables
 Romaine Lettuce,Per oz.,4,0.24,0.8,0.04
-Black Olives,Per oz.,40,0,2,3
-Onion,Per oz.,12,0.4,2.9,0.1
-Chicken (Cooked),Per oz. Cooked,55,8.38,0,2.19
-Tomato,Per oz.,5,0.23,1.02,0.05
-Caesar Dressing,Per oz.,120,0.1,2,12
-Italian Dressing,Per oz.,80,0,5,7
-Parm Cheese,Per oz.,20,1.9,0.18,1.3
-Croutons,Per oz.,120,4,20,4
-Burger,Per oz. Raw; 85/15,60,5.2,0,4.2
-Ground Beef (93/7),Per oz. Raw; 93/7,42.5,5.5,0,2
-Deli Ham,Per oz.,30,4.5,0.5,0.75
-Egg,Per unit.,70,6,0,5
 Lettuce,Per oz.,4,0.24,0.8,0.04
-Pickle,Per oz.,3.4,0.1,0.7,0.1
-Mushroom,Per oz.,6,0.88,0.93,0.1
-Banana Peppers,Per oz.,2.5,0,0.4,0
-Medium Cheddar,Per slice.,80,5,0,7
-Baby Swiss,Per slice.,80,5,1,6
-Bread,Per slice.,80,2,15,1
-White Bun,Per unit.,130,4,23,2
-Light Miracle Whip,Per oz.,40,0,4,3
+Spinach,Per oz.,6.52,0.81,1.03,0.11
+Tomato,Per oz.,5,0.23,1.02,0.05
+Onion,Per oz.,12,0.4,2.9,0.1
 Celery,Per oz.,4,0.2,0.84,0.05
+Cucumber,Per oz.,4.25,0.18,1.03,0.03
 Carrots,Per oz.,9.9,0.2,2.3,0.1
 Asparagus,Per oz.,6,0.62,1.1,0.03
 Zucchini,Per oz.,5,0.34,0.95,0.05
 Summer Squash,Per oz.,4,0.33,0.9,0.05
 Brussel Sprouts,Per oz.,12,0.96,2.54,0.09
 Broccoli,Per oz.,9.9,0.7,2,0.1
+Cauliflower,Per oz.,7.09,0.54,1.41,0.08
 Bell Pepper,Per oz.,6,0.23,1.39,0.07
 Green Beans,Per oz.,9,0.52,2.02,0.03
 Artichoke Hearts,Per oz.,15,0,2,0.5
 Sun-Dried Tomatoes (in oil),Per oz. In a jar with oil,70,0.5,6,5
 Sun-Dried Tomatoes,Per oz. Not in oil,85,1,17,0
 Garlic,Per oz.,30,0,6,0
+Mushroom,Per oz.,6,0.88,0.93,0.1
+Pickle,Per oz.,3.4,0.1,0.7,0.1
+Banana Peppers,Per oz.,2.5,0,0.4,0
+
+#Proteins
+Chicken (Cooked),Per oz. Cooked,55,8.38,0,2.19
+Chicken (Raw),Per oz. Raw,29,4.43,0,1.16
+Burger,Per oz. Raw; 85/15,60,5.2,0,4.2
+Ground Beef (93/7),Per oz. Raw; 93/7,42.5,5.5,0,2
+Deli Ham,Per oz.,30,4.5,0.5,0.75
+Steak,Per oz. Raw,65,8,0,4.3
+Salmon,Per oz. Raw,40,5.62,0,1.8
+Summer Sausage,Per oz.,96.1,5.1,0.5,8.1
+Egg,Per unit.,70,6,0,5
+
+#Cheese
+Medium Cheddar,Per slice.,80,5,0,7
+Baby Swiss,Per slice.,80,5,1,6
+Swiss Cheese,Per oz.,110,8,1,8
+Mild Cheddar,Per oz.,110,7,0,9
+Parm Cheese,Per oz.,20,1.9,0.18,1.3
+Shredded Mozzerella Cheese,Per oz.,80,6,2,6
+
+#Bread & Buns
+Bread,Per slice.,80,2,15,1
+White Bun,Per unit.,130,4,23,2
+Croutons,Per oz.,120,4,20,4
+
+#Dressings & Sauces
+Caesar Dressing,Per oz.,120,0.1,2,12
+Italian Dressing,Per oz.,80,0,5,7
+Light Miracle Whip,Per oz.,40,0,4,3
+Pesto,Per oz.,123,1,2,12
+Mustard,Per oz.,30,0,0,0
+Ketchup,Per oz.,30,0,8,0
+Chicken Gravy,Per oz.,32,0,2.5,2
+Chicken Bouillon,Per oz.,60,3,6,0
+
+#Fats & Oils
+Butter,Per oz.,200,0,0,22
+Olive Oil,Per oz.,240,0,0,28
+Heavy Whipping Cream,Per oz.,100,0,0,5
+
+#Starches & Grains
 Idahoan Pots (Buttery Homestyle),Per oz. 4oz Package is 22oz cooked,19.9,0.36,3.62,0.54
 Yukon Golds,Per oz.,21.1,0.57,5,0
+Russet Potato,Per oz.,22.4,0.61,5.12,0.02
 Basmati Rice,Per oz.,40,1,9,0
 White Rice,Per oz. Dry (about 1/8 cup per oz),80,1.5,18,0
 Sweet Potato,Per oz.,28,0.5,6,0
 Brown Sugar,Per oz.,110,0,28,0
 Cooked Spaghetti,Per oz.,45,1.6,9,0.25
 Flour,Per oz.,109,2,22,0
-Steak,Per oz. Raw,65,8,0,4.3
-Chicken (Raw),Per oz. Raw,29,4.43,0,1.16
-Salmon,Per oz. Raw,40,5.62,0,1.8
-Butter,Per oz.,200,0,0,22
-Olive Oil,Per oz.,240,0,0,28
-Chicken Gravy,Per oz.,32,0,2.5,2
-Heavy Whipping Cream,Per oz.,100,0,0,5
-Chicken Bouillon,Per oz.,60,3,6,0
-Mustard,Per oz.,30,0,0,0
-Ketchup,Per oz.,30,0,8,0
+
+#Fruits
+Apple,Per unit.,94.64,0.47,25.13,0.31
+Banana,Per unit.,105.02,1.29,26.95,0.39
 Blueberry,Per oz.,16,0.2,4.1,0.1
 Strawberry,Per oz.,9,0.19,2.18,0.09
 Blackberry,Per oz.,12,0.4,2.7,0.1
+Grapes,Per oz.,19.56,0.2,5.13,0.05
 Raspberry,Per oz.,15,0.3,3.4,0.2
 Honeydew,Per oz.,10,0,2.5,0
 Naval Orange,Per oz.,13.5,0.25,3.25,0
-Summer Sausage,Per oz.,96.1,5.1,0.5,8.1
-Swiss Cheese,Per oz.,110,8,1,8
-Mild Cheddar,Per oz.,110,7,0,9
+
+#Other
+Black Olives,Per oz.,40,0,2,3
 Pistachio Mix,Per oz.,160,6,7,13
 Low Fat Greek Yogurt,Per oz.,15,2.5,0.75,0.25
-Shredded Mozzerella Cheese,Per oz.,80,6,2,6
-Pesto,Per oz.,123,1,2,12

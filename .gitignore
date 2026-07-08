@@ -4,5 +4,5 @@ macro-tracker-client/node_modules/
 macro-tracker-shared/dist
 macro-tracker-api/dist
 .env
-data
+/data
 node_modules
