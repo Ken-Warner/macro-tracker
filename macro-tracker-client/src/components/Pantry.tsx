@@ -90,25 +90,27 @@ export default function Pantry() {
       ) : filteredIngredients.length === 0 ? (
         <p>No ingredients match your search.</p>
       ) : (
-        filteredIngredients.map((row) => (
-          <div
-            key={row.id}
-            className="accordion-item"
-            onClick={() => {
-              handleIngredientClick(row);
-            }}
-          >
-            <div className="accordion-item-title">{row.name}</div>
-            <div className="accordion-item-macro-grid">
-              <div className="calories color-calories">{formatMacro(row.calories)}</div>
-              <div className="protein color-protein">{formatMacro(row.protein)}</div>
-              <div className="carbohydrates color-carbohydrates">
-                {formatMacro(row.carbohydrates)}
+        <div className="pantry-ingredient-scroll">
+          {filteredIngredients.map((row) => (
+            <div
+              key={row.id}
+              className="accordion-item"
+              onClick={() => {
+                handleIngredientClick(row);
+              }}
+            >
+              <div className="accordion-item-title">{row.name}</div>
+              <div className="accordion-item-macro-grid">
+                <div className="calories color-calories">{formatMacro(row.calories)}</div>
+                <div className="protein color-protein">{formatMacro(row.protein)}</div>
+                <div className="carbohydrates color-carbohydrates">
+                  {formatMacro(row.carbohydrates)}
+                </div>
+                <div className="fats color-fats">{formatMacro(row.fats)}</div>
               </div>
-              <div className="fats color-fats">{formatMacro(row.fats)}</div>
             </div>
-          </div>
-        ))
+          ))}
+        </div>
       )}
       <CreateIngredientDialog
         isOpen={createIngredientOpen}

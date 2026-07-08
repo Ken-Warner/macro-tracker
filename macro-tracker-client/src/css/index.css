@@ -278,6 +278,33 @@ nav span:hover {
   padding: 4px;
 }
 
+.pantry-ingredient-scroll {
+  margin-top: 6px;
+  max-height: 440px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--call-to-action) var(--bg-primary);
+}
+
+.pantry-ingredient-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+
+.pantry-ingredient-scroll::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+  border-radius: 999px;
+}
+
+.pantry-ingredient-scroll::-webkit-scrollbar-thumb {
+  background: var(--call-to-action);
+  border-radius: 999px;
+  border: 2px solid var(--bg-primary);
+}
+
+.pantry-ingredient-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--call-to-action-highlight);
+}
+
 .create-meal-selected-heading {
   width: 90%;
   margin: 12px auto 4px;
@@ -634,6 +661,11 @@ form label {
 
   .create-meal-tab-row .button {
     padding: 8px 4px;
+  }
+
+  .pantry-ingredient-scroll {
+    max-height: none;
+    overflow-y: visible;
   }
 
   .container {
