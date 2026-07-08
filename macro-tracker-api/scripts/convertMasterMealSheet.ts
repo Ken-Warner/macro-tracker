@@ -36,7 +36,9 @@ function parseCsvLine(line: string): string[] {
 }
 
 function parseCsv(content: string): PantryIngredient[] {
-  const lines = content.split(/\r?\n/).filter((line) => line.length > 0);
+  const lines = content
+    .split(/\r?\n/)
+    .filter((line) => line.length > 0 || line.trim()[0] !== "#");
   const ingredients: PantryIngredient[] = [];
 
   for (let i = 1; i < lines.length; i++) {
