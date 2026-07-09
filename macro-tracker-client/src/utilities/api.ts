@@ -252,9 +252,7 @@ export async function getWeighInDataFromRange(
     toDate: toDate.toISOString().split("T")[0],
   });
 
-  const apiResult = await fetch(
-    `/api/weighIn?${searchParams.toString()}`,
-  );
+  const apiResult = await fetch(`/api/weighIn?${searchParams.toString()}`);
 
   if (apiResult.ok) {
     return {

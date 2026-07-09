@@ -224,7 +224,7 @@ ALTER TABLE public.session OWNER TO postgres;
 CREATE TABLE public.user_weights (
     id integer NOT NULL,
     user_id integer NOT NULL,
-    weight integer NOT NULL,
+    weight real NOT NULL,
     date date DEFAULT CURRENT_DATE,
     target_calories integer DEFAULT 0,
     target_protein integer DEFAULT 0,

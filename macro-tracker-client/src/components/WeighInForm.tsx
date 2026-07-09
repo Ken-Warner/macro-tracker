@@ -118,7 +118,8 @@ function computeTargetMacros({
   if (mealsSinceLastWeighIn.length === 0) {
     return {
       ok: false,
-      reason: "No meal history since last weigh-in. Targets cannot be calculated.",
+      reason:
+        "No meal history since last weigh-in. Targets cannot be calculated.",
     };
   }
 
@@ -270,6 +271,29 @@ function goalTextFor(goalValue: number): string {
   return "Aggressively Gaining Weight";
 }
 
+function getSubmitBlockReason(state: WeighInFormState): string | null {
+  if (state.isLoadingInitial) {
+    return "Still loading weigh-in data.";
+  }
+  if (state.isSubmitting) {
+    return "Submit already in progress.";
+  }
+  if (state.currentWeight <= 0) {
+    return "Enter a valid current weight.";
+  }
+  const { targetCalories, targetProtein, targetCarbohydrates, targetFats } =
+    state.targets;
+  if (
+    targetCalories <= 0 ||
+    targetProtein <= 0 ||
+    targetCarbohydrates <= 0 ||
+    targetFats <= 0
+  ) {
+    return "Enter valid target macros before submitting.";
+  }
+  return null;
+}
+
 export default function WeighInForm({
   onWeighInSaved,
 }: {
@@ -286,10 +310,12 @@ export default function WeighInForm({
       try {
         const apiResult = await getMostRecentWeighIn();
         if (!apiResult.ok) {
-          setToast({
-            type: "error",
-            message: apiResult.errorMessage,
-          });
+          if (apiResult.status !== 404) {
+            setToast({
+              type: "error",
+              message: apiResult.errorMessage,
+            });
+          }
           dispatch({ type: "LOAD_FINISHED" });
           return;
         }
@@ -333,6 +359,12 @@ export default function WeighInForm({
   function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
 
+    const blockReason = getSubmitBlockReason(state);
+    if (blockReason) {
+      setToast({ type: "error", message: blockReason });
+      return;
+    }
+
     async function submitWeighIn() {
       try {
         dispatch({ type: "SUBMIT_START" });
@@ -360,12 +392,6 @@ export default function WeighInForm({
     void submitWeighIn();
   }
 
-  const canSubmit =
-    state.currentWeight > 0 &&
-    !state.isSubmitting &&
-    !state.isLoadingInitial &&
-    state.lastWeighIn != null;
-
   return (
     <>
       {isToastDisplayed && (
@@ -379,19 +405,16 @@ export default function WeighInForm({
         )}
         <div>
           <p>
-            Last Weigh-In:{" "}
-            {state.lastWeighIn?.date.toLocaleDateString() ?? "—"}
+            Last Weigh-In: {state.lastWeighIn?.date.toLocaleDateString() ?? "—"}
           </p>
           <p>Previous Weight: {state.lastWeighIn?.weight ?? "—"}</p>
           {!state.mealsConsistent && (
             <p>
-              There seems to be missing days in your meal history. This is
-              going to affect your targets. It is recommended to override them.
+              There seems to be missing days in your meal history. This is going
+              to affect your targets. It is recommended to override them.
             </p>
           )}
-          {state.macroComputeError && (
-            <p>{state.macroComputeError}</p>
-          )}
+          {state.macroComputeError && <p>{state.macroComputeError}</p>}
         </div>
         <form className="form" onSubmit={handleSubmit}>
           <label htmlFor="weigh-in-date">Date</label>
@@ -445,6 +468,7 @@ export default function WeighInForm({
             name="targetCalories"
             className="input"
             value={state.targets.targetCalories}
+            onFocus={(event) => event.target.select()}
             onChange={(e) =>
               dispatch({
                 type: "TARGET_CHANGED",
@@ -460,6 +484,7 @@ export default function WeighInForm({
             name="targetProtein"
             className="input"
             value={state.targets.targetProtein}
+            onFocus={(event) => event.target.select()}
             onChange={(e) =>
               dispatch({
                 type: "TARGET_CHANGED",
@@ -475,6 +500,7 @@ export default function WeighInForm({
             name="targetCarbohydrates"
             className="input"
             value={state.targets.targetCarbohydrates}
+            onFocus={(event) => event.target.select()}
             onChange={(e) =>
               dispatch({
                 type: "TARGET_CHANGED",
@@ -490,6 +516,7 @@ export default function WeighInForm({
             name="targetFats"
             className="input"
             value={state.targets.targetFats}
+            onFocus={(event) => event.target.select()}
             onChange={(e) =>
               dispatch({
                 type: "TARGET_CHANGED",
@@ -498,11 +525,7 @@ export default function WeighInForm({
               })
             }
           />
-          <button
-            className="button submit"
-            type="submit"
-            disabled={!canSubmit}
-          >
+          <button className="button submit" type="submit" disabled={isBusy}>
             Accept
           </button>
         </form>
