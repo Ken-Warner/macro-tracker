@@ -6,12 +6,16 @@ import {
   type ChangeEvent,
   type FormEvent,
 } from "react";
-import type { IngredientRow } from "@macro-tracker/macro-tracker-shared";
+import type {
+  IngredientRow,
+  RecipeRow,
+} from "@macro-tracker/macro-tracker-shared";
 import type { Meal } from "../../types/meal";
 import Loader from "../Loader";
 import ToastMessage, { type Toast } from "../reusables/ToastMessage";
 import {
   getIngredients,
+  getRecipes,
   postMealComposed,
   postMealNonComposed,
 } from "../../utilities/api";
@@ -71,6 +75,14 @@ export default function CreateMealDialog({
     () => new Map<number, { portionSize: number }>(),
   );
 
+  const [recipes, setRecipes] = useState<RecipeRow[]>([]);
+  const [recipesLoading, setRecipesLoading] = useState(false);
+  const [recipesError, setRecipesError] = useState<string | null>(null);
+  const [recipeSearch, setRecipeSearch] = useState("");
+  const [selectedRecipes, setSelectedRecipes] = useState(
+    () => new Map<number, { amount: number }>(),
+  );
+
   const [toast, setToast] = useState<Toast | null>(null);
   const isToastDisplayed = toast != null;
 
@@ -104,7 +116,9 @@ export default function CreateMealDialog({
     if (!isOpen) return;
     setActiveTab("manual");
     setSelectedIngredients(new Map());
+    setSelectedRecipes(new Map());
     setPantrySearch("");
+    setRecipeSearch("");
   }, [isOpen, mealToCopy]);
 
   useEffect(() => {
@@ -114,16 +128,34 @@ export default function CreateMealDialog({
 
     async function load() {
       setIngredientsLoading(true);
+      setRecipesLoading(true);
       setIngredientsError(null);
-      const result = await getIngredients();
+      setRecipesError(null);
+
+      const [ingredientsResult, recipesResult] = await Promise.all([
+        getIngredients(),
+        getRecipes(),
+      ]);
       if (cancelled) return;
-      if (result.ok) {
-        setPantryIngredients(result.body);
+
+      if (ingredientsResult.ok) {
+        setPantryIngredients(
+          ingredientsResult.body.filter((row) => !row.is_deleted),
+        );
       } else {
-        setIngredientsError(result.errorMessage);
+        setIngredientsError(ingredientsResult.errorMessage);
         setPantryIngredients([]);
       }
+
+      if (recipesResult.ok) {
+        setRecipes(recipesResult.body);
+      } else {
+        setRecipesError(recipesResult.errorMessage);
+        setRecipes([]);
+      }
+
       setIngredientsLoading(false);
+      setRecipesLoading(false);
     }
 
     void load();
@@ -187,6 +219,48 @@ export default function CreateMealDialog({
     });
   }, []);
 
+  const addOrMergeRecipe = useCallback((row: RecipeRow) => {
+    setSelectedRecipes((prev) => {
+      const next = new Map(prev);
+      const existing = next.get(row.id);
+      const amount = existing ? existing.amount + 1 : 1;
+      next.set(row.id, { amount: snapPortion(amount) });
+      return next;
+    });
+  }, []);
+
+  const adjustRecipeAmount = useCallback((id: number, delta: number) => {
+    setSelectedRecipes((prev) => {
+      const next = new Map(prev);
+      const cur = next.get(id);
+      if (!cur) return prev;
+      next.set(id, {
+        amount: snapPortion(cur.amount + delta),
+      });
+      return next;
+    });
+  }, []);
+
+  const setRecipeAmountFromInput = useCallback(
+    (id: number, rawValue: string) => {
+      const n = parseFloat(rawValue);
+      setSelectedRecipes((prev) => {
+        const next = new Map(prev);
+        next.set(id, { amount: snapPortion(n) });
+        return next;
+      });
+    },
+    [],
+  );
+
+  const removeRecipe = useCallback((id: number) => {
+    setSelectedRecipes((prev) => {
+      const next = new Map(prev);
+      next.delete(id);
+      return next;
+    });
+  }, []);
+
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
@@ -203,11 +277,17 @@ export default function CreateMealDialog({
             portionSize: snapPortion(portionSize),
           }),
         );
+        const recipesPayload = [...selectedRecipes.entries()].map(
+          ([recipeId, { amount }]) => ({
+            recipeId,
+            amount: snapPortion(amount),
+          }),
+        );
 
-        if (ingredientsPayload.length < 1) {
+        if (ingredientsPayload.length < 1 && recipesPayload.length < 1) {
           setToast({
             type: "error",
-            message: "You must provide at least one ingredient.",
+            message: "You must provide at least one ingredient or recipe.",
           });
           return;
         }
@@ -221,6 +301,7 @@ export default function CreateMealDialog({
         const payload = {
           name: nameTrimmed,
           ingredients: ingredientsPayload,
+          recipes: recipesPayload,
           ...(formData.description
             ? { description: formData.description }
             : {}),
@@ -250,9 +331,25 @@ export default function CreateMealDialog({
           row.name.toLowerCase().includes(q),
         );
 
+  const recipeQ = recipeSearch.trim().toLowerCase();
+  const filteredRecipes =
+    recipeQ === ""
+      ? recipes
+      : recipes.filter((row) => row.name.toLowerCase().includes(recipeQ));
+
   function ingredientNameForId(id: number) {
     const row = pantryIngredients.find((r) => r.id === id);
     return row ? row.name : `Ingredient #${id}`;
+  }
+
+  function recipeNameForId(id: number) {
+    const row = recipes.find((r) => r.id === id);
+    return row ? row.name : `Recipe #${id}`;
+  }
+
+  function recipeAmountLabel(id: number) {
+    const row = recipes.find((r) => r.id === id);
+    return row?.division_mode === "per_ounce" ? "Ounces" : "Portions";
   }
 
   return (
@@ -391,6 +488,7 @@ export default function CreateMealDialog({
 
               {activeTab === "composed" ? (
                 <>
+                  <div className="create-meal-section-heading">Ingredients</div>
                   <label htmlFor="pantry-search-create-meal">
                     Search ingredients
                   </label>
@@ -451,14 +549,85 @@ export default function CreateMealDialog({
                     </div>
                   )}
 
-                  {selectedIngredients.size > 0 ? (
+                  <div className="create-meal-section-heading">Recipes</div>
+                  <label htmlFor="recipe-search-create-meal">
+                    Search recipes
+                  </label>
+                  <input
+                    id="recipe-search-create-meal"
+                    className="input"
+                    type="search"
+                    value={recipeSearch}
+                    onChange={(event) => setRecipeSearch(event.target.value)}
+                    autoComplete="off"
+                  />
+
+                  {recipesLoading ? (
+                    <Loader size={1.25} thickness={3} />
+                  ) : recipesError ? (
+                    <p>{recipesError}</p>
+                  ) : recipes.length === 0 ? (
+                    <p>You have no recipes yet.</p>
+                  ) : filteredRecipes.length === 0 ? (
+                    <p>No recipes match your search.</p>
+                  ) : (
+                    <div
+                      className="create-meal-ingredient-scroll"
+                      role="listbox"
+                      aria-label="Recipes to add"
+                    >
+                      {filteredRecipes.map((row) => (
+                        <div
+                          key={row.id}
+                          role="option"
+                          className="accordion-item"
+                          onClick={() => addOrMergeRecipe(row)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter" || event.key === " ") {
+                              event.preventDefault();
+                              addOrMergeRecipe(row);
+                            }
+                          }}
+                          tabIndex={0}
+                        >
+                          <div className="accordion-item-title">
+                            {row.name}
+                            <span className="recipe-unit-label">
+                              {" "}
+                              (
+                              {row.division_mode === "portions"
+                                ? "per portion"
+                                : "per oz"}
+                              )
+                            </span>
+                          </div>
+                          <div className="accordion-item-macro-grid">
+                            <div className="calories color-calories">
+                              {formatMacro(row.macros_per_unit.calories)}
+                            </div>
+                            <div className="protein color-protein">
+                              {formatMacro(row.macros_per_unit.protein)}
+                            </div>
+                            <div className="carbohydrates color-carbohydrates">
+                              {formatMacro(row.macros_per_unit.carbohydrates)}
+                            </div>
+                            <div className="fats color-fats">
+                              {formatMacro(row.macros_per_unit.fats)}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {selectedIngredients.size > 0 || selectedRecipes.size > 0 ? (
                     <div className="create-meal-selected-heading">
                       In this meal
                     </div>
                   ) : null}
 
                   {[...selectedIngredients.entries()].map(([id, data]) => (
-                    <div key={id} className="create-meal-portion-row">
+                    <div key={`ing-${id}`} className="create-meal-portion-row">
                       <span
                         className="portion-name"
                         title={ingredientNameForId(id)}
@@ -499,6 +668,58 @@ export default function CreateMealDialog({
                           className="button"
                           aria-label={`Remove ${ingredientNameForId(id)}`}
                           onClick={() => removeIngredient(id)}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+
+                  {[...selectedRecipes.entries()].map(([id, data]) => (
+                    <div key={`rec-${id}`} className="create-meal-portion-row">
+                      <span
+                        className="portion-name"
+                        title={recipeNameForId(id)}
+                      >
+                        {recipeNameForId(id)}{" "}
+                        <span className="recipe-unit-label">
+                          ({recipeAmountLabel(id)})
+                        </span>
+                      </span>
+                      <div className="create-meal-portion-controls">
+                        <button
+                          type="button"
+                          className="button"
+                          aria-label={`Decrease ${recipeAmountLabel(id).toLowerCase()}`}
+                          onClick={() => adjustRecipeAmount(id, -PORTION_STEP)}
+                        >
+                          −
+                        </button>
+                        <input
+                          type="number"
+                          className="input create-meal-portion-input"
+                          min={MIN_PORTION}
+                          step={PORTION_STEP}
+                          value={data.amount}
+                          onChange={(event) =>
+                            setRecipeAmountFromInput(id, event.target.value)
+                          }
+                          onFocus={(event) => event.target.select()}
+                          aria-label={`${recipeAmountLabel(id)} for ${recipeNameForId(id)}`}
+                        />
+                        <button
+                          type="button"
+                          className="button"
+                          aria-label={`Increase ${recipeAmountLabel(id).toLowerCase()}`}
+                          onClick={() => adjustRecipeAmount(id, PORTION_STEP)}
+                        >
+                          +
+                        </button>
+                        <button
+                          type="button"
+                          className="button"
+                          aria-label={`Remove ${recipeNameForId(id)}`}
+                          onClick={() => removeRecipe(id)}
                         >
                           ×
                         </button>

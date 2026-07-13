@@ -134,6 +134,83 @@ nav span:hover {
   background-color: var(--banner-good);
 }
 
+.recipe-unit-label {
+  font-weight: 400;
+  font-size: 0.85em;
+  opacity: 0.85;
+}
+
+.recipe-default-hint {
+  font-weight: 400;
+  font-size: 0.85em;
+  opacity: 0.75;
+}
+
+.recipe-division-fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  border: 1px solid var(--border-color, #ccc);
+  width: 90%;
+  margin: 0.5rem auto 1rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.recipe-radio-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.35rem 0;
+}
+
+.recipe-detail-list {
+  list-style: none;
+  width: 90%;
+  margin: 4px auto;
+  padding: 0;
+}
+
+.recipe-detail-row {
+  display: grid;
+  grid-template-columns: 10rem 1fr;
+  gap: 0.5rem;
+  align-items: baseline;
+  margin-bottom: 0.55rem;
+}
+
+.recipe-macro-summary {
+  margin: 0;
+  flex-shrink: 0;
+  justify-items: end;
+}
+
+.recipe-macro-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  width: 90%;
+  margin: 8px auto;
+}
+
+.recipe-macro-row-label {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  font-size: 1.05em;
+}
+
+.create-meal-section-heading {
+  font-weight: 600;
+  margin: 0.75rem 0 0.35rem;
+}
+
+.recipe-divisor-label {
+  display: block;
+  width: auto;
+  margin: 0;
+  text-align: left;
+}
+
 /* Footer */
 .footer-banner {
   background-color: var(--bg-header);
@@ -244,6 +321,36 @@ nav span:hover {
   justify-content: space-around;
 }
 
+.modal-button-container--stacked {
+  flex-direction: column;
+  gap: 5px;
+}
+
+.modal-button-row {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+  width: 100%;
+}
+
+.modal-button-row .button {
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto;
+  margin: 5px 0;
+}
+
+.button.button-danger {
+  background-color: var(--bg-error);
+  border-color: var(--bg-error);
+  color: var(--font-color);
+}
+
+.button.button-danger:active {
+  background-color: #c4164f;
+  border-color: #c4164f;
+}
+
 /* Create meal dialog — tabs & pantry picker */
 .create-meal-tab-row {
   display: flex;
@@ -276,6 +383,8 @@ nav span:hover {
   border: 1px solid var(--complement);
   border-radius: 5px;
   padding: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--call-to-action) var(--bg-primary);
 }
 
 .pantry-ingredient-scroll {
@@ -286,21 +395,25 @@ nav span:hover {
   scrollbar-color: var(--call-to-action) var(--bg-primary);
 }
 
+.create-meal-ingredient-scroll::-webkit-scrollbar,
 .pantry-ingredient-scroll::-webkit-scrollbar {
   width: 10px;
 }
 
+.create-meal-ingredient-scroll::-webkit-scrollbar-track,
 .pantry-ingredient-scroll::-webkit-scrollbar-track {
   background: var(--bg-primary);
   border-radius: 999px;
 }
 
+.create-meal-ingredient-scroll::-webkit-scrollbar-thumb,
 .pantry-ingredient-scroll::-webkit-scrollbar-thumb {
   background: var(--call-to-action);
   border-radius: 999px;
   border: 2px solid var(--bg-primary);
 }
 
+.create-meal-ingredient-scroll::-webkit-scrollbar-thumb:hover,
 .pantry-ingredient-scroll::-webkit-scrollbar-thumb:hover {
   background: var(--call-to-action-highlight);
 }
