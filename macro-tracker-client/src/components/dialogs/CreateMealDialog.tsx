@@ -39,6 +39,15 @@ function snapPortion(n: number): number {
   return Math.max(MIN_PORTION, snapped);
 }
 
+function getDateTime(mealToCopy?: Meal): { date: string; time: string } {
+  const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+    .toISOString()
+    .split("T");
+  const date = mealToCopy?.date || today[0];
+  const time = mealToCopy?.time || today[1].split(".")[0].slice(0, -5) + "00";
+  return { date, time };
+}
+
 function toMealFromApiResponse(data: Record<string, unknown>): Meal {
   return {
     id: Number(data.id),
@@ -98,14 +107,14 @@ export default function CreateMealDialog({
   }, [isOpen]);
 
   useEffect(() => {
-    const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
-      .toISOString()
-      .split("T");
+    const { date, time } = getDateTime(mealToCopy);
+
+    console.log(date, time);
 
     const copiedMealData: Meal = {
       ...mealToCopy,
-      date: today[0],
-      time: today[1].split(".")[0].slice(0, -3),
+      date: date,
+      time: time,
       id: 0,
     };
 
@@ -313,6 +322,20 @@ export default function CreateMealDialog({
         onAddNewMeal(toMealFromApiResponse(newMeal as Record<string, unknown>));
         onClose();
       }
+
+      const { date, time } = getDateTime();
+      setFormData({
+        id: 0,
+        name: "",
+        description: "",
+        date: date,
+        time: time,
+        calories: 0,
+        protein: 0,
+        carbohydrates: 0,
+        fats: 0,
+        isRecurring: false,
+      });
     } catch (error) {
       setToast({
         type: "error",
@@ -327,9 +350,7 @@ export default function CreateMealDialog({
   const filteredPantry =
     q === ""
       ? pantryIngredients
-      : pantryIngredients.filter((row) =>
-          row.name.toLowerCase().includes(q),
-        );
+      : pantryIngredients.filter((row) => row.name.toLowerCase().includes(q));
 
   const recipeQ = recipeSearch.trim().toLowerCase();
   const filteredRecipes =

@@ -692,7 +692,7 @@ form label {
 
 .daily-macros-container {
   display: grid;
-  grid-template-columns: repeat(2, minmax(min-content, 100px));
+  grid-template-columns: repeat(2, minmax(0, 200px));
   justify-content: center;
   gap: 5px;
 }
@@ -701,7 +701,9 @@ form label {
   background-color: var(--bg-header);
   display: flex;
   flex-direction: column;
-  width: 200px;
+  width: 100%;
+  max-width: 200px;
+  min-width: 0;
   justify-content: center;
   border-radius: 10px;
 }

@@ -1,5 +1,7 @@
 import pino from "pino";
 
+type LoggingLevel = { readonly name: string; readonly value: string };
+
 const loggingLevels = Object.freeze({
   DEBUG: Object.freeze({ name: "DEBUG", value: "DEBUG" }),
   INFO: Object.freeze({ name: "INFO", value: "INFO" }),
@@ -14,7 +16,7 @@ const levelToMethod = Object.freeze({
   WARNING: "warn",
   ERROR: "error",
   FATAL: "fatal",
-});
+} as const);
 
 const isProd = process.env.NODE_ENV === "PROD";
 
@@ -29,8 +31,8 @@ const logger = pino(
       },
 );
 
-function log(level, message, payload) {
-  const method = levelToMethod[level.name] ?? "info";
+function log(level: LoggingLevel, message: string, payload?: unknown) {
+  const method = levelToMethod[level.name as keyof typeof levelToMethod] ?? "info";
   logger[method]({ payload }, message);
 }
 

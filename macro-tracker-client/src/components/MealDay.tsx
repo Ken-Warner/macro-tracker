@@ -195,7 +195,7 @@ function MealItem({
       )}
       <div className="accordion-item" onClick={() => setIsModalOpen(true)}>
         <div className="accordion-item-title">
-          {meal.name} at {meal.time}&nbsp;
+          {meal.name} at {formatMealTime(meal.time)}&nbsp;
           {meal.isRecurring ? <sub>🔁</sub> : ""}
         </div>
         <div className="accordion-item-macro-grid">

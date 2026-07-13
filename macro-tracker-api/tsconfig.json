@@ -22,8 +22,7 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowJs": true // remove once fully converted
+    "esModuleInterop": true
   },
   "include": ["src/**/*"]
 }

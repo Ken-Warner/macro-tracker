@@ -322,9 +322,7 @@ export async function getMealHistoryWithRange(
 
   const result = await query(getMealHistoryQuery);
 
-  return (result.rows as MealHistoryDbRow[]).map((row) =>
-    Meal.fromDbRow(row),
-  );
+  return (result.rows as MealHistoryDbRow[]).map((row) => Meal.fromDbRow(row));
 }
 
 async function updateMacroTotals(
@@ -429,6 +427,7 @@ export async function selectRecurringMeals(userId: string): Promise<Meal[]> {
                                 FROM meals AS inner_meals
                                 WHERE inner_meals.date > outer_meals.date
                                   AND inner_meals.user_id = $1)
+            AND outer_meals.is_recurring = true
             AND outer_meals.user_id = $1;`,
     params: [userId],
   };
