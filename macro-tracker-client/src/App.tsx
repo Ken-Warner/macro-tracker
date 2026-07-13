@@ -8,7 +8,6 @@ import Container from "./components/Container";
 import ContainerItem from "./components/ContainerItem";
 import Footer from "./components/Footer";
 import Banner from "./components/Banner";
-import Nav from "./components/Nav";
 import Login from "./components/Login";
 import ToastMessage, { type Toast } from "./components/reusables/ToastMessage";
 import MealDay from "./components/MealDay";
@@ -52,7 +51,7 @@ const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
   .split("T")[0];
 
 export default function App() {
-  const { user, isLoggedIn, logout } = useUser();
+  const { user, isLoggedIn } = useUser();
 
   const [selectedNavItem, setSelectedNavItem] = useState<string>(
     navItems.MACROS,
@@ -230,130 +229,131 @@ export default function App() {
       {isToastDisplayed && (
         <ToastMessage toast={toast} onFinished={() => setToast(null)} />
       )}
-      <Banner />
-      {isLoggedIn && (
-        <Nav
+      <div className="app-layout">
+        <Banner
           navItems={Object.values(navItems)}
           selectedNavItem={selectedNavItem}
           onClick={setSelectedNavItem}
+          isLoggedIn={isLoggedIn}
         />
-      )}
-      <Container
-        className={
-          isLoggedIn
-            ? containerClassByNav[selectedNavItem]
-            : "container--form"
-        }
-      >
-        {isLoggedIn && selectedNavItem === navItems.MACROS && (
-          <>
-            <ContainerItem gridArea="user-info" itemHeader="User Info">
-              <p>
-                Logged in as {user!.username}. (
-                <span className="link" onClick={logout}>
-                  Logout
-                </span>
-                )
-              </p>
-              <p>
-                Contains current goals setting (bulk, cut, maintain), last
-                weight in date and weight.
-              </p>
-            </ContainerItem>
-            <ContainerItem gridArea="macro-history" itemHeader="Macro History">
-              <button className="button" onClick={() => setIsAllExpanded(true)}>
-                Expand All
-              </button>
-              <button
-                className="button"
-                onClick={() => setIsAllExpanded(false)}
+        <Container
+          className={
+            isLoggedIn
+              ? containerClassByNav[selectedNavItem]
+              : "container--form"
+          }
+        >
+          {isLoggedIn && selectedNavItem === navItems.MACROS && (
+            <>
+              <ContainerItem
+                gridArea="macro-history"
+                itemHeader="Macro History"
               >
-                Collapse All
-              </button>
-              {meals.length > 0 ? (
-                meals.map((mealDay, index) => (
-                  <MealDay
-                    key={mealDay.mealsDate}
-                    mealDay={mealDay}
-                    onDeleteMeal={handleDeleteMeal}
-                    onRecurringChange={handleSetRecurringMeal}
-                    canBeRecurring={
-                      index === 0 && mealDay.mealsDate === today ? true : false
-                    }
-                    handleSetCopyMeal={handleClickCopyMeal}
-                    expanded={isAllExpanded}
-                  />
-                ))
-              ) : (
-                <p>You have no macro history ☹</p>
-              )}
-            </ContainerItem>
-            <ContainerItem gridArea="daily-macros" itemHeader="Daily Macros">
-              <DailyMacros
-                dailyMacros={todaysMacros}
-                macroTargets={recentWeighInData}
-              />
-              <button
-                className="button"
-                onClick={() => setCreateMealDialogOpen(true)}
+                <button
+                  className="button"
+                  onClick={() => setIsAllExpanded(true)}
+                >
+                  Expand All
+                </button>
+                <button
+                  className="button"
+                  onClick={() => setIsAllExpanded(false)}
+                >
+                  Collapse All
+                </button>
+                {meals.length > 0 ? (
+                  meals.map((mealDay, index) => (
+                    <MealDay
+                      key={mealDay.mealsDate}
+                      mealDay={mealDay}
+                      onDeleteMeal={handleDeleteMeal}
+                      onRecurringChange={handleSetRecurringMeal}
+                      canBeRecurring={
+                        index === 0 && mealDay.mealsDate === today
+                          ? true
+                          : false
+                      }
+                      handleSetCopyMeal={handleClickCopyMeal}
+                      expanded={isAllExpanded}
+                    />
+                  ))
+                ) : (
+                  <p>You have no macro history ☹</p>
+                )}
+              </ContainerItem>
+              <ContainerItem gridArea="daily-macros" itemHeader="Daily Macros">
+                <DailyMacros
+                  dailyMacros={todaysMacros}
+                  macroTargets={recentWeighInData}
+                />
+                <button
+                  className="button"
+                  onClick={() => setCreateMealDialogOpen(true)}
+                >
+                  Add Meal
+                </button>
+              </ContainerItem>
+            </>
+          )}
+          {isLoggedIn && selectedNavItem === navItems.METRICS && (
+            <>
+              <ContainerItem
+                gridArea="weight-history"
+                itemHeader="Weight History"
               >
-                Add Meal
-              </button>
-            </ContainerItem>
-          </>
-        )}
-        {isLoggedIn && selectedNavItem === navItems.METRICS && (
-          <>
-            <ContainerItem
-              gridArea="weight-history"
-              itemHeader="Weight History"
-            >
-              <Suspense fallback={null}>
-                <WeightHistoryChart refreshKey={weighInChartRefreshKey} />
-              </Suspense>
-            </ContainerItem>
+                <Suspense fallback={null}>
+                  <WeightHistoryChart refreshKey={weighInChartRefreshKey} />
+                </Suspense>
+              </ContainerItem>
+              <ContainerItem
+                gridArea="general-form-container"
+                itemHeader="Weigh-In"
+              >
+                <WeighInForm
+                  onWeighInSaved={() => {
+                    setWeighInChartRefreshKey((key) => key + 1);
+                    void refreshRecentWeighInData();
+                  }}
+                />
+              </ContainerItem>
+            </>
+          )}
+          {isLoggedIn && selectedNavItem === navItems.PANTRY && (
             <ContainerItem
               gridArea="general-form-container"
-              itemHeader="Weigh-In"
+              itemHeader="Pantry"
             >
-              <WeighInForm
-                onWeighInSaved={() => {
-                  setWeighInChartRefreshKey((key) => key + 1);
-                  void refreshRecentWeighInData();
-                }}
-              />
+              <Pantry />
             </ContainerItem>
-          </>
-        )}
-        {isLoggedIn && selectedNavItem === navItems.PANTRY && (
-          <ContainerItem gridArea="general-form-container" itemHeader="Pantry">
-            <Pantry />
-          </ContainerItem>
-        )}
-        {isLoggedIn && selectedNavItem === navItems.RECIPES && (
-          <ContainerItem gridArea="general-form-container" itemHeader="Recipes">
-            <Recipes />
-          </ContainerItem>
-        )}
-        {isLoggedIn && selectedNavItem === navItems.SETTINGS && (
-          <ContainerItem
-            gridArea="general-form-container"
-            itemHeader="Settings"
-          >
-            🚧 Under construction 🚧
-          </ContainerItem>
-        )}
-        {isLoggedIn && selectedNavItem === navItems.SUPPORT && (
-          <ContainerItem
-            gridArea="general-form-container"
-            itemHeader="Support"
-          >
-            🚧 Under construction 🚧
-          </ContainerItem>
-        )}
-        {!isLoggedIn && <Login />}
-      </Container>
-      <Footer />
+          )}
+          {isLoggedIn && selectedNavItem === navItems.RECIPES && (
+            <ContainerItem
+              gridArea="general-form-container"
+              itemHeader="Recipes"
+            >
+              <Recipes />
+            </ContainerItem>
+          )}
+          {isLoggedIn && selectedNavItem === navItems.SETTINGS && (
+            <ContainerItem
+              gridArea="general-form-container"
+              itemHeader="Settings"
+            >
+              🚧 Under construction 🚧
+            </ContainerItem>
+          )}
+          {isLoggedIn && selectedNavItem === navItems.SUPPORT && (
+            <ContainerItem
+              gridArea="general-form-container"
+              itemHeader="Support"
+            >
+              🚧 Under construction 🚧
+            </ContainerItem>
+          )}
+          {!isLoggedIn && <Login />}
+        </Container>
+        <Footer />
+      </div>
       <CreateMealDialog
         isOpen={createMealDialogOpen}
         onClose={() => {

@@ -7,9 +7,6 @@
 - Password recovery workflow
 - Some meal deletions don't delete from the UI but are deleted on the backend.
   - I might just need to do a meal history rework.
-- The home page needs to be reworked.
-  - Update header/footer
-  - Remove Userinfo block and change to something more minimal
 - Ingredients/Recipes export import so I can reseed my account between releases while I'm the only user.
 
 ## Completed Items
@@ -23,3 +20,6 @@
 - Seems to be a bug with recurring meals. When one meal was set to recur, the next day, all meals were there for the next day.
 - Macros on meal history popup are too wide
 - When adding multiple meal items, values persist in the form from previous entries.
+- The home page needs to be reworked.
+  - Update header/footer
+  - Remove Userinfo block and change to something more minimal

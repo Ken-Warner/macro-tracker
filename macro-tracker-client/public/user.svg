@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="User">
+  <circle
+    cx="32"
+    cy="32"
+    r="28"
+    fill="#1c1c1c"
+    stroke="#08cfef"
+    stroke-width="5"
+  />
+  <circle cx="32" cy="24" r="9" fill="#08cfef" />
+  <path
+    d="M16 48c0-9 7.2-14 16-14s16 5 16 14"
+    fill="#08cfef"
+  />
+</svg>
