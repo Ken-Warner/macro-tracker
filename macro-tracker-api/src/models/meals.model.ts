@@ -1,10 +1,12 @@
 import {
   Meal,
   type CreateComposedMealRequest,
+  type MealIngredient,
 } from "@macro-tracker/macro-tracker-shared";
 import { query, buildInsert, DEFAULT } from "./pool.js";
+import { getRecipesByIds } from "./recipes.model.js";
 
-type MealIngredientLine = CreateComposedMealRequest["ingredients"][number];
+type MealIngredientLine = MealIngredient;
 
 type MealInsertPayload = {
   name: string;
@@ -90,23 +92,11 @@ export async function createMeal(
   userId: string,
   meal: CreateComposedMealRequest,
 ): Promise<Meal> {
-  const getIngredientsQuery = {
-    text: `SELECT id, calories, protein, carbohydrates, fats
-            FROM ingredients
-            WHERE user_id = $1
-              AND id IN (${meal.ingredients
-                .map((_, idx) => "$" + String(idx + 2))
-                .join(",")});`,
-    params: [
-      userId,
-      ...meal.ingredients.map((ingredient) => ingredient.ingredientId),
-    ],
-  };
+  const ingredients = meal.ingredients ?? [];
+  const recipes = meal.recipes ?? [];
 
-  const ingredientsResult = await query(getIngredientsQuery);
-
-  if (ingredientsResult.rowCount === null || ingredientsResult.rowCount <= 0) {
-    throw new Error("No results for provided Ingredients.");
+  if (ingredients.length === 0 && recipes.length === 0) {
+    throw new Error("No ingredients or recipes provided.");
   }
 
   const newMeal: MealInsertPayload = {
@@ -120,18 +110,69 @@ export async function createMeal(
     fats: 0,
   };
 
-  for (const ingredient of ingredientsResult.rows as IngredientMacroRow[]) {
-    const portionSize = meal.ingredients.find(
-      (el: MealIngredientLine) => el.ingredientId === ingredient.id,
-    )?.portionSize;
-    if (portionSize === undefined) {
+  if (ingredients.length > 0) {
+    const getIngredientsQuery = {
+      text: `SELECT id, calories, protein, carbohydrates, fats
+              FROM ingredients
+              WHERE user_id = $1
+                AND id IN (${ingredients
+                  .map((_, idx) => "$" + String(idx + 2))
+                  .join(",")});`,
+      params: [
+        userId,
+        ...ingredients.map((ingredient) => ingredient.ingredientId),
+      ],
+    };
+
+    const ingredientsResult = await query(getIngredientsQuery);
+
+    if (
+      ingredientsResult.rowCount === null ||
+      ingredientsResult.rowCount !== ingredients.length
+    ) {
       throw new Error("No results for provided Ingredients.");
     }
 
-    newMeal.calories += ingredient.calories * portionSize;
-    newMeal.protein += ingredient.protein * portionSize;
-    newMeal.carbohydrates += ingredient.carbohydrates * portionSize;
-    newMeal.fats += ingredient.fats * portionSize;
+    for (const ingredient of ingredientsResult.rows as IngredientMacroRow[]) {
+      const portionSize = ingredients.find(
+        (el: MealIngredientLine) => el.ingredientId === ingredient.id,
+      )?.portionSize;
+      if (portionSize === undefined) {
+        throw new Error("No results for provided Ingredients.");
+      }
+
+      newMeal.calories += ingredient.calories * portionSize;
+      newMeal.protein += ingredient.protein * portionSize;
+      newMeal.carbohydrates += ingredient.carbohydrates * portionSize;
+      newMeal.fats += ingredient.fats * portionSize;
+    }
+  }
+
+  if (recipes.length > 0) {
+    const recipeIds = recipes.map((r) => r.recipeId);
+    const loadedRecipes = await getRecipesByIds(userId, recipeIds);
+
+    if (loadedRecipes.length !== recipeIds.length) {
+      throw new Error("One or more recipes were not found.");
+    }
+
+    for (const recipe of loadedRecipes) {
+      const amount = recipes.find((r) => r.recipeId === recipe.id)?.amount;
+      if (amount === undefined || amount <= 0) {
+        throw new Error("Invalid recipe amount.");
+      }
+
+      const divisor = recipe.divisor;
+      if (divisor <= 0) {
+        throw new Error("Recipe divisor is invalid.");
+      }
+
+      const perUnit = recipe.macrosPerUnit;
+      newMeal.calories += perUnit.calories * amount;
+      newMeal.protein += perUnit.protein * amount;
+      newMeal.carbohydrates += perUnit.carbohydrates * amount;
+      newMeal.fats += perUnit.fats * amount;
+    }
   }
 
   newMeal.calories = Math.round(newMeal.calories);

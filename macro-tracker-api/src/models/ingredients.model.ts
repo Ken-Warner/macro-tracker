@@ -1,7 +1,9 @@
 import type pg from "pg";
 import { Ingredient } from "@macro-tracker/macro-tracker-shared";
 import { DEFAULT_PANTRY_INGREDIENTS } from "../data/defaultPantryIngredients.js";
+import { IngredientInUseError } from "../errors/IngredientInUseError.js";
 import { query, queryWithClient } from "./pool.js";
+import { getRecipeNamesUsingIngredient } from "./recipes.model.js";
 
 type RawIngredientInput = {
   name: string;
@@ -104,6 +106,11 @@ export async function deleteIngredientById(
   userId: string,
   ingredientId: number,
 ): Promise<number> {
+  const recipeNames = await getRecipeNamesUsingIngredient(userId, ingredientId);
+  if (recipeNames.length > 0) {
+    throw new IngredientInUseError(recipeNames);
+  }
+
   const deleteIngredientQuery = {
     text: `UPDATE ingredients
             SET is_deleted = TRUE

@@ -6,7 +6,6 @@
 - Logout button takes 2 clicks for some reason.
 - Start work on OCR tool
 - Password recovery workflow
-- Solution recipes
 - When adding multiple meal items, values persist in the form from previous entries.
 - Navbar too wide on mobile. Maybe switch to hamburger menu?
 - Seems to be a bug with recurring meals. When one meal was set to recur, the next day, all meals were there for the next day.
@@ -18,3 +17,5 @@
 - Macros on meal history popup are too wide
 
 ## Completed Items
+
+- Solution recipes

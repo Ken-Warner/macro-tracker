@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Loader from "../Loader";
+import MessageBanner from "../reusables/MessageBanner";
 import type { IngredientRow } from "@macro-tracker/macro-tracker-shared";
 import { deleteIngredient } from "../../utilities/api";
 import { formatMacro } from "../../utilities/formatMacro";
@@ -20,6 +21,7 @@ export default function IngredientDialog({
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [bannerMessage, setBannerMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const modal = dialogRef.current;
@@ -32,19 +34,18 @@ export default function IngredientDialog({
     }
   }, [isOpen]);
 
-  useEffect(() => {
-    if (isOpen) setDeleteError(null);
-  }, [isOpen, ingredient?.id]);
-
   async function handleDelete(): Promise<void> {
     if (!ingredient) return;
     setIsDeleting(true);
     setDeleteError(null);
+    setBannerMessage(null);
     const result = await deleteIngredient(ingredient.id);
     setIsDeleting(false);
     if (result.ok) {
       onDeleted?.(ingredient.id);
       onClose();
+    } else if (result.status === 409) {
+      setBannerMessage(result.errorMessage);
     } else {
       setDeleteError(result.errorMessage);
     }
@@ -64,6 +65,13 @@ export default function IngredientDialog({
       ref={dialogRef}
     >
       <div className="container-item-header">Ingredient</div>
+      {bannerMessage != null ? (
+        <MessageBanner
+          message={bannerMessage}
+          color="bad"
+          onClick={() => setBannerMessage(null)}
+        />
+      ) : null}
       {ingredient == null ? (
         <div className="container-item-body" />
       ) : isDeleting ? (

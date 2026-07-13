@@ -11,10 +11,10 @@ export default function MessageBanner({
     <div
       className={`message-banner ${color === "bad" ? "message-banner-color-bad" : "message-banner-color-good"}`}
     >
-      {message}
       <div className="message-banner-x" onClick={onClick}>
         ❌
       </div>
+      {message}
     </div>
   );
 }

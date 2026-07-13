@@ -3,6 +3,7 @@ import {
   deleteIngredientById,
   getIngredientsByUserId,
 } from "../../models/ingredients.model.js";
+import { IngredientInUseError } from "../../errors/IngredientInUseError.js";
 import { log, loggingLevels, formatResponse } from "../../Utilities/logger.js";
 import validator from "../../Utilities/validator.js";
 import type { Request, Response } from "express";
@@ -70,6 +71,10 @@ async function deleteIngredient(
 
     res.status(200).send();
   } catch (e) {
+    if (e instanceof IngredientInUseError) {
+      res.status(409).send(JSON.stringify({ error: e.message }));
+      return;
+    }
     const message = e instanceof Error ? e.message : String(e);
     log(loggingLevels.ERROR, `deleteIngredient: ${message}`, req.params);
     res.status(500).send(formatResponse());

@@ -4,10 +4,18 @@ export interface MealIngredient {
   portionSize: number;
 }
 
-/** Create a meal from ingredient IDs and portion sizes (`POST /`). */
+/** Recipe line item for a composed meal (`POST /`). */
+export interface MealRecipe {
+  recipeId: number;
+  /** Portions eaten or ounces eaten, depending on the recipe's division_mode. */
+  amount: number;
+}
+
+/** Create a meal from ingredient IDs and/or recipe IDs (`POST /`). */
 export interface CreateComposedMealRequest {
   name: string;
-  ingredients: MealIngredient[];
+  ingredients?: MealIngredient[];
+  recipes?: MealRecipe[];
   description?: string;
   date?: string;
   time?: string;

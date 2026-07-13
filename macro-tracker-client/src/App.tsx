@@ -18,6 +18,7 @@ const WeightHistoryChart = lazy(
   () => import("./components/WeightHistoryChart"),
 );
 import Pantry from "./components/Pantry";
+import Recipes from "./components/Recipes";
 import CreateMealDialog from "./components/dialogs/CreateMealDialog";
 import { EMPTY_MEAL, type Meal } from "./types/meal";
 import { useUser } from "./context/useUser";
@@ -31,6 +32,7 @@ import {
 const navItems = {
   MACROS: "Macros",
   PANTRY: "Pantry",
+  RECIPES: "Recipes",
   METRICS: "Metrics",
   SETTINGS: "Settings",
   SUPPORT: "Support",
@@ -40,6 +42,7 @@ const containerClassByNav: Record<string, string> = {
   [navItems.MACROS]: "container--macros",
   [navItems.METRICS]: "container--metrics",
   [navItems.PANTRY]: "container--form",
+  [navItems.RECIPES]: "container--form",
   [navItems.SETTINGS]: "container--form",
   [navItems.SUPPORT]: "container--form",
 };
@@ -325,6 +328,11 @@ export default function App() {
         {isLoggedIn && selectedNavItem === navItems.PANTRY && (
           <ContainerItem gridArea="general-form-container" itemHeader="Pantry">
             <Pantry />
+          </ContainerItem>
+        )}
+        {isLoggedIn && selectedNavItem === navItems.RECIPES && (
+          <ContainerItem gridArea="general-form-container" itemHeader="Recipes">
+            <Recipes />
           </ContainerItem>
         )}
         {isLoggedIn && selectedNavItem === navItems.SETTINGS && (

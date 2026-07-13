@@ -30,6 +30,8 @@ async function createNewMeal(
   res: Response,
 ) {
   const meal = req.body;
+  const ingredients = meal.ingredients ?? [];
+  const recipes = meal.recipes ?? [];
 
   if (!meal.name) {
     res
@@ -37,18 +39,15 @@ async function createNewMeal(
       .send(JSON.stringify({ error: "You must provide a meal name" }));
     return;
   }
-  if (!meal.ingredients || meal.ingredients.length < 1) {
-    res
-      .status(400)
-      .send(
-        JSON.stringify({ error: "You must provide at least one ingredient" }),
-      );
+  if (ingredients.length < 1 && recipes.length < 1) {
+    res.status(400).send(
+      JSON.stringify({
+        error: "You must provide at least one ingredient or recipe",
+      }),
+    );
     return;
   }
-  if (
-    !meal.ingredients ||
-    meal.ingredients.some((ingredient) => ingredient.ingredientId <= 0)
-  ) {
+  if (ingredients.some((ingredient) => ingredient.ingredientId <= 0)) {
     res
       .status(400)
       .send(
@@ -56,10 +55,7 @@ async function createNewMeal(
       );
     return;
   }
-  if (
-    !meal.ingredients ||
-    meal.ingredients.some((ingredient) => ingredient.portionSize <= 0)
-  ) {
+  if (ingredients.some((ingredient) => ingredient.portionSize <= 0)) {
     res.status(400).send(
       JSON.stringify({
         error: "1 or more of the ingredients portion sizes are invalid",
@@ -67,14 +63,41 @@ async function createNewMeal(
     );
     return;
   }
+  if (recipes.some((recipe) => recipe.recipeId <= 0)) {
+    res
+      .status(400)
+      .send(JSON.stringify({ error: "1 or more of the recipe IDs is invalid" }));
+    return;
+  }
+  if (recipes.some((recipe) => recipe.amount <= 0)) {
+    res.status(400).send(
+      JSON.stringify({
+        error: "1 or more of the recipe amounts are invalid",
+      }),
+    );
+    return;
+  }
 
   try {
-    const newMeal = await createMeal(req.session.userId!, meal);
+    const newMeal = await createMeal(req.session.userId!, {
+      ...meal,
+      ingredients,
+      recipes,
+    });
 
     res.status(201).send(JSON.stringify(newMeal.toJSON()));
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     log(loggingLevels.ERROR, `createNewMeal: ${message}`, req.body);
+    if (
+      message.includes("not found") ||
+      message.includes("No results") ||
+      message.includes("Invalid recipe") ||
+      message.includes("divisor")
+    ) {
+      res.status(400).send(JSON.stringify({ error: message }));
+      return;
+    }
     res.status(500).send(formatResponse());
   }
 }

@@ -205,6 +205,70 @@ ALTER SEQUENCE public.meals_user_id_seq OWNED BY public.meals.user_id;
 
 
 --
+-- Name: recipes; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.recipes (
+    id integer NOT NULL,
+    user_id integer NOT NULL,
+    name text NOT NULL,
+    description text,
+    division_mode text NOT NULL,
+    portion_count real,
+    total_yield_oz real,
+    CONSTRAINT recipes_division_mode_check CHECK (
+        (division_mode = ANY (ARRAY['portions'::text, 'per_ounce'::text]))
+    ),
+    CONSTRAINT recipes_portions_require_count CHECK (
+        ((division_mode <> 'portions'::text) OR ((portion_count IS NOT NULL) AND (portion_count > (0)::double precision)))
+    ),
+    CONSTRAINT recipes_per_ounce_require_yield CHECK (
+        ((division_mode <> 'per_ounce'::text) OR ((total_yield_oz IS NOT NULL) AND (total_yield_oz > (0)::double precision)))
+    )
+);
+
+
+ALTER TABLE public.recipes OWNER TO postgres;
+
+--
+-- Name: recipes_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.recipes_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.recipes_id_seq OWNER TO postgres;
+
+--
+-- Name: recipes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.recipes_id_seq OWNED BY public.recipes.id;
+
+
+--
+-- Name: recipe_ingredients; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.recipe_ingredients (
+    recipe_id integer NOT NULL,
+    ingredient_id integer NOT NULL,
+    default_amount real NOT NULL,
+    current_amount real NOT NULL,
+    CONSTRAINT recipe_ingredients_default_amount_check CHECK ((default_amount > (0)::double precision)),
+    CONSTRAINT recipe_ingredients_current_amount_check CHECK ((current_amount > (0)::double precision))
+);
+
+
+ALTER TABLE public.recipe_ingredients OWNER TO postgres;
+
+--
 -- Name: session; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -351,6 +415,13 @@ ALTER TABLE ONLY public.meals ALTER COLUMN user_id SET DEFAULT nextval('public.m
 
 
 --
+-- Name: recipes id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.recipes ALTER COLUMN id SET DEFAULT nextval('public.recipes_id_seq'::regclass);
+
+
+--
 -- Name: user_weights id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -393,6 +464,22 @@ ALTER TABLE ONLY public.macro_totals
 
 ALTER TABLE ONLY public.meals
     ADD CONSTRAINT meals_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: recipes recipes_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.recipes
+    ADD CONSTRAINT recipes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: recipe_ingredients recipe_ingredients_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.recipe_ingredients
+    ADD CONSTRAINT recipe_ingredients_pkey PRIMARY KEY (recipe_id, ingredient_id);
 
 
 --
@@ -448,6 +535,30 @@ ALTER TABLE ONLY public.macro_totals
 
 ALTER TABLE ONLY public.meals
     ADD CONSTRAINT meals_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: recipes recipes_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.recipes
+    ADD CONSTRAINT recipes_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: recipe_ingredients recipe_ingredients_recipe_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.recipe_ingredients
+    ADD CONSTRAINT recipe_ingredients_recipe_id_fkey FOREIGN KEY (recipe_id) REFERENCES public.recipes(id) ON DELETE CASCADE;
+
+
+--
+-- Name: recipe_ingredients recipe_ingredients_ingredient_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.recipe_ingredients
+    ADD CONSTRAINT recipe_ingredients_ingredient_id_fkey FOREIGN KEY (ingredient_id) REFERENCES public.ingredients(id);
 
 
 --

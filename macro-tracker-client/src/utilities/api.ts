@@ -4,9 +4,15 @@ import type {
   CreateIngredientResponse,
   CreateMealRawRequest,
   CreateNewIngredientRequest,
+  CreateRecipeRequest,
+  CreateRecipeResponse,
   GetIngredientsResponse,
   GetMealHistoryResponse,
+  GetRecipesResponse,
   GetWeighInDataResponse,
+  PatchRecipeRequest,
+  PatchRecipeResponse,
+  ResetRecipeResponse,
 } from "@macro-tracker/macro-tracker-shared";
 import {
   MacroData,
@@ -25,6 +31,34 @@ export type APIResult<T> =
       status: number;
       errorMessage: string;
     };
+
+async function parseErrorMessage(
+  apiResult: Response,
+  fallback: string,
+): Promise<string> {
+  let errorMessage = fallback;
+  try {
+    const json: unknown = await apiResult.json();
+    if (
+      typeof json === "object" &&
+      json !== null &&
+      "error" in json &&
+      typeof (json as { error: unknown }).error === "string"
+    ) {
+      errorMessage = (json as { error: string }).error;
+    } else if (
+      typeof json === "object" &&
+      json !== null &&
+      "errorMessage" in json &&
+      typeof (json as { errorMessage: unknown }).errorMessage === "string"
+    ) {
+      errorMessage = (json as { errorMessage: string }).errorMessage;
+    }
+  } catch {
+    /* keep default */
+  }
+  return errorMessage;
+}
 
 export async function getMealHistoryFromRange(
   fromDate: Date,
@@ -192,32 +226,13 @@ export async function createNewIngredient(
     };
   }
 
-  let errorMessage = "Unable to create ingredient";
-  try {
-    const json: unknown = await apiResult.json();
-    if (
-      typeof json === "object" &&
-      json !== null &&
-      "error" in json &&
-      typeof (json as { error: unknown }).error === "string"
-    ) {
-      errorMessage = (json as { error: string }).error;
-    } else if (
-      typeof json === "object" &&
-      json !== null &&
-      "errorMessage" in json &&
-      typeof (json as { errorMessage: unknown }).errorMessage === "string"
-    ) {
-      errorMessage = (json as { errorMessage: string }).errorMessage;
-    }
-  } catch {
-    /* keep default */
-  }
-
   return {
     ok: false,
     status: apiResult.status,
-    errorMessage,
+    errorMessage: await parseErrorMessage(
+      apiResult,
+      "Unable to create ingredient",
+    ),
   };
 }
 
@@ -238,9 +253,123 @@ export async function deleteIngredient(
     return {
       ok: false,
       status: apiResult.status,
-      errorMessage: "Unable to delete ingredient",
+      errorMessage: await parseErrorMessage(
+        apiResult,
+        "Unable to delete ingredient",
+      ),
     };
   }
+}
+
+export async function getRecipes(): Promise<APIResult<GetRecipesResponse>> {
+  const apiResult = await fetch(`/api/recipes`);
+
+  if (apiResult.ok) {
+    return {
+      ok: true,
+      status: apiResult.status,
+      body: (await apiResult.json()) as GetRecipesResponse,
+    };
+  } else {
+    return {
+      ok: false,
+      status: apiResult.status,
+      errorMessage: "Unable to get recipes",
+    };
+  }
+}
+
+export async function createRecipe(
+  request: CreateRecipeRequest,
+): Promise<APIResult<CreateRecipeResponse>> {
+  const apiResult = await fetch(`/api/recipes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+
+  if (apiResult.ok) {
+    return {
+      ok: true,
+      status: apiResult.status,
+      body: (await apiResult.json()) as CreateRecipeResponse,
+    };
+  }
+
+  return {
+    ok: false,
+    status: apiResult.status,
+    errorMessage: await parseErrorMessage(apiResult, "Unable to create recipe"),
+  };
+}
+
+export async function patchRecipe(
+  recipeId: number,
+  request: PatchRecipeRequest,
+): Promise<APIResult<PatchRecipeResponse>> {
+  const apiResult = await fetch(`/api/recipes/${recipeId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+
+  if (apiResult.ok) {
+    return {
+      ok: true,
+      status: apiResult.status,
+      body: (await apiResult.json()) as PatchRecipeResponse,
+    };
+  }
+
+  return {
+    ok: false,
+    status: apiResult.status,
+    errorMessage: await parseErrorMessage(apiResult, "Unable to update recipe"),
+  };
+}
+
+export async function resetRecipe(
+  recipeId: number,
+): Promise<APIResult<ResetRecipeResponse>> {
+  const apiResult = await fetch(`/api/recipes/${recipeId}/reset`, {
+    method: "POST",
+  });
+
+  if (apiResult.ok) {
+    return {
+      ok: true,
+      status: apiResult.status,
+      body: (await apiResult.json()) as ResetRecipeResponse,
+    };
+  }
+
+  return {
+    ok: false,
+    status: apiResult.status,
+    errorMessage: await parseErrorMessage(apiResult, "Unable to reset recipe"),
+  };
+}
+
+export async function deleteRecipe(
+  recipeId: number,
+): Promise<APIResult<null>> {
+  const apiResult = await fetch(`/api/recipes/${recipeId}`, {
+    method: "DELETE",
+  });
+
+  if (apiResult.ok) {
+    return {
+      ok: true,
+      status: apiResult.status,
+      body: null,
+    };
+  }
+
+  return {
+    ok: false,
+    status: apiResult.status,
+    errorMessage: await parseErrorMessage(apiResult, "Unable to delete recipe"),
+  };
 }
 
 export async function getWeighInDataFromRange(
