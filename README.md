@@ -15,6 +15,11 @@
   - Update header/footer
   - Remove Userinfo block and change to something more minimal
 - Macros on meal history popup are too wide
+- Ingredients/Recipes export import so I can reseed my account between releases while I'm the only user.
+- For times on the meal dialog
+  - Default minutes to 00
+  - Remove seconds
+  - Remove seconds from time display on accordian items
 
 ## Completed Items
 
