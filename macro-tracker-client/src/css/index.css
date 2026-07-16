@@ -958,3 +958,23 @@ form label {
     height: 90vh;
   }
 }
+
+/* Settings */
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.settings-section-title {
+  color: var(--font-color);
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.settings-section-copy {
+  color: var(--font-color);
+  opacity: 0.9;
+  line-height: 1.4;
+}

@@ -18,6 +18,7 @@ const WeightHistoryChart = lazy(
 );
 import Pantry from "./components/Pantry";
 import Recipes from "./components/Recipes";
+import Settings from "./components/Settings";
 import CreateMealDialog from "./components/dialogs/CreateMealDialog";
 import { EMPTY_MEAL, type Meal } from "./types/meal";
 import { useUser } from "./context/useUser";
@@ -339,7 +340,7 @@ export default function App() {
               gridArea="general-form-container"
               itemHeader="Settings"
             >
-              🚧 Under construction 🚧
+              <Settings />
             </ContainerItem>
           )}
           {isLoggedIn && selectedNavItem === navItems.SUPPORT && (

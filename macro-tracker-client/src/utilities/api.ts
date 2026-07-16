@@ -8,8 +8,11 @@ import type {
   CreateRecipeResponse,
   GetIngredientsResponse,
   GetMealHistoryResponse,
+  GetPantryExportResponse,
   GetRecipesResponse,
   GetWeighInDataResponse,
+  ImportPantryRequest,
+  ImportPantryResponse,
   PatchRecipeRequest,
   PatchRecipeResponse,
   ResetRecipeResponse,
@@ -369,6 +372,50 @@ export async function deleteRecipe(
     ok: false,
     status: apiResult.status,
     errorMessage: await parseErrorMessage(apiResult, "Unable to delete recipe"),
+  };
+}
+
+export async function exportPantry(): Promise<
+  APIResult<GetPantryExportResponse>
+> {
+  const apiResult = await fetch(`/api/pantry/export`);
+
+  if (apiResult.ok) {
+    return {
+      ok: true,
+      status: apiResult.status,
+      body: (await apiResult.json()) as GetPantryExportResponse,
+    };
+  }
+
+  return {
+    ok: false,
+    status: apiResult.status,
+    errorMessage: await parseErrorMessage(apiResult, "Unable to export pantry"),
+  };
+}
+
+export async function importPantry(
+  request: ImportPantryRequest,
+): Promise<APIResult<ImportPantryResponse>> {
+  const apiResult = await fetch(`/api/pantry/import`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+
+  if (apiResult.ok) {
+    return {
+      ok: true,
+      status: apiResult.status,
+      body: (await apiResult.json()) as ImportPantryResponse,
+    };
+  }
+
+  return {
+    ok: false,
+    status: apiResult.status,
+    errorMessage: await parseErrorMessage(apiResult, "Unable to import pantry"),
   };
 }
 
