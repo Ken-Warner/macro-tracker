@@ -316,7 +316,8 @@ export async function getMealHistoryWithRange(
             WHERE user_id = $1
               AND date >= $2
               AND date <= $3
-            ORDER BY date DESC;`,
+            ORDER BY date DESC, time ASC;`,
+
     params: [userId, fromDate, toDate],
   };
 
