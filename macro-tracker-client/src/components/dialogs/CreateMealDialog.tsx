@@ -197,6 +197,7 @@ export default function CreateMealDialog({
       next.set(row.id, { portionSize: snapPortion(portionSize) });
       return next;
     });
+    setPantrySearch("");
   }, []);
 
   const adjustPortion = useCallback((id: number, delta: number) => {
@@ -236,6 +237,7 @@ export default function CreateMealDialog({
       next.set(row.id, { amount: snapPortion(amount) });
       return next;
     });
+    setRecipeSearch("");
   }, []);
 
   const adjustRecipeAmount = useCallback((id: number, delta: number) => {

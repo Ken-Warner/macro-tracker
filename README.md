@@ -8,7 +8,6 @@
   - It is possible to delete all items from the meal history for a day and then when it reselects the meals
     for that day it will reselect all the recurring ones again and maintain your macros and so you can continually
     delete until your macros are negative. (This may be fixed with the recurring bug fix though).
-- When pressing an ingredient or recipe during meal creation, clear the search box.
 - When copying a meal, set it's date to today by default.
 - Resort meal list every timea meal is added.
 - Meals can be created for tomorrow that don't show up but prevent daily macros from loading.
@@ -28,3 +27,4 @@
 - The home page needs to be reworked.
   - Update header/footer
   - Remove Userinfo block and change to something more minimal
+- When pressing an ingredient or recipe during meal creation, clear the search box.
