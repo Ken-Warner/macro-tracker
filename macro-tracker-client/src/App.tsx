@@ -162,7 +162,9 @@ export default function App() {
                   ),
                 },
           )
-        : [...currentMeals, { mealsDate: newMeal.date, meals: [newMeal] }];
+        : [...currentMeals, { mealsDate: newMeal.date, meals: [newMeal] }].sort(
+            (a, b) => ((a.mealsDate ?? "") > (b.mealsDate ?? "") ? -1 : 1),
+          );
     });
 
     if (newMeal.date === todaysMacros.date) {

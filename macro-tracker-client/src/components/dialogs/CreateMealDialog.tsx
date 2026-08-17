@@ -107,7 +107,7 @@ export default function CreateMealDialog({
   }, [isOpen]);
 
   useEffect(() => {
-    const { date, time } = getDateTime(mealToCopy);
+    const { date, time } = getDateTime(); // pass in mealToCopy to get the date and time of the meal to copy
 
     console.log(date, time);
 
