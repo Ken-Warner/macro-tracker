@@ -41,3 +41,49 @@ export interface IngredientsValidationErrorResponse {
 export interface IngredientsServerErrorResponse {
   errorMessage: string;
 }
+
+export interface GetIngredientFromImageResponse {
+  success: boolean;
+  calories: number;
+  protein: number;
+  carbohydrates: number;
+  fats: number;
+}
+
+export const MAX_INGREDIENT_IMAGE_BYTES = 8 * 1024 * 1024;
+
+export const INGREDIENT_IMAGE_FIELD_NAME = "image";
+
+export const ALLOWED_INGREDIENT_IMAGE_MIME_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+] as const;
+
+export const ALLOWED_INGREDIENT_IMAGE_EXTENSIONS = [
+  ".jpg",
+  ".jpeg",
+  ".png",
+  ".webp",
+] as const;
+
+export type AllowedIngredientImageMime =
+  (typeof ALLOWED_INGREDIENT_IMAGE_MIME_TYPES)[number];
+
+export type AllowedIngredientImageExtension =
+  (typeof ALLOWED_INGREDIENT_IMAGE_EXTENSIONS)[number];
+
+const allowedMimeSet = new Set<string>(ALLOWED_INGREDIENT_IMAGE_MIME_TYPES);
+const allowedExtSet = new Set<string>(ALLOWED_INGREDIENT_IMAGE_EXTENSIONS);
+
+export function isAllowedIngredientImageMime(
+  mime: string,
+): mime is AllowedIngredientImageMime {
+  return allowedMimeSet.has(mime);
+}
+
+export function isAllowedIngredientImageExtension(
+  ext: string,
+): ext is AllowedIngredientImageExtension {
+  return allowedExtSet.has(ext.toLowerCase());
+}

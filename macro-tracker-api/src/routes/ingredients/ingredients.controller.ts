@@ -6,12 +6,20 @@ import {
 import { IngredientInUseError } from "../../errors/IngredientInUseError.js";
 import { log, loggingLevels, formatResponse } from "../../Utilities/logger.js";
 import validator from "../../Utilities/validator.js";
+import {
+  deleteIngredientImageTemp,
+  IngredientImageValidationError,
+  sanitizedOriginalName,
+  validateIngredientImageBuffer,
+  writeIngredientImageTemp,
+} from "../../Utilities/ingredientImage.js";
 import type { Request, Response } from "express";
 import type {
   CreateIngredientResponse,
   CreateNewIngredientRequest,
   DeleteIngredientRequestParams,
   GetIngredientsResponse,
+  GetIngredientFromImageResponse,
 } from "@macro-tracker/macro-tracker-shared";
 
 async function createNewIngredient(
@@ -94,4 +102,60 @@ async function getIngredients(req: Request, res: Response) {
   }
 }
 
-export { createNewIngredient, deleteIngredient, getIngredients };
+async function getIngredientFromImage(req: Request, res: Response) {
+  let tempPath: string | undefined;
+  try {
+    const file = req.file;
+    if (!file) {
+      res
+        .status(400)
+        .send(JSON.stringify({ error: "An image file is required." }));
+      return;
+    }
+
+    const validated = await validateIngredientImageBuffer(
+      file.buffer,
+      file.mimetype,
+    );
+    tempPath = await writeIngredientImageTemp(file.buffer, validated.ext);
+
+    log(loggingLevels.INFO, "getIngredientFromImage: stored temp image", {
+      userId: req.session.userId,
+      originalName: sanitizedOriginalName(file.originalname),
+      detectedMime: validated.mime,
+      size: file.size,
+    });
+
+    // TODO: Processing with Tesseract.js here
+
+    const body: GetIngredientFromImageResponse = {
+      success: false,
+      calories: 0,
+      protein: 0,
+      carbohydrates: 0,
+      fats: 0,
+    };
+    res.status(200).send(JSON.stringify(body));
+  } catch (e) {
+    if (e instanceof IngredientImageValidationError) {
+      res.status(400).send(JSON.stringify({ error: e.message }));
+      return;
+    }
+    const message = e instanceof Error ? e.message : String(e);
+    log(
+      loggingLevels.ERROR,
+      `getIngredientFromImage: ${message}`,
+      req.session.userId,
+    );
+    res.status(500).send(formatResponse());
+  } finally {
+    await deleteIngredientImageTemp(tempPath);
+  }
+}
+
+export {
+  createNewIngredient,
+  deleteIngredient,
+  getIngredients,
+  getIngredientFromImage,
+};

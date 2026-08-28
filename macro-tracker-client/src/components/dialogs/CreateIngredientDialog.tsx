@@ -6,8 +6,16 @@ import {
   type FormEvent,
 } from "react";
 import Loader from "../Loader";
-import { createNewIngredient } from "../../utilities/api";
-import type { IngredientRow } from "@macro-tracker/macro-tracker-shared";
+import {
+  createNewIngredient,
+  getIngredientFromImage,
+} from "../../utilities/api";
+import {
+  isAllowedIngredientImageExtension,
+  isAllowedIngredientImageMime,
+  MAX_INGREDIENT_IMAGE_BYTES,
+  type IngredientRow,
+} from "@macro-tracker/macro-tracker-shared";
 
 type CreateIngredientDialogProps = {
   isOpen: boolean;
@@ -25,6 +33,42 @@ const emptyForm = {
   fats: 0,
 };
 
+const maxImageSizeMb = MAX_INGREDIENT_IMAGE_BYTES / (1024 * 1024);
+const unsupportedImageMessage =
+  "Please use a JPEG, PNG, or WebP image.";
+
+function validateIngredientImageFile(file: File): string | null {
+  if (file.size === 0) {
+    return "The selected file is empty.";
+  }
+  if (file.size > MAX_INGREDIENT_IMAGE_BYTES) {
+    return `Image must be ${maxImageSizeMb}MB or smaller.`;
+  }
+
+  const lastDot = file.name.lastIndexOf(".");
+  const ext = lastDot >= 0 ? file.name.slice(lastDot).toLowerCase() : "";
+  const mime = file.type.toLowerCase();
+
+  if (
+    ext === ".heic" ||
+    ext === ".heif" ||
+    mime === "image/heic" ||
+    mime === "image/heif"
+  ) {
+    return "HEIC images are not supported. Please use a JPEG, PNG, or WebP image.";
+  }
+
+  if (ext && !isAllowedIngredientImageExtension(ext)) {
+    return unsupportedImageMessage;
+  }
+
+  if (mime && !isAllowedIngredientImageMime(mime)) {
+    return unsupportedImageMessage;
+  }
+
+  return null;
+}
+
 export default function CreateIngredientDialog({
   isOpen,
   onClose,
@@ -32,6 +76,7 @@ export default function CreateIngredientDialog({
   onCreateError,
 }: CreateIngredientDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState(emptyForm);
 
@@ -69,6 +114,34 @@ export default function CreateIngredientDialog({
       }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+  }
+
+  function onImageClick(): void {
+    fileInputRef.current?.click();
+  }
+
+  async function handleImageSelected(
+    event: ChangeEvent<HTMLInputElement>,
+  ): Promise<void> {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) {
+      return;
+    }
+
+    const validationError = validateIngredientImageFile(file);
+    if (validationError) {
+      onCreateError(validationError);
+      return;
+    }
+
+    setIsLoading(true);
+    const result = await getIngredientFromImage(file);
+    setIsLoading(false);
+
+    if (!result.ok) {
+      onCreateError(result.errorMessage);
     }
   }
 
@@ -183,6 +256,11 @@ export default function CreateIngredientDialog({
               onChange={handleChange}
             />
             <div className="modal-button-container">
+              <button className="button" type="button" onClick={onImageClick}>
+                Get From Image
+              </button>
+            </div>
+            <div className="modal-button-container">
               <button className="button" type="submit">
                 Create
               </button>
@@ -193,6 +271,13 @@ export default function CreateIngredientDialog({
           </form>
         </div>
       )}
+      <input
+        accept="image/*"
+        hidden
+        onChange={(event) => void handleImageSelected(event)}
+        ref={fileInputRef}
+        type="file"
+      />
     </dialog>
   );
 }

@@ -6,7 +6,7 @@
     "module": "nodenext",
     "target": "esnext",
     "lib": ["esnext"],
-    "types": ["node", "pg", "connect-pg-simple", "express"],
+    "types": ["node", "pg", "connect-pg-simple", "express", "multer"],
 
     "sourceMap": true,
     "declaration": true,

@@ -1,7 +1,7 @@
 ## Todos
 
 - Logout button takes 2 clicks for some reason.
-- Start work on OCR tool
+- Implement Ingregdient OCR
 - Password recovery workflow
 - Some meal deletions don't delete from the UI but are deleted on the backend.
   - I might just need to do a meal history rework.
@@ -10,10 +10,14 @@
     delete until your macros are negative. (This may be fixed with the recurring bug fix though).
 - Meals can be created for tomorrow that don't show up but prevent daily macros from loading.
 - Update scrollbar on long dialog windows
+- Meal history search
+  - Should this just search what is currently loaded? or open up a dialog with results that match from entire history?
 
 ## Completed Items
 
 **Is a Database Update Required:** `NO`
+
+- Added file upload to the client and API for ingredients. Laid groundwork for OCR tool.
 
 ### Released 2026-08-28
 

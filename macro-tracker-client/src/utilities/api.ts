@@ -7,6 +7,7 @@ import type {
   CreateRecipeRequest,
   CreateRecipeResponse,
   GetIngredientsResponse,
+  GetIngredientFromImageResponse,
   GetMealHistoryExistsResponse,
   GetMealHistoryResponse,
   GetPantryExportResponse,
@@ -19,6 +20,7 @@ import type {
   ResetRecipeResponse,
 } from "@macro-tracker/macro-tracker-shared";
 import {
+  INGREDIENT_IMAGE_FIELD_NAME,
   MacroData,
   WeighInData,
   User,
@@ -219,6 +221,35 @@ export async function putMealRecurring(mealId: number, isRecurring: boolean) {
   return apiResult.ok;
 }
 
+export async function getIngredientFromImage(
+  file: File,
+): Promise<APIResult<GetIngredientFromImageResponse>> {
+  const formData = new FormData();
+  formData.append(INGREDIENT_IMAGE_FIELD_NAME, file);
+
+  const apiResult = await fetch(`/api/ingredients/fromImage`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (apiResult.ok) {
+    return {
+      ok: true,
+      status: apiResult.status,
+      body: (await apiResult.json()) as GetIngredientFromImageResponse,
+    };
+  } else {
+    return {
+      ok: false,
+      status: apiResult.status,
+      errorMessage: await parseErrorMessage(
+        apiResult,
+        "Unable to get ingredient from image",
+      ),
+    };
+  }
+}
+
 export async function getIngredients(): Promise<
   APIResult<GetIngredientsResponse>
 > {
@@ -380,9 +411,7 @@ export async function resetRecipe(
   };
 }
 
-export async function deleteRecipe(
-  recipeId: number,
-): Promise<APIResult<null>> {
+export async function deleteRecipe(recipeId: number): Promise<APIResult<null>> {
   const apiResult = await fetch(`/api/recipes/${recipeId}`, {
     method: "DELETE",
   });
