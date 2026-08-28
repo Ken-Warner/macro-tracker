@@ -18,6 +18,7 @@
 **Is a Database Update Required:** `NO`
 
 - Added file upload to the client and API for ingredients. Laid groundwork for OCR tool.
+- Fixed a linting error within the CreateIngredientDialog.
 
 ### Released 2026-08-28
 

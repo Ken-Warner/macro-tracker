@@ -69,12 +69,22 @@ function validateIngredientImageFile(file: File): string | null {
   return null;
 }
 
+// Remount the form when the dialog opens so fields start empty. Resetting
+// that state in an effect would call setState synchronously and trip the
+// react-hooks lint.
 export default function CreateIngredientDialog({
   isOpen,
+  ...props
+}: CreateIngredientDialogProps) {
+  if (!isOpen) return null;
+  return <CreateIngredientFormDialog {...props} />;
+}
+
+function CreateIngredientFormDialog({
   onClose,
   onCreated,
   onCreateError,
-}: CreateIngredientDialogProps) {
+}: Omit<CreateIngredientDialogProps, "isOpen">) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -83,20 +93,8 @@ export default function CreateIngredientDialog({
   useEffect(() => {
     const modal = dialogRef.current;
     if (!modal) return;
-
-    if (isOpen) {
-      modal.showModal();
-    } else {
-      modal.close();
-    }
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (isOpen) {
-      setFormData(emptyForm);
-      setIsLoading(false);
-    }
-  }, [isOpen]);
+    modal.showModal();
+  }, []);
 
   function handleChange(
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -173,8 +171,6 @@ export default function CreateIngredientDialog({
       onCreateError(result.errorMessage);
     }
   }
-
-  if (!isOpen) return null;
 
   return (
     <dialog className="container-item" onClose={onClose} ref={dialogRef}>
