@@ -1,11 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Loader from "../Loader";
 import type { RecipeRow } from "@macro-tracker/macro-tracker-shared";
-import {
-  deleteRecipe,
-  patchRecipe,
-  resetRecipe,
-} from "../../utilities/api";
+import { deleteRecipe, patchRecipe, resetRecipe } from "../../utilities/api";
 import { formatMacro } from "../../utilities/formatMacro";
 
 const PORTION_STEP = 0.25;
@@ -191,6 +187,10 @@ export default function RecipeDialog({
                   : "Per ounce"}
               </span>
             </li>
+            <li className="recipe-detail-row">
+              <span style={{ fontWeight: 600 }}>Description</span>
+              <span>{draft.description}</span>
+            </li>
             {draft.division_mode === "per_ounce" ? (
               <li className="recipe-detail-row">
                 <span style={{ fontWeight: 600 }}>Total yield (oz)</span>
@@ -233,7 +233,9 @@ export default function RecipeDialog({
                   type="button"
                   className="button"
                   aria-label={`Decrease ${line.name}`}
-                  onClick={() => adjustAmount(line.ingredient_id, -PORTION_STEP)}
+                  onClick={() =>
+                    adjustAmount(line.ingredient_id, -PORTION_STEP)
+                  }
                 >
                   −
                 </button>
