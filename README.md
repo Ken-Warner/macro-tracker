@@ -9,10 +9,13 @@
     for that day it will reselect all the recurring ones again and maintain your macros and so you can continually
     delete until your macros are negative. (This may be fixed with the recurring bug fix though).
 - Meals can be created for tomorrow that don't show up but prevent daily macros from loading.
+- Update scrollbar on long dialog windows
 
 ## Completed Items
 
 **Is a Database Update Required:** `NO`
+
+### Released 2026-08-28
 
 - Ingredients/Recipes export import so I can reseed my account between releases while I'm the only user.
 - Remove `allowJS` option on `macro-tracker-api/tsconfig.json` once fully converted.
