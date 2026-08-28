@@ -7,6 +7,7 @@ import type {
   CreateRecipeRequest,
   CreateRecipeResponse,
   GetIngredientsResponse,
+  GetMealHistoryExistsResponse,
   GetMealHistoryResponse,
   GetPantryExportResponse,
   GetRecipesResponse,
@@ -74,6 +75,32 @@ export async function getMealHistoryFromRange(
 
   const apiResult = await fetch(
     `/api/meals/history?${searchParams.toString()}`,
+  );
+
+  if (apiResult.ok) {
+    return {
+      ok: true,
+      status: apiResult.status,
+      body: await apiResult.json(),
+    };
+  } else {
+    return {
+      ok: false,
+      status: apiResult.status,
+      errorMessage: "Unable to get meal history",
+    };
+  }
+}
+
+export async function hasMealHistoryBefore(
+  beforeDate: Date,
+): Promise<APIResult<GetMealHistoryExistsResponse>> {
+  const searchParams = new URLSearchParams({
+    beforeDate: beforeDate.toISOString().split("T")[0],
+  });
+
+  const apiResult = await fetch(
+    `/api/meals/history/exists?${searchParams.toString()}`,
   );
 
   if (apiResult.ok) {

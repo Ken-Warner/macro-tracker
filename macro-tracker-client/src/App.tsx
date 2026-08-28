@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import {
   MacroData,
   WeighInData,
@@ -9,6 +9,7 @@ import ContainerItem from "./components/ContainerItem";
 import Footer from "./components/Footer";
 import Banner from "./components/Banner";
 import Login from "./components/Login";
+import Loader from "./components/Loader";
 import ToastMessage, { type Toast } from "./components/reusables/ToastMessage";
 import MealDay from "./components/MealDay";
 import DailyMacros from "./components/DailyMacros";
@@ -27,7 +28,33 @@ import {
   getMostRecentWeighIn,
   getMealHistoryFromRange,
   getTodaysMacros,
+  hasMealHistoryBefore,
 } from "./utilities/api";
+
+const HISTORY_PAGE_DAYS = 10;
+
+function getLocalTodayDate(): Date {
+  return new Date(Date.now() - new Date().getTimezoneOffset() * 60000);
+}
+
+function addCalendarDays(date: Date, days: number): Date {
+  return new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate() + days,
+  );
+}
+
+function mergeMealHistory(
+  current: GetMealHistoryResponse,
+  incoming: GetMealHistoryResponse,
+): GetMealHistoryResponse {
+  const existingDates = new Set(current.map((day) => day.mealsDate));
+  const newDays = incoming.filter((day) => !existingDates.has(day.mealsDate));
+  return [...current, ...newDays].sort((a, b) =>
+    (a.mealsDate ?? "") > (b.mealsDate ?? "") ? -1 : 1,
+  );
+}
 
 const navItems = {
   MACROS: "Macros",
@@ -63,6 +90,13 @@ export default function App() {
   });
 
   const [meals, setMeals] = useState<GetMealHistoryResponse>([]);
+  const [oldestLoadedDate, setOldestLoadedDate] = useState<Date | null>(null);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMoreHistory, setHasMoreHistory] = useState(true);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const oldestLoadedDateRef = useRef<Date | null>(null);
+  const isLoadingMoreRef = useRef(false);
+  const hasMoreHistoryRef = useRef(true);
   const [recentWeighInData, setRecentWeighInData] =
     useState<WeighInData | null>(null);
   const [todaysMacros, setTodaysMacros] = useState(() => new MacroData());
@@ -105,15 +139,14 @@ export default function App() {
     }
 
     async function fetchMealHistory() {
-      const todayDate = new Date(
-        Date.now() - new Date().getTimezoneOffset() * 60000,
-      );
+      const todayDate = getLocalTodayDate();
+      const tenDaysAgo = addCalendarDays(todayDate, -HISTORY_PAGE_DAYS);
 
-      const tenDaysAgo = new Date(
-        todayDate.getFullYear(),
-        todayDate.getMonth(),
-        todayDate.getDate() - 10,
-      );
+      setMeals([]);
+      setOldestLoadedDate(null);
+      oldestLoadedDateRef.current = null;
+      setHasMoreHistory(true);
+      hasMoreHistoryRef.current = true;
 
       try {
         const mealHistoryResult = await getMealHistoryFromRange(
@@ -122,13 +155,27 @@ export default function App() {
         );
         if (mealHistoryResult.ok) {
           setMeals(mealHistoryResult.body);
+          oldestLoadedDateRef.current = tenDaysAgo;
+          setOldestLoadedDate(tenDaysAgo);
+
+          if (mealHistoryResult.body.length === 0) {
+            const existsResult = await hasMealHistoryBefore(tenDaysAgo);
+            if (!existsResult.ok || !existsResult.body.hasMore) {
+              hasMoreHistoryRef.current = false;
+              setHasMoreHistory(false);
+            }
+          }
         } else {
+          hasMoreHistoryRef.current = false;
+          setHasMoreHistory(false);
           setToast({
             type: "error",
             message: "Unable to get meal history",
           });
         }
       } catch {
+        hasMoreHistoryRef.current = false;
+        setHasMoreHistory(false);
         setToast({
           type: "error",
           message: "Unable to get meal history",
@@ -148,6 +195,77 @@ export default function App() {
     void fetchRecentWeighIn();
     void fetchMealHistory();
   }, [user]);
+
+  const loadMoreHistory = useCallback(async () => {
+    if (isLoadingMoreRef.current || !hasMoreHistoryRef.current) return;
+    const oldest = oldestLoadedDateRef.current;
+    if (!oldest) return;
+
+    isLoadingMoreRef.current = true;
+    setIsLoadingMore(true);
+
+    const toDate = addCalendarDays(oldest, -1);
+    const fromDate = addCalendarDays(oldest, -HISTORY_PAGE_DAYS);
+
+    try {
+      const mealHistoryResult = await getMealHistoryFromRange(fromDate, toDate);
+      if (!mealHistoryResult.ok) {
+        hasMoreHistoryRef.current = false;
+        setHasMoreHistory(false);
+        setToast({
+          type: "error",
+          message: "Unable to get meal history",
+        });
+        return;
+      }
+
+      setMeals((current) => mergeMealHistory(current, mealHistoryResult.body));
+      oldestLoadedDateRef.current = fromDate;
+      setOldestLoadedDate(fromDate);
+
+      if (mealHistoryResult.body.length === 0) {
+        const existsResult = await hasMealHistoryBefore(fromDate);
+        if (!existsResult.ok || !existsResult.body.hasMore) {
+          hasMoreHistoryRef.current = false;
+          setHasMoreHistory(false);
+        }
+      }
+    } catch {
+      hasMoreHistoryRef.current = false;
+      setHasMoreHistory(false);
+      setToast({
+        type: "error",
+        message: "Unable to get meal history",
+      });
+    } finally {
+      isLoadingMoreRef.current = false;
+      setIsLoadingMore(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!hasMoreHistory || isLoadingMore || oldestLoadedDate === null) return;
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          void loadMoreHistory();
+        }
+      },
+      { root: null, rootMargin: "80px" },
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [
+    hasMoreHistory,
+    isLoadingMore,
+    oldestLoadedDate,
+    meals.length,
+    loadMoreHistory,
+    selectedNavItem,
+  ]);
 
   function handleAddNewMeal(newMeal: Meal) {
     setMeals((currentMeals) => {
@@ -287,24 +405,37 @@ export default function App() {
                     />
                   </button>
                 </div>
-                {meals.length > 0 ? (
-                  meals.map((mealDay, index) => (
-                    <MealDay
-                      key={`${mealDay.mealsDate}-${isAllExpanded.version}`}
-                      mealDay={mealDay}
-                      onDeleteMeal={handleDeleteMeal}
-                      onRecurringChange={handleSetRecurringMeal}
-                      canBeRecurring={
-                        index === 0 && mealDay.mealsDate === today
-                          ? true
-                          : false
-                      }
-                      handleSetCopyMeal={handleClickCopyMeal}
-                      defaultExpanded={isAllExpanded.expanded}
-                    />
-                  ))
-                ) : (
-                  <p>You have no macro history ☹</p>
+                {meals.length > 0
+                  ? meals.map((mealDay, index) => (
+                      <MealDay
+                        key={`${mealDay.mealsDate}-${isAllExpanded.version}`}
+                        mealDay={mealDay}
+                        onDeleteMeal={handleDeleteMeal}
+                        onRecurringChange={handleSetRecurringMeal}
+                        canBeRecurring={
+                          index === 0 && mealDay.mealsDate === today
+                            ? true
+                            : false
+                        }
+                        handleSetCopyMeal={handleClickCopyMeal}
+                        defaultExpanded={isAllExpanded.expanded}
+                      />
+                    ))
+                  : !hasMoreHistory &&
+                    oldestLoadedDate !== null && (
+                      <p>You have no macro history ☹</p>
+                    )}
+                {isLoadingMore && (
+                  <div className="macro-history-load-more">
+                    <Loader size={1.5} thickness={5} />
+                  </div>
+                )}
+                {oldestLoadedDate !== null && hasMoreHistory && (
+                  <div
+                    ref={sentinelRef}
+                    className="macro-history-sentinel"
+                    aria-hidden="true"
+                  />
                 )}
               </ContainerItem>
               <ContainerItem gridArea="daily-macros" itemHeader="Daily Macros">

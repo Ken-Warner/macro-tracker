@@ -435,6 +435,16 @@ dialog::backdrop {
   width: 100%;
 }
 
+.macro-history-load-more {
+  display: flex;
+  justify-content: center;
+  padding: 10px 0;
+}
+
+.macro-history-sentinel {
+  height: 1px;
+}
+
 .button.button-square {
   display: inline-flex;
   align-items: center;

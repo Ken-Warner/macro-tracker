@@ -92,6 +92,15 @@ export interface MealHistoryDayGroup {
 
 export type GetMealHistoryResponse = MealHistoryDayGroup[];
 
+/** Query for whether any meals exist before a date (`GET /history/exists`). */
+export interface GetMealHistoryExistsRequestQuery {
+  beforeDate: string;
+}
+
+export interface GetMealHistoryExistsResponse {
+  hasMore: boolean;
+}
+
 /** Query for meals on a given day offset (`GET /`). */
 export interface GetMealsRequestQuery {
   daysAgo?: string;

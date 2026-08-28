@@ -3,6 +3,7 @@ import {
   createNewMeal,
   createNewMealRaw,
   getMealHistory,
+  getMealHistoryExists,
   getMeals,
   deleteMealById,
   putMealIsRecurring,
@@ -11,6 +12,7 @@ import {
 const mealsRouter = express.Router();
 
 mealsRouter.post("/nonComposed", createNewMealRaw);
+mealsRouter.get("/history/exists", getMealHistoryExists);
 mealsRouter.get("/history", getMealHistory);
 mealsRouter.post("/", createNewMeal);
 mealsRouter.delete("/:id", deleteMealById);

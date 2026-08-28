@@ -32,3 +32,4 @@
 - Resort meal list every time a meal is added.
 - Add the recipe's description to the recipe dialog.
 - Updated expand and collapse buttons and logic.
+- Added sentinel/observer logic to the macro history to allow for infinite scrolling.

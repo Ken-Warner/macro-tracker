@@ -326,6 +326,25 @@ export async function getMealHistoryWithRange(
   return (result.rows as MealHistoryDbRow[]).map((row) => Meal.fromDbRow(row));
 }
 
+export async function hasMealsBefore(
+  userId: string,
+  beforeDate: string,
+): Promise<boolean> {
+  const hasMealsBeforeQuery = {
+    text: `SELECT EXISTS(
+                  SELECT 1
+                  FROM meals
+                  WHERE user_id = $1
+                    AND date < $2
+                ) AS has_more`,
+    params: [userId, beforeDate],
+  };
+
+  const result = await query(hasMealsBeforeQuery);
+  const row = result.rows[0] as { has_more: boolean } | undefined;
+  return Boolean(row?.has_more);
+}
+
 async function updateMacroTotals(
   userId: string,
   meal: {

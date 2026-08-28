@@ -3,6 +3,7 @@ import {
   createMealRaw,
   getMealsFromDay,
   getMealHistoryWithRange,
+  hasMealsBefore,
   deleteMeal,
   updateMealIsRecurring,
   selectRecurringMeals,
@@ -17,6 +18,7 @@ import type {
   CreateComposedMealRequest,
   CreateMealRawRequest,
   CreateMealRawResponse,
+  GetMealHistoryExistsRequestQuery,
   GetMealHistoryRequestQuery,
   GetMealHistoryResponse,
   GetMealsRequestQuery,
@@ -182,10 +184,17 @@ async function getMealHistory(
     const newMeals: RecurringMealBatchRow[] = [];
     const newMacroTotals: MacroTotalsBatchRow[] = [];
 
+    // Allow yesterday in UTC so a client's local "today" still materializes
+    // when it is already the next calendar day in UTC.
+    const utcYesterday =
+      new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    const shouldMaterializeRecurring = toDate >= utcYesterday;
+
     if (
-      (mealHistoryWithoutRecurring.length > 0 &&
+      shouldMaterializeRecurring &&
+      ((mealHistoryWithoutRecurring.length > 0 &&
         mealHistoryWithoutRecurring[0]!.date !== toDate) ||
-      mealHistoryWithoutRecurring.length === 0
+        mealHistoryWithoutRecurring.length === 0)
     ) {
       const recurringMeals = await selectRecurringMeals(sessionUserId);
       if (recurringMeals.length > 0) {
@@ -282,6 +291,36 @@ async function getMealHistory(
   }
 }
 
+async function getMealHistoryExists(
+  req: Request<
+    unknown,
+    unknown,
+    unknown,
+    Partial<GetMealHistoryExistsRequestQuery>
+  >,
+  res: Response,
+) {
+  const beforeDate = req.query.beforeDate;
+
+  if (!beforeDate || !validator.isValidDate(beforeDate)) {
+    res.status(400).send(
+      JSON.stringify({
+        error: "You must provide beforeDate in the format YYYY-MM-DD",
+      }),
+    );
+    return;
+  }
+
+  try {
+    const hasMore = await hasMealsBefore(req.session.userId!, beforeDate);
+    res.status(200).send(JSON.stringify({ hasMore }));
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    log(loggingLevels.ERROR, `getMealHistoryExists: ${message}`, req.query);
+    res.status(500).send(formatResponse());
+  }
+}
+
 async function getMeals(
   req: Request<unknown, unknown, unknown, Partial<GetMealsRequestQuery>>,
   res: Response,
@@ -362,6 +401,7 @@ export {
   createNewMeal,
   createNewMealRaw,
   getMealHistory,
+  getMealHistoryExists,
   getMeals,
   deleteMealById,
   putMealIsRecurring,
