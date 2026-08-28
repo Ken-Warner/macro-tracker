@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-label="Collapse all">
+  <!-- Unexpanded list: a right-pointing triangle beside each of three lines -->
+  <g fill="#272620">
+    <polygon points="2.6,3.8 2.6,8.2 6.41,6" />
+    <rect x="8.2" y="5.1" width="13.3" height="1.8" rx="0.9" />
+
+    <polygon points="2.6,9.8 2.6,14.2 6.41,12" />
+    <rect x="8.2" y="11.1" width="13.3" height="1.8" rx="0.9" />
+
+    <polygon points="2.6,15.8 2.6,20.2 6.41,18" />
+    <rect x="8.2" y="17.1" width="13.3" height="1.8" rx="0.9" />
+  </g>
+</svg>

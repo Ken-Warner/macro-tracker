@@ -426,6 +426,37 @@ dialog::backdrop {
   width: 100%;
 }
 
+.macro-history-actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+}
+
+.button.button-square {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3em;
+  height: 3em;
+  padding: 0.25em;
+  margin: 5px 0;
+  flex: none;
+}
+
+.button.button-square .button-icon {
+  margin: 0;
+}
+
+.button-icon {
+  display: block;
+  width: 2em;
+  height: 2em;
+  margin: 0 auto;
+}
+
 .button:hover {
   /* todo */
 }
@@ -766,11 +797,16 @@ form label {
 }
 
 .accordion-body {
-  display: block;
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.2s ease-in-out;
+}
+.accordion-body-expanded {
+  grid-template-rows: 1fr;
+}
+.accordion-body-inner {
   overflow: hidden;
-  height: 0;
-  transition: height 0.2s ease-in-out;
-  /* transform: translateY(-3px); */
+  min-height: 0;
 }
 
 .accordion-item {

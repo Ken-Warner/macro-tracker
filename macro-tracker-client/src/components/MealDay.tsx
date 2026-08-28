@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useLayoutEffect } from "react";
+import { useRef, useState, useEffect } from "react";
 import type { MealHistoryDayGroup } from "@macro-tracker/macro-tracker-shared";
 import type { Meal } from "../types/meal";
 import Loader from "./Loader";
@@ -22,7 +22,7 @@ type MealDayProps = {
   onRecurringChange: (mealId: number, isRecurring: boolean) => void;
   canBeRecurring?: boolean;
   handleSetCopyMeal: (meal: Meal) => void;
-  expanded: boolean;
+  defaultExpanded: boolean;
 };
 
 type MealItemProps = {
@@ -54,11 +54,9 @@ export default function MealDay({
   onRecurringChange,
   canBeRecurring = false,
   handleSetCopyMeal,
-  expanded,
+  defaultExpanded,
 }: MealDayProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [bodyHeight, setBodyHeight] = useState(0);
-  const accordionBody = useRef<HTMLDivElement>(null);
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   let totalCalories = 0;
   let totalProtein = 0;
   let totalCarbohydrates = 0;
@@ -70,16 +68,6 @@ export default function MealDay({
     totalCarbohydrates += meal.carbohydrates;
     totalFats += meal.fats;
   });
-
-  useEffect(() => {
-    setIsExpanded(expanded);
-  }, [expanded]);
-
-  useLayoutEffect(() => {
-    const el = accordionBody.current;
-    if (!el) return;
-    setBodyHeight(isExpanded ? el.scrollHeight : 0);
-  }, [isExpanded, mealDay.meals]);
 
   return (
     <>
@@ -103,20 +91,22 @@ export default function MealDay({
         <span className="color-fats">{totalFats}</span>&nbsp;
       </button>
       <div
-        className="accordion-body"
-        ref={accordionBody}
-        style={{ height: `${bodyHeight}px` }}
+        className={
+          isExpanded ? "accordion-body accordion-body-expanded" : "accordion-body"
+        }
       >
-        {mealDay.meals.map((meal) => (
-          <MealItem
-            key={meal.id ?? `${meal.name}-${meal.time}`}
-            meal={toMeal(meal)}
-            onDeleteMeal={onDeleteMeal}
-            onRecurringChange={onRecurringChange}
-            canBeRecurring={canBeRecurring}
-            handleSetCopyMeal={handleSetCopyMeal}
-          />
-        ))}
+        <div className="accordion-body-inner">
+          {mealDay.meals.map((meal) => (
+            <MealItem
+              key={meal.id ?? `${meal.name}-${meal.time}`}
+              meal={toMeal(meal)}
+              onDeleteMeal={onDeleteMeal}
+              onRecurringChange={onRecurringChange}
+              canBeRecurring={canBeRecurring}
+              handleSetCopyMeal={handleSetCopyMeal}
+            />
+          ))}
+        </div>
       </div>
     </>
   );

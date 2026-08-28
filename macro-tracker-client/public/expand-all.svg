@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-label="Expand all">
+  <!-- Expanded list: a down-pointing triangle beside the top line; nested lines indented -->
+  <g fill="#272620">
+    <polygon points="2.6,4.73 7.0,4.73 4.8,8.54" />
+    <rect x="8.2" y="5.1" width="13.3" height="1.8" rx="0.9" />
+
+    <rect x="12.6" y="11.1" width="8.9" height="1.8" rx="0.9" />
+    <rect x="12.6" y="17.1" width="8.9" height="1.8" rx="0.9" />
+  </g>
+</svg>

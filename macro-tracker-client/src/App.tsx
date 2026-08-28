@@ -57,7 +57,10 @@ export default function App() {
   const [selectedNavItem, setSelectedNavItem] = useState<string>(
     navItems.MACROS,
   );
-  const [isAllExpanded, setIsAllExpanded] = useState(false);
+  const [isAllExpanded, setIsAllExpanded] = useState({
+    version: 0,
+    expanded: false,
+  });
 
   const [meals, setMeals] = useState<GetMealHistoryResponse>([]);
   const [recentWeighInData, setRecentWeighInData] =
@@ -252,22 +255,42 @@ export default function App() {
                 gridArea="macro-history"
                 itemHeader="Macro History"
               >
-                <button
-                  className="button"
-                  onClick={() => setIsAllExpanded(true)}
-                >
-                  Expand All
-                </button>
-                <button
-                  className="button"
-                  onClick={() => setIsAllExpanded(false)}
-                >
-                  Collapse All
-                </button>
+                <div className="macro-history-actions">
+                  <button
+                    className="button button-square"
+                    onClick={() =>
+                      setIsAllExpanded((current) => ({
+                        version: current.version + 1,
+                        expanded: true,
+                      }))
+                    }
+                    aria-label="Expand All"
+                    title="Expand All"
+                  >
+                    <img src="/expand-all.svg" alt="" className="button-icon" />
+                  </button>
+                  <button
+                    className="button button-square"
+                    onClick={() =>
+                      setIsAllExpanded((current) => ({
+                        version: current.version + 1,
+                        expanded: false,
+                      }))
+                    }
+                    aria-label="Collapse All"
+                    title="Collapse All"
+                  >
+                    <img
+                      src="/collapse-all.svg"
+                      alt=""
+                      className="button-icon"
+                    />
+                  </button>
+                </div>
                 {meals.length > 0 ? (
                   meals.map((mealDay, index) => (
                     <MealDay
-                      key={mealDay.mealsDate}
+                      key={`${mealDay.mealsDate}-${isAllExpanded.version}`}
                       mealDay={mealDay}
                       onDeleteMeal={handleDeleteMeal}
                       onRecurringChange={handleSetRecurringMeal}
@@ -277,7 +300,7 @@ export default function App() {
                           : false
                       }
                       handleSetCopyMeal={handleClickCopyMeal}
-                      expanded={isAllExpanded}
+                      defaultExpanded={isAllExpanded.expanded}
                     />
                   ))
                 ) : (
