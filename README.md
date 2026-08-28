@@ -14,7 +14,6 @@
 
 **Is a Database Update Required:** `NO`
 
-- Add the recipe's description to the recipe dialog.
 - Ingredients/Recipes export import so I can reseed my account between releases while I'm the only user.
 - Remove `allowJS` option on `macro-tracker-api/tsconfig.json` once fully converted.
 - Solution recipes
@@ -31,3 +30,5 @@
 - When pressing an ingredient or recipe during meal creation, clear the search box.
 - When copying a meal, set it's date to today by default.
 - Resort meal list every time a meal is added.
+- Add the recipe's description to the recipe dialog.
+- Updated expand and collapse buttons and logic.
