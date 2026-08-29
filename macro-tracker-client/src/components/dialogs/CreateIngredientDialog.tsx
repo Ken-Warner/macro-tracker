@@ -6,16 +6,9 @@ import {
   type FormEvent,
 } from "react";
 import Loader from "../Loader";
-import {
-  createNewIngredient,
-  getIngredientFromImage,
-} from "../../utilities/api";
-import {
-  isAllowedIngredientImageExtension,
-  isAllowedIngredientImageMime,
-  MAX_INGREDIENT_IMAGE_BYTES,
-  type IngredientRow,
-} from "@macro-tracker/macro-tracker-shared";
+import { createNewIngredient } from "../../utilities/api";
+import type { IngredientRow } from "@macro-tracker/macro-tracker-shared";
+import IngredientImageOcrControls from "./IngredientImageOcrControls";
 
 type CreateIngredientDialogProps = {
   isOpen: boolean;
@@ -33,41 +26,8 @@ const emptyForm = {
   fats: 0,
 };
 
-const maxImageSizeMb = MAX_INGREDIENT_IMAGE_BYTES / (1024 * 1024);
-const unsupportedImageMessage =
-  "Please use a JPEG, PNG, or WebP image.";
-
-function validateIngredientImageFile(file: File): string | null {
-  if (file.size === 0) {
-    return "The selected file is empty.";
-  }
-  if (file.size > MAX_INGREDIENT_IMAGE_BYTES) {
-    return `Image must be ${maxImageSizeMb}MB or smaller.`;
-  }
-
-  const lastDot = file.name.lastIndexOf(".");
-  const ext = lastDot >= 0 ? file.name.slice(lastDot).toLowerCase() : "";
-  const mime = file.type.toLowerCase();
-
-  if (
-    ext === ".heic" ||
-    ext === ".heif" ||
-    mime === "image/heic" ||
-    mime === "image/heif"
-  ) {
-    return "HEIC images are not supported. Please use a JPEG, PNG, or WebP image.";
-  }
-
-  if (ext && !isAllowedIngredientImageExtension(ext)) {
-    return unsupportedImageMessage;
-  }
-
-  if (mime && !isAllowedIngredientImageMime(mime)) {
-    return unsupportedImageMessage;
-  }
-
-  return null;
-}
+const ingredientOcrEnabled =
+  import.meta.env.VITE_INGREDIENT_OCR_ENABLED === "true";
 
 // Remount the form when the dialog opens so fields start empty. Resetting
 // that state in an effect would call setState synchronously and trip the
@@ -86,7 +46,6 @@ function CreateIngredientFormDialog({
   onCreateError,
 }: Omit<CreateIngredientDialogProps, "isOpen">) {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState(emptyForm);
 
@@ -112,50 +71,6 @@ function CreateIngredientFormDialog({
       }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
-    }
-  }
-
-  function onImageClick(): void {
-    fileInputRef.current?.click();
-  }
-
-  async function handleImageSelected(
-    event: ChangeEvent<HTMLInputElement>,
-  ): Promise<void> {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) {
-      return;
-    }
-
-    const validationError = validateIngredientImageFile(file);
-    if (validationError) {
-      onCreateError(validationError);
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const result = await getIngredientFromImage(file);
-      if (!result.ok) {
-        onCreateError(result.errorMessage);
-        return;
-      }
-      if (!result.body.success) {
-        onCreateError("Failed to process image.");
-        return;
-      }
-      setFormData((prev) => ({
-        ...prev,
-        calories: result.body.calories,
-        protein: result.body.protein,
-        carbohydrates: result.body.carbohydrates,
-        fats: result.body.fats,
-      }));
-    } catch {
-      onCreateError("Failed to process image.");
-    } finally {
-      setIsLoading(false);
     }
   }
 
@@ -267,11 +182,18 @@ function CreateIngredientFormDialog({
               value={formData.description}
               onChange={handleChange}
             />
-            <div className="modal-button-container">
-              <button className="button" type="button" onClick={onImageClick}>
-                Get From Image
-              </button>
-            </div>
+            {ingredientOcrEnabled ? (
+              <IngredientImageOcrControls
+                onBusyChange={setIsLoading}
+                onError={onCreateError}
+                onMacros={(macros) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    ...macros,
+                  }));
+                }}
+              />
+            ) : null}
             <div className="modal-button-container">
               <button className="button" type="submit">
                 Create
@@ -283,13 +205,6 @@ function CreateIngredientFormDialog({
           </form>
         </div>
       )}
-      <input
-        accept="image/*"
-        hidden
-        onChange={(event) => void handleImageSelected(event)}
-        ref={fileInputRef}
-        type="file"
-      />
     </dialog>
   );
 }

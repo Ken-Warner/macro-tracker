@@ -11,6 +11,7 @@ import {
   processIngredientImageWithTesseract,
   validateIngredientImageBuffer,
 } from "../../Utilities/ingredientImage.js";
+import { isIngredientOcrEnabled } from "../../Utilities/featureFlags.js";
 import type { Request, Response } from "express";
 import type {
   CreateIngredientResponse,
@@ -101,6 +102,13 @@ async function getIngredients(req: Request, res: Response) {
 }
 
 async function getIngredientFromImage(req: Request, res: Response) {
+  if (!isIngredientOcrEnabled()) {
+    res
+      .status(403)
+      .send(JSON.stringify({ error: "Ingredient OCR is disabled." }));
+    return;
+  }
+
   try {
     const file = req.file;
     if (!file) {

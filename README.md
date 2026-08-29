@@ -1,3 +1,24 @@
+## Ingredient OCR
+
+Ingredient-from-image OCR is **off** unless a flag is the string `true`. Any other value (including unset) leaves it disabled.
+
+There are two flags:
+
+- `INGREDIENT_OCR_ENABLED` — API, read at **runtime**. When it is not `true`, `POST /api/ingredients/fromImage` returns 403.
+- `VITE_INGREDIENT_OCR_ENABLED` — client, inlined at **Vite build / dev**. When it is not `true`, the Get From Image button is omitted from the bundle. Changing this flag requires restarting Vite or rebuilding the client.
+
+### Local
+
+**API:** set `INGREDIENT_OCR_ENABLED=true` in the environment used by `npm run dev` / `npm start` in `macro-tracker-api`. Unset or any other value disables the endpoint (403).
+
+**Client:** set `VITE_INGREDIENT_OCR_ENABLED=true` when starting Vite (`npm run dev` in `macro-tracker-client`) so the Get From Image button is included. Restart Vite after changing it. Unset or any other value omits the button from the bundle.
+
+### Production / Docker
+
+**API:** set `INGREDIENT_OCR_ENABLED=true` in the host `.env` next to Compose (or export it) before `docker compose up`. `compose.yaml` passes it into the `api` service; omit it or set `false` to keep OCR off. Recreate or restart the API container after changing it. No image rebuild is required for the API flag.
+
+**Client:** set `VITE_INGREDIENT_OCR_ENABLED=true` **before** `npm run build:client`, then rebuild the image (`docker compose build` / `npm run docker:build`). The SPA is baked at that Vite build; changing Compose `environment:` alone will not add or remove the button. To disable the UI in a deployed image, rebuild the client without the Vite flag (or with it not `true`) and redeploy.
+
 ## Todos
 
 - Logout button takes 2 clicks for some reason.
