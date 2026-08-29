@@ -4,7 +4,7 @@
   "description": "API for the macro tracker",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --test --experimental-strip-types src/Utilities/nutritionLabelMatch.test.ts",
     "build": "tsc",
     "convert-pantry": "ts-node scripts/convertMasterMealSheet.ts",
     "start": "node dist/server.js",
@@ -27,7 +27,9 @@
   },
   "dependencies": {
     "@macro-tracker/macro-tracker-shared": "file:../macro-tracker-shared",
+    "@techstark/opencv-js": "^5.0.0-release.1",
     "body-parser": "^2.2.2",
+    "canvas": "^3.2.3",
     "connect-pg-simple": "^10.0.0",
     "express": "^5.2.1",
     "express-session": "^1.19.0",
@@ -35,7 +37,8 @@
     "multer": "^2.3.0",
     "pg": "^8.20.0",
     "pino": "^10.3.1",
-    "pino-http": "^11.0.0"
+    "pino-http": "^11.0.0",
+    "tesseract.js": "^7.0.0"
   },
   "type": "module",
   "module": "nodenext"

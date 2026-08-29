@@ -7,11 +7,9 @@ import { IngredientInUseError } from "../../errors/IngredientInUseError.js";
 import { log, loggingLevels, formatResponse } from "../../Utilities/logger.js";
 import validator from "../../Utilities/validator.js";
 import {
-  deleteIngredientImageTemp,
   IngredientImageValidationError,
-  sanitizedOriginalName,
+  processIngredientImageWithTesseract,
   validateIngredientImageBuffer,
-  writeIngredientImageTemp,
 } from "../../Utilities/ingredientImage.js";
 import type { Request, Response } from "express";
 import type {
@@ -103,7 +101,6 @@ async function getIngredients(req: Request, res: Response) {
 }
 
 async function getIngredientFromImage(req: Request, res: Response) {
-  let tempPath: string | undefined;
   try {
     const file = req.file;
     if (!file) {
@@ -117,24 +114,13 @@ async function getIngredientFromImage(req: Request, res: Response) {
       file.buffer,
       file.mimetype,
     );
-    tempPath = await writeIngredientImageTemp(file.buffer, validated.ext);
 
-    log(loggingLevels.INFO, "getIngredientFromImage: stored temp image", {
-      userId: req.session.userId,
-      originalName: sanitizedOriginalName(file.originalname),
-      detectedMime: validated.mime,
-      size: file.size,
-    });
+    const result = await processIngredientImageWithTesseract(file.buffer);
 
-    // TODO: Processing with Tesseract.js here
+    console.log(result);
 
-    const body: GetIngredientFromImageResponse = {
-      success: false,
-      calories: 0,
-      protein: 0,
-      carbohydrates: 0,
-      fats: 0,
-    };
+    const body: GetIngredientFromImageResponse = result;
+
     res.status(200).send(JSON.stringify(body));
   } catch (e) {
     if (e instanceof IngredientImageValidationError) {
@@ -148,8 +134,6 @@ async function getIngredientFromImage(req: Request, res: Response) {
       req.session.userId,
     );
     res.status(500).send(formatResponse());
-  } finally {
-    await deleteIngredientImageTemp(tempPath);
   }
 }
 
