@@ -129,8 +129,8 @@ export async function processIngredientImageWithTesseract(
   const processedBuffer = await preprocessIngredientImage(buffer);
 
   // Leave these here for testing purposes.
-  const tempPath = await writeIngredientImageTemp(processedBuffer, "png");
-  console.log(`Wrote temp image to ${tempPath}`);
+  // const tempPath = await writeIngredientImageTemp(processedBuffer, "png");
+  // console.log(`Wrote temp image to ${tempPath}`);
 
   const worker = await createWorker("eng");
   try {
@@ -141,7 +141,7 @@ export async function processIngredientImageWithTesseract(
 
     const result = await worker.recognize(processedBuffer);
 
-    console.log(result);
+    // console.log(result);
 
     return patternMatchText(result.data.text);
   } finally {

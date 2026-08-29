@@ -244,7 +244,7 @@ export async function getIngredientFromImage(
       status: apiResult.status,
       errorMessage: await parseErrorMessage(
         apiResult,
-        "Unable to get ingredient from image",
+        "Failed to process image.",
       ),
     };
   }

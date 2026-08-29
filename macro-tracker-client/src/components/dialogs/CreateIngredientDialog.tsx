@@ -135,11 +135,27 @@ function CreateIngredientFormDialog({
     }
 
     setIsLoading(true);
-    const result = await getIngredientFromImage(file);
-    setIsLoading(false);
-
-    if (!result.ok) {
-      onCreateError(result.errorMessage);
+    try {
+      const result = await getIngredientFromImage(file);
+      if (!result.ok) {
+        onCreateError(result.errorMessage);
+        return;
+      }
+      if (!result.body.success) {
+        onCreateError("Failed to process image.");
+        return;
+      }
+      setFormData((prev) => ({
+        ...prev,
+        calories: result.body.calories,
+        protein: result.body.protein,
+        carbohydrates: result.body.carbohydrates,
+        fats: result.body.fats,
+      }));
+    } catch {
+      onCreateError("Failed to process image.");
+    } finally {
+      setIsLoading(false);
     }
   }
 

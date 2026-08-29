@@ -117,8 +117,6 @@ async function getIngredientFromImage(req: Request, res: Response) {
 
     const result = await processIngredientImageWithTesseract(file.buffer);
 
-    console.log(result);
-
     const body: GetIngredientFromImageResponse = result;
 
     res.status(200).send(JSON.stringify(body));
