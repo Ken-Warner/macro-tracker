@@ -22,7 +22,6 @@ There are two flags:
 ## Todos
 
 - Logout button takes 2 clicks for some reason.
-- Implement Ingregdient OCR
 - Password recovery workflow
 - Some meal deletions don't delete from the UI but are deleted on the backend.
   - I might just need to do a meal history rework.
@@ -38,8 +37,12 @@ There are two flags:
 
 **Is a Database Update Required:** `NO`
 
+### Released 2026-08-29
+
 - Added file upload to the client and API for ingredients. Laid groundwork for OCR tool.
 - Fixed a linting error within the CreateIngredientDialog.
+- Implement Ingregdient OCR
+- Added OCR tool feature flag
 
 ### Released 2026-08-28
 
