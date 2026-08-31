@@ -1,4 +1,8 @@
-import { getUser, createUser } from "../../models/users.model.js";
+import {
+  getUser,
+  createUser,
+  upsertPasswordRecoveryToken,
+} from "../../models/users.model.js";
 import validator from "../../Utilities/validator.js";
 import { log, loggingLevels, formatResponse } from "../../Utilities/logger.js";
 import type { Request, Response } from "express";
@@ -7,6 +11,8 @@ import type {
   UserLoginRequest,
 } from "@macro-tracker/macro-tracker-shared";
 import { User } from "@macro-tracker/macro-tracker-shared";
+import crypto from "node:crypto";
+import sendSimpleEmail from "../../Utilities/simpleEmail.js";
 
 export async function createNewUser(
   req: Request<{}, {}, UserCreateRequest>,
@@ -110,4 +116,32 @@ export function logUserOut(req: Request, res: Response) {
     res.clearCookie("connect.sid");
     res.status(200).send();
   });
+}
+
+export async function setPasswordRecovery(req: Request, res: Response) {
+  const username = req.params.username as string;
+  const token = crypto.randomInt(100000, 1000000).toString();
+  const resetExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+  try {
+    const emailAddress = await upsertPasswordRecoveryToken(
+      username,
+      token,
+      resetExpires,
+    );
+    // Send email to user with token
+    await sendSimpleEmail(
+      emailAddress,
+      "Password Recovery",
+      `Your password recovery token is ${token}`,
+    );
+    res.status(200).send();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    log(loggingLevels.ERROR, `setPasswordRecovery: ${message}`, {
+      username,
+      resetExpires,
+    });
+    res.status(500).send(formatResponse());
+  }
 }

@@ -23,6 +23,10 @@ There are two flags:
 
 - Logout button takes 2 clicks for some reason.
 - Password recovery workflow
+  - Token input form
+  - New password form
+  - Simple email sender
+  - Validate new schema
 - Some meal deletions don't delete from the UI but are deleted on the backend.
   - I might just need to do a meal history rework.
   - It is possible to delete all items from the meal history for a day and then when it reselects the meals
@@ -35,7 +39,13 @@ There are two flags:
 
 ## Completed Items
 
-**Is a Database Update Required:** `NO`
+**Is a Database Update Required:** `YES`
+
+- Phase 1 of password recovery
+  - Token creation API
+  - Token storage in table with expiry time
+  - Password recovery form on login page
+  - Simple email sender stub
 
 ### Released 2026-08-29
 

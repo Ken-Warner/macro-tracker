@@ -574,3 +574,24 @@ export async function postMealComposed(meal: CreateComposedMealRequest) {
     throw new Error("There was a problem adding the new meal.");
   }
 }
+
+export async function getPasswordRecovery(
+  username: string,
+): Promise<APIResult<null>> {
+  const apiResult = await fetch(`/api/users/passwordRecovery/${username}`);
+  if (apiResult.ok) {
+    return {
+      ok: true,
+      status: apiResult.status,
+      body: null,
+    };
+  }
+  return {
+    ok: false,
+    status: apiResult.status,
+    errorMessage: await parseErrorMessage(
+      apiResult,
+      "Unable to set password recovery token.",
+    ),
+  };
+}
