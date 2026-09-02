@@ -67,7 +67,7 @@ export async function upsertPasswordRecoveryToken(
 
   const upsertPasswordRecoveryTokenQuery = {
     text: `INSERT INTO user_password_tokens (username, token, reset_expires)
-      VALUES ($1, $2, $3)
+      VALUES ($1, crypt($2, gen_salt('bf')), $3)
       ON CONFLICT (username) DO UPDATE SET token = crypt($2, gen_salt('bf')), reset_expires = $3;`,
     params: [username, token, resetExpires],
   };
@@ -79,6 +79,40 @@ export async function upsertPasswordRecoveryToken(
   }
 
   return emailAddress;
+}
+
+export async function selectPasswordRecoveryToken(
+  username: string,
+  token: string,
+): Promise<boolean> {
+  const now = new Date();
+  const selectPasswordRecoveryTokenQuery = {
+    text: `SELECT EXISTS (
+    SELECT 1 FROM user_password_tokens WHERE username = $1
+    AND token = crypt($2, token) 
+    AND reset_expires > $3) AS valid;`,
+    params: [username, token, now],
+  };
+
+  const result = await query(selectPasswordRecoveryTokenQuery);
+
+  return result.rows[0].valid as boolean;
+}
+
+export async function updatePasswordRecoveryVerificationUuid(
+  username: string,
+  verificationUuid: string,
+): Promise<void> {
+  const updatePasswordRecoveryVerificationUuidQuery = {
+    text: `UPDATE user_password_tokens SET verification_uuid = $1 WHERE username = $2;`,
+    params: [verificationUuid, username],
+  };
+
+  const result = await query(updatePasswordRecoveryVerificationUuidQuery);
+
+  if (result.rowCount !== 1) {
+    throw new Error("Failed to update password recovery verification UUID.");
+  }
 }
 
 async function selectUserEmailAddress(username: string): Promise<string> {

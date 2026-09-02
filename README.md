@@ -4,11 +4,11 @@ A personal nutrition tracker: meals, ingredients, recipes, pantry import/export,
 
 This is an npm-workspaces monorepo:
 
-| Package | Path | Role |
-| --- | --- | --- |
+| Package                               | Path                   | Role                                  |
+| ------------------------------------- | ---------------------- | ------------------------------------- |
 | `@macro-tracker/macro-tracker-shared` | `macro-tracker-shared` | Shared TypeScript types and contracts |
-| `macro-tracker-api` | `macro-tracker-api` | Express API and static SPA host |
-| `macro-tracker-client` | `macro-tracker-client` | React (Vite) SPA |
+| `macro-tracker-api`                   | `macro-tracker-api`    | Express API and static SPA host       |
+| `macro-tracker-client`                | `macro-tracker-client` | React (Vite) SPA                      |
 
 The client production build is written to `macro-tracker-api/dist/public/` and served by the API.
 
@@ -88,11 +88,11 @@ Ingredient-from-image OCR is **off** unless a flag is the string `true`. Any oth
 
 These live in the root `.env`. Compose interpolates them into both the `api` and `db` services.
 
-| Variable | Purpose |
-| --- | --- |
-| `DB_USER` | Postgres username. Passed to the API pool and to `POSTGRES_USER` on the `db` service. |
+| Variable      | Purpose                                                                                   |
+| ------------- | ----------------------------------------------------------------------------------------- |
+| `DB_USER`     | Postgres username. Passed to the API pool and to `POSTGRES_USER` on the `db` service.     |
 | `DB_PASSWORD` | Postgres password. Passed to the API pool and to `POSTGRES_PASSWORD` on the `db` service. |
-| `DB_DATABASE` | Database name. Passed to the API pool and to `POSTGRES_DB` on the `db` service. |
+| `DB_DATABASE` | Database name. Passed to the API pool and to `POSTGRES_DB` on the `db` service.           |
 
 `macro-tracker-shared` does not read any environment variables.
 
@@ -100,18 +100,18 @@ These live in the root `.env`. Compose interpolates them into both the `api` and
 
 Set these in the root `.env` for Docker, or in the API process environment for a host run. Docker Compose forwards each of them into the `api` container (except `PORT`, which is also used in the host port mapping).
 
-| Variable | Purpose |
-| --- | --- |
-| `PORT` | Port the API listens on (default `80`). Compose maps host `80` to this container port. |
-| `DB_HOST` | Postgres hostname. Use `db` (the Compose service name) in Docker. Defaults to `127.0.0.1` if unset. |
-| `DB_PORT` | Postgres port (default `5432`). |
-| `DB_USER` | See [Shared](#shared-repo-root-env-used-by-compose-for-api-and-postgres). Default `postgres`. |
-| `DB_PASSWORD` | See [Shared](#shared-repo-root-env-used-by-compose-for-api-and-postgres). Default `test123`. |
-| `DB_DATABASE` | See [Shared](#shared-repo-root-env-used-by-compose-for-api-and-postgres). Default `postgres`. |
-| `SESSION_SECRET` | Secret for signing session cookies. Falls back to a hardcoded default if unset; set a long random value. |
-| `SESSION_COOKIE_SECURE` | Session cookie `secure` flag. `true` / `false` force the value. If unset, cookies are secure only when `NODE_ENV` is `PROD`. |
-| `NODE_ENV` | `PROD` uses JSON logs (no `pino-pretty`) and defaults secure cookies on. `TEST` logs password-recovery email to the console instead of sending it. Any other value uses pretty logs and does not send email (the sender throws until implemented). |
-| `INGREDIENT_OCR_ENABLED` | OCR **runtime** flag. Must be the string `true` to allow `POST /api/ingredients/fromImage`; otherwise the endpoint returns 403. |
+| Variable                 | Purpose                                                                                                                                                                                                                                            |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PORT`                   | Port the API listens on (default `80`). Compose maps host `80` to this container port.                                                                                                                                                             |
+| `DB_HOST`                | Postgres hostname. Use `db` (the Compose service name) in Docker. Defaults to `127.0.0.1` if unset.                                                                                                                                                |
+| `DB_PORT`                | Postgres port (default `5432`).                                                                                                                                                                                                                    |
+| `DB_USER`                | See [Shared](#shared-repo-root-env-used-by-compose-for-api-and-postgres). Default `postgres`.                                                                                                                                                      |
+| `DB_PASSWORD`            | See [Shared](#shared-repo-root-env-used-by-compose-for-api-and-postgres). Default `test123`.                                                                                                                                                       |
+| `DB_DATABASE`            | See [Shared](#shared-repo-root-env-used-by-compose-for-api-and-postgres). Default `postgres`.                                                                                                                                                      |
+| `SESSION_SECRET`         | Secret for signing session cookies. Falls back to a hardcoded default if unset; set a long random value.                                                                                                                                           |
+| `SESSION_COOKIE_SECURE`  | Session cookie `secure` flag. `true` / `false` force the value. If unset, cookies are secure only when `NODE_ENV` is `PROD`.                                                                                                                       |
+| `NODE_ENV`               | `PROD` uses JSON logs (no `pino-pretty`) and defaults secure cookies on. `TEST` logs password-recovery email to the console instead of sending it. Any other value uses pretty logs and does not send email (the sender throws until implemented). |
+| `INGREDIENT_OCR_ENABLED` | OCR **runtime** flag. Must be the string `true` to allow `POST /api/ingredients/fromImage`; otherwise the endpoint returns 403.                                                                                                                    |
 
 **OCR on the API — local:** set `INGREDIENT_OCR_ENABLED=true` in the environment used by `npm run dev` / `npm start` in `macro-tracker-api`. Unset or any other value disables the endpoint (403).
 
@@ -121,10 +121,10 @@ Set these in the root `.env` for Docker, or in the API process environment for a
 
 Vite loads env files from `macro-tracker-client/` (for example `.env` or `.env.local`). `VITE_*` values are inlined at **dev / build** time. `API_PROXY_TARGET` is read only by `vite.config.ts` (dev proxy); it is not baked into the SPA.
 
-| Variable | Purpose |
-| --- | --- |
+| Variable                      | Purpose                                                                                                                                                                                                                     |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `VITE_INGREDIENT_OCR_ENABLED` | OCR **UI** flag. Must be the string `true` for the Get From Image button to be included. Any other value (including unset) omits the button from the bundle. Changing it requires restarting Vite or rebuilding the client. |
-| `API_PROXY_TARGET` | Dev-server proxy target for `/api` (default `http://localhost:80`). Used only by `npm run dev` in the client. |
+| `API_PROXY_TARGET`            | Dev-server proxy target for `/api` (default `http://localhost:80`). Used only by `npm run dev` in the client.                                                                                                               |
 
 **OCR on the client — local:** set `VITE_INGREDIENT_OCR_ENABLED=true` when starting Vite (`npm run dev` in `macro-tracker-client`) so the Get From Image button is included. Restart Vite after changing it.
 
@@ -156,41 +156,41 @@ API_PROXY_TARGET=http://localhost:80
 
 ### Root `package.json`
 
-| Script | What it does |
-| --- | --- |
-| `build:all` | Runs `build` in every workspace (`shared`, then `client`, then `api`). |
-| `build:shared` | Compiles `macro-tracker-shared` to `macro-tracker-shared/dist`. Run this before the API or client. |
-| `build:client` | Typechecks and Vite-builds the SPA into `macro-tracker-api/dist/public/`. Required before a Docker API image if you want the UI. |
-| `build:api` | Compiles the API TypeScript to `macro-tracker-api/dist`. |
-| `docker:up` | `docker compose up -d` — start the API and Postgres in the background. |
-| `docker:build` | `docker compose build` — rebuild images without starting them. |
-| `docker:build:up` | `docker compose up --build -d` — rebuild and start in the background. |
+| Script            | What it does                                                                                                                     |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `build:all`       | Runs `build` in every workspace (`shared`, then `client`, then `api`).                                                           |
+| `build:shared`    | Compiles `macro-tracker-shared` to `macro-tracker-shared/dist`. Run this before the API or client.                               |
+| `build:client`    | Typechecks and Vite-builds the SPA into `macro-tracker-api/dist/public/`. Required before a Docker API image if you want the UI. |
+| `build:api`       | Compiles the API TypeScript to `macro-tracker-api/dist`.                                                                         |
+| `docker:up`       | `docker compose up -d` — start the API and Postgres in the background.                                                           |
+| `docker:build`    | `docker compose build` — rebuild images without starting them.                                                                   |
+| `docker:build:up` | `docker compose up --build -d` — rebuild and start in the background.                                                            |
 
 ### `macro-tracker-shared`
 
-| Script | What it does |
-| --- | --- |
-| `build` | `tsc` — emit shared contracts to `dist/`. |
-| `test` | Placeholder; exits with an error (no tests yet). |
+| Script  | What it does                                     |
+| ------- | ------------------------------------------------ |
+| `build` | `tsc` — emit shared contracts to `dist/`.        |
+| `test`  | Placeholder; exits with an error (no tests yet). |
 
 ### `macro-tracker-client`
 
-| Script | What it does |
-| --- | --- |
-| `dev` | Vite dev server (port 5173) with `/api` proxied to the API. |
-| `build` | `tsc -b && vite build` — production SPA into the API `dist/public` folder. |
-| `lint` | ESLint over the client. |
-| `preview` | Serve the last production Vite build locally. |
+| Script    | What it does                                                               |
+| --------- | -------------------------------------------------------------------------- |
+| `dev`     | Vite dev server (port 5173) with `/api` proxied to the API.                |
+| `build`   | `tsc -b && vite build` — production SPA into the API `dist/public` folder. |
+| `lint`    | ESLint over the client.                                                    |
+| `preview` | Serve the last production Vite build locally.                              |
 
 ### `macro-tracker-api`
 
-| Script | What it does |
-| --- | --- |
-| `dev` | `nodemon` + `ts-node` on `src/server.ts` for local API development. |
-| `build` | `tsc` — compile to `dist/`. |
-| `start` | `node dist/server.js` — run the compiled API (used by the Docker image). |
-| `watch` | `tsc -w` — recompile on change without running the server. |
-| `test` | Node test runner on `src/Utilities/nutritionLabelMatch.test.ts`. |
+| Script           | What it does                                                                                |
+| ---------------- | ------------------------------------------------------------------------------------------- |
+| `dev`            | `nodemon` + `ts-node` on `src/server.ts` for local API development.                         |
+| `build`          | `tsc` — compile to `dist/`.                                                                 |
+| `start`          | `node dist/server.js` — run the compiled API (used by the Docker image).                    |
+| `watch`          | `tsc -w` — recompile on change without running the server.                                  |
+| `test`           | Node test runner on `src/Utilities/nutritionLabelMatch.test.ts`.                            |
 | `convert-pantry` | One-off `ts-node` script that converts `scripts/masterMealSheet.csv` into pantry seed data. |
 
 From the repo root, workspace scripts can be run with `npm run <script> --workspace=<package-name>`.
@@ -199,8 +199,8 @@ From the repo root, workspace scripts can be run with `npm run <script> --worksp
 
 - Logout button takes 2 clicks for some reason.
 - Password recovery workflow
-  - Token input form
-  - New password form
+  - New password and verification UUID API.
+  - Client side logic to send user to login page if new password is accepted.
   - Simple email sender
   - Validate new schema
     - Remove `db/schema.sql` from `.gitignore`.
@@ -221,6 +221,11 @@ From the repo root, workspace scripts can be run with `npm run <script> --worksp
 ## Completed Items
 
 **Is a Database Update Required:** `YES`
+
+- Phase 2 of password recovery
+  - Token verification API (checks token from email, if correct, creates verification UUID in DB and sends to client with 200)
+  - Token verification form and new password input form in `PasswordRecoveryForm.tsx`
+  - Updates to `api.ts` for client calls.
 
 - Phase 1 of password recovery
   - Token creation API

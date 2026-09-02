@@ -595,3 +595,32 @@ export async function getPasswordRecovery(
     ),
   };
 }
+
+export async function postVerificationToken(
+  username: string,
+  verificationToken: string,
+): Promise<APIResult<{ verificationUuid: string }>> {
+  const apiResult = await fetch(
+    `/api/users/passwordRecovery/${username}/verificationToken`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ verificationToken }),
+    },
+  );
+  if (apiResult.ok) {
+    return {
+      ok: true,
+      status: apiResult.status,
+      body: (await apiResult.json()) as { verificationUuid: string },
+    };
+  }
+  return {
+    ok: false,
+    status: apiResult.status,
+    errorMessage: await parseErrorMessage(
+      apiResult,
+      "Unable to verify verification token",
+    ),
+  };
+}

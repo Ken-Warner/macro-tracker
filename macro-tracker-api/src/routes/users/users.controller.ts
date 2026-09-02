@@ -2,6 +2,8 @@ import {
   getUser,
   createUser,
   upsertPasswordRecoveryToken,
+  selectPasswordRecoveryToken,
+  updatePasswordRecoveryVerificationUuid,
 } from "../../models/users.model.js";
 import validator from "../../Utilities/validator.js";
 import { log, loggingLevels, formatResponse } from "../../Utilities/logger.js";
@@ -141,6 +143,35 @@ export async function setPasswordRecovery(req: Request, res: Response) {
     log(loggingLevels.ERROR, `setPasswordRecovery: ${message}`, {
       username,
       resetExpires,
+    });
+    res.status(500).send(formatResponse());
+  }
+}
+
+export async function postVerificationToken(req: Request, res: Response) {
+  const verificationToken = req.body.verificationToken as string;
+  const username = req.params.username as string;
+
+  try {
+    const valid = await selectPasswordRecoveryToken(
+      username,
+      verificationToken,
+    );
+    if (!valid) {
+      res
+        .status(400)
+        .send(JSON.stringify({ error: "Invalid verification token." }));
+      return;
+    }
+    const verificationUuid = crypto.randomUUID();
+
+    await updatePasswordRecoveryVerificationUuid(username, verificationUuid);
+
+    res.status(200).send(JSON.stringify({ verificationUuid }));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    log(loggingLevels.ERROR, `postVerificationToken: ${message}`, {
+      verificationToken,
     });
     res.status(500).send(formatResponse());
   }
