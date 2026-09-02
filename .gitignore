@@ -6,3 +6,4 @@ macro-tracker-api/dist
 .env
 /data
 node_modules
+db/schema.sql

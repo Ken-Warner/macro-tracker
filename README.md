@@ -36,6 +36,10 @@ There are two flags:
 - Update scrollbar on long dialog windows
 - Meal history search
   - Should this just search what is currently loaded? or open up a dialog with results that match from entire history?
+- Clicking an ingredient in the recipe tab should clear the search box there too.
+- Check ingredients dialog: delete button should be red.
+  - Maybe check other modal windows as well.
+- In pantry mode for a new meal it should show the current calculated macros for what you have selected.
 
 ## Completed Items
 
