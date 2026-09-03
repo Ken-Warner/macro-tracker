@@ -624,3 +624,39 @@ export async function postVerificationToken(
     ),
   };
 }
+
+export async function postNewPassword(
+  username: string,
+  verificationUuid: string,
+  newPassword: string,
+  confirmNewPassword: string,
+): Promise<APIResult<null>> {
+  const apiResult = await fetch(
+    `/api/users/passwordRecovery/${username}/newPassword`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        newPassword,
+        confirmNewPassword,
+        verificationUuid,
+      }),
+    },
+  );
+
+  if (apiResult.ok) {
+    return {
+      ok: true,
+      status: apiResult.status,
+      body: null,
+    };
+  }
+  return {
+    ok: false,
+    status: apiResult.status,
+    errorMessage: await parseErrorMessage(
+      apiResult,
+      "Unable to set new password",
+    ),
+  };
+}

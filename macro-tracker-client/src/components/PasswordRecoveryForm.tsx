@@ -1,6 +1,10 @@
 import { useState, type FormEvent } from "react";
 import ContainerItem from "./ContainerItem";
-import { getPasswordRecovery, postVerificationToken } from "../utilities/api";
+import {
+  getPasswordRecovery,
+  postNewPassword,
+  postVerificationToken,
+} from "../utilities/api";
 import { getFormFieldValue } from "./authFormFields";
 import Loader from "./Loader";
 
@@ -97,11 +101,28 @@ export default function PasswordRecoveryForm({
     }
 
     async function fetchNewPassword() {
-      console.log(verificationUuid, getFormFieldValue(form, "newPassword"));
+      try {
+        onLoadingChange(true);
 
-      //implement
+        const apiResult = await postNewPassword(
+          username,
+          verificationUuid,
+          newPassword,
+          confirmNewPassword,
+        );
 
-      onSwitchToLogin();
+        if (apiResult.ok) {
+          onSwitchToLogin();
+        } else {
+          onError(apiResult.errorMessage);
+        }
+      } catch (error) {
+        onError(
+          error instanceof Error ? error.message : "Unable to set new password",
+        );
+      } finally {
+        onLoadingChange(false);
+      }
     }
 
     void fetchNewPassword();

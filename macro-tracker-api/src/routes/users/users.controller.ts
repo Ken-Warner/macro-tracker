@@ -4,6 +4,8 @@ import {
   upsertPasswordRecoveryToken,
   selectPasswordRecoveryToken,
   updatePasswordRecoveryVerificationUuid,
+  selectPasswordRecoveryVerificationUuid,
+  updatePassword,
 } from "../../models/users.model.js";
 import validator from "../../Utilities/validator.js";
 import { log, loggingLevels, formatResponse } from "../../Utilities/logger.js";
@@ -172,6 +174,47 @@ export async function postVerificationToken(req: Request, res: Response) {
     const message = error instanceof Error ? error.message : String(error);
     log(loggingLevels.ERROR, `postVerificationToken: ${message}`, {
       verificationToken,
+    });
+    res.status(500).send(formatResponse());
+  }
+}
+
+export async function postNewPassword(req: Request, res: Response) {
+  const newPassword = req.body.newPassword as string;
+  const confirmNewPassword = req.body.confirmNewPassword as string;
+  const username = req.params.username as string;
+  const verificationUuid = req.body.verificationUuid as string;
+
+  if (!validator.isValidPassword(newPassword)) {
+    res.status(400).send(JSON.stringify({ error: "Invalid password format." }));
+    return;
+  }
+
+  if (newPassword !== confirmNewPassword) {
+    res.status(400).send(JSON.stringify({ error: "Passwords do not match." }));
+    return;
+  }
+
+  try {
+    const valid = await selectPasswordRecoveryVerificationUuid(
+      username,
+      verificationUuid,
+    );
+
+    if (!valid) {
+      res
+        .status(400)
+        .send(JSON.stringify({ error: "Invalid verification token." }));
+      return;
+    }
+
+    await updatePassword(username, newPassword);
+
+    res.status(200).send();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    log(loggingLevels.ERROR, `postNewPassword: ${message}`, {
+      username,
     });
     res.status(500).send(formatResponse());
   }

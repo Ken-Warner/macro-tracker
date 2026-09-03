@@ -199,11 +199,7 @@ From the repo root, workspace scripts can be run with `npm run <script> --worksp
 
 - Logout button takes 2 clicks for some reason.
 - Password recovery workflow
-  - New password and verification UUID API.
-  - Client side logic to send user to login page if new password is accepted.
   - Simple email sender
-  - Validate new schema
-    - Remove `db/schema.sql` from `.gitignore`.
 - Some meal deletions don't delete from the UI but are deleted on the backend.
   - I might just need to do a meal history rework.
   - It is possible to delete all items from the meal history for a day and then when it reselects the meals
@@ -217,10 +213,16 @@ From the repo root, workspace scripts can be run with `npm run <script> --worksp
 - Check ingredients dialog: delete button should be red.
   - Maybe check other modal windows as well.
 - In pantry mode for a new meal it should show the current calculated macros for what you have selected.
+- Return focus to text fields after ingredient clicked. (check other similar form elements for the same UX)
 
 ## Completed Items
 
 **Is a Database Update Required:** `YES`
+
+- Phase 3 of password recovery
+  - New password API
+  - Client side API and logic to update password and move to login form
+  - Validated new schema
 
 - Phase 2 of password recovery
   - Token verification API (checks token from email, if correct, creates verification UUID in DB and sends to client with 200)

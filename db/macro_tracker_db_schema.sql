@@ -2,10 +2,10 @@
 -- PostgreSQL database dump
 --
 
-\restrict 1UvJtSXzbmkV8WIw9xsQLuf8St4Jdnw17fti5D8GH3OsGke5SeMjtI9k7qkrAwD
+\restrict pSa6OtXEAt8zuvuGY8hd9O3qWaONhFavpoagB2F8rGcgIhhb2hu0CJcNtkHMw3a
 
--- Dumped from database version 18.4 (Debian 18.4-1.pgdg13+1)
--- Dumped by pg_dump version 18.4 (Debian 18.4-1.pgdg13+1)
+-- Dumped from database version 18.6 (Debian 18.6-1.pgdg13+2)
+-- Dumped by pg_dump version 18.6 (Debian 18.6-1.pgdg13+2)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -205,6 +205,22 @@ ALTER SEQUENCE public.meals_user_id_seq OWNED BY public.meals.user_id;
 
 
 --
+-- Name: recipe_ingredients; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.recipe_ingredients (
+    recipe_id integer NOT NULL,
+    ingredient_id integer NOT NULL,
+    default_amount real NOT NULL,
+    current_amount real NOT NULL,
+    CONSTRAINT recipe_ingredients_current_amount_check CHECK ((current_amount > (0)::double precision)),
+    CONSTRAINT recipe_ingredients_default_amount_check CHECK ((default_amount > (0)::double precision))
+);
+
+
+ALTER TABLE public.recipe_ingredients OWNER TO postgres;
+
+--
 -- Name: recipes; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -216,15 +232,9 @@ CREATE TABLE public.recipes (
     division_mode text NOT NULL,
     portion_count real,
     total_yield_oz real,
-    CONSTRAINT recipes_division_mode_check CHECK (
-        (division_mode = ANY (ARRAY['portions'::text, 'per_ounce'::text]))
-    ),
-    CONSTRAINT recipes_portions_require_count CHECK (
-        ((division_mode <> 'portions'::text) OR ((portion_count IS NOT NULL) AND (portion_count > (0)::double precision)))
-    ),
-    CONSTRAINT recipes_per_ounce_require_yield CHECK (
-        ((division_mode <> 'per_ounce'::text) OR ((total_yield_oz IS NOT NULL) AND (total_yield_oz > (0)::double precision)))
-    )
+    CONSTRAINT recipes_division_mode_check CHECK ((division_mode = ANY (ARRAY['portions'::text, 'per_ounce'::text]))),
+    CONSTRAINT recipes_per_ounce_require_yield CHECK (((division_mode <> 'per_ounce'::text) OR ((total_yield_oz IS NOT NULL) AND (total_yield_oz > (0)::double precision)))),
+    CONSTRAINT recipes_portions_require_count CHECK (((division_mode <> 'portions'::text) OR ((portion_count IS NOT NULL) AND (portion_count > (0)::double precision))))
 );
 
 
@@ -253,22 +263,6 @@ ALTER SEQUENCE public.recipes_id_seq OWNED BY public.recipes.id;
 
 
 --
--- Name: recipe_ingredients; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.recipe_ingredients (
-    recipe_id integer NOT NULL,
-    ingredient_id integer NOT NULL,
-    default_amount real NOT NULL,
-    current_amount real NOT NULL,
-    CONSTRAINT recipe_ingredients_default_amount_check CHECK ((default_amount > (0)::double precision)),
-    CONSTRAINT recipe_ingredients_current_amount_check CHECK ((current_amount > (0)::double precision))
-);
-
-
-ALTER TABLE public.recipe_ingredients OWNER TO postgres;
-
---
 -- Name: session; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -280,6 +274,20 @@ CREATE TABLE public.session (
 
 
 ALTER TABLE public.session OWNER TO postgres;
+
+--
+-- Name: user_password_tokens; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.user_password_tokens (
+    username text NOT NULL,
+    token text NOT NULL,
+    reset_expires timestamp without time zone NOT NULL,
+    verification_uuid text
+);
+
+
+ALTER TABLE public.user_password_tokens OWNER TO postgres;
 
 --
 -- Name: user_weights; Type: TABLE; Schema: public; Owner: postgres
@@ -467,14 +475,6 @@ ALTER TABLE ONLY public.meals
 
 
 --
--- Name: recipes recipes_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.recipes
-    ADD CONSTRAINT recipes_pkey PRIMARY KEY (id);
-
-
---
 -- Name: recipe_ingredients recipe_ingredients_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -483,11 +483,27 @@ ALTER TABLE ONLY public.recipe_ingredients
 
 
 --
+-- Name: recipes recipes_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.recipes
+    ADD CONSTRAINT recipes_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: session session_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.session
     ADD CONSTRAINT session_pkey PRIMARY KEY (sid);
+
+
+--
+-- Name: user_password_tokens user_password_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.user_password_tokens
+    ADD CONSTRAINT user_password_tokens_pkey PRIMARY KEY (username);
 
 
 --
@@ -538,11 +554,11 @@ ALTER TABLE ONLY public.meals
 
 
 --
--- Name: recipes recipes_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: recipe_ingredients recipe_ingredients_ingredient_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.recipes
-    ADD CONSTRAINT recipes_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+ALTER TABLE ONLY public.recipe_ingredients
+    ADD CONSTRAINT recipe_ingredients_ingredient_id_fkey FOREIGN KEY (ingredient_id) REFERENCES public.ingredients(id);
 
 
 --
@@ -554,11 +570,11 @@ ALTER TABLE ONLY public.recipe_ingredients
 
 
 --
--- Name: recipe_ingredients recipe_ingredients_ingredient_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: recipes recipes_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.recipe_ingredients
-    ADD CONSTRAINT recipe_ingredients_ingredient_id_fkey FOREIGN KEY (ingredient_id) REFERENCES public.ingredients(id);
+ALTER TABLE ONLY public.recipes
+    ADD CONSTRAINT recipes_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -573,5 +589,5 @@ ALTER TABLE ONLY public.user_weights
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 1UvJtSXzbmkV8WIw9xsQLuf8St4Jdnw17fti5D8GH3OsGke5SeMjtI9k7qkrAwD
+\unrestrict pSa6OtXEAt8zuvuGY8hd9O3qWaONhFavpoagB2F8rGcgIhhb2hu0CJcNtkHMw3a
 

@@ -115,6 +115,42 @@ export async function updatePasswordRecoveryVerificationUuid(
   }
 }
 
+export async function selectPasswordRecoveryVerificationUuid(
+  username: string,
+  verificationUuid: string,
+): Promise<boolean> {
+  const selectPasswordRecoveryVerificationUuidQuery = {
+    text: "SELECT EXISTS (SELECT 1 FROM user_password_tokens WHERE username = $1 AND verification_uuid = $2);",
+    params: [username, verificationUuid],
+  };
+
+  const result = await query(selectPasswordRecoveryVerificationUuidQuery);
+
+  const exists = result.rows[0].exists as boolean;
+
+  if (exists) {
+    await updateMarkPasswordVerificationExpired(username);
+  }
+
+  return exists;
+}
+
+export async function updatePassword(
+  username: string,
+  newPassword: string,
+): Promise<void> {
+  const updatePasswordQuery = {
+    text: `UPDATE users SET password = crypt($1, gen_salt('bf')) WHERE username = $2;`,
+    params: [newPassword, username],
+  };
+
+  const result = await query(updatePasswordQuery);
+
+  if (result.rowCount !== 1) {
+    throw new Error("Failed to update password.");
+  }
+}
+
 async function selectUserEmailAddress(username: string): Promise<string> {
   const selectUserEmailAddressQuery = {
     text: "SELECT email_address FROM users WHERE username = $1;",
@@ -145,4 +181,19 @@ async function selectExistingPasswordRecoveryToken(
     return true;
   }
   return false;
+}
+
+async function updateMarkPasswordVerificationExpired(
+  username: string,
+): Promise<void> {
+  const updateMarkPasswordVerificationExpiredQuery = {
+    text: `UPDATE user_password_tokens SET reset_expires = $1 WHERE username = $2;`,
+    params: [new Date(), username],
+  };
+
+  const result = await query(updateMarkPasswordVerificationExpiredQuery);
+
+  if (result.rowCount !== 1) {
+    throw new Error("Failed to mark password verification as expired.");
+  }
 }

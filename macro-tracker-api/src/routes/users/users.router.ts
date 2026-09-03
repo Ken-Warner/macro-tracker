@@ -4,6 +4,7 @@ import {
   logUserIn,
   logUserOut,
   postVerificationToken,
+  postNewPassword,
   setPasswordRecovery,
 } from "./users.controller.js";
 
@@ -17,5 +18,6 @@ usersRouter.post(
   "/passwordRecovery/:username/verificationToken",
   postVerificationToken,
 );
+usersRouter.post("/passwordRecovery/:username/newPassword", postNewPassword);
 
 export default usersRouter;
