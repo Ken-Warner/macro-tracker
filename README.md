@@ -212,6 +212,8 @@ From the repo root, workspace scripts can be run with `npm run <script> --worksp
 ## Todos
 
 - Logout button takes 2 clicks for some reason.
+- Password logged in creation request in production, needs to be omitted.
+- Clean up password recovery workflow.
 - **Add weigh-ins to backup before release**
 - Some meal deletions don't delete from the UI but are deleted on the backend.
   - I might just need to do a meal history rework.
@@ -230,7 +232,9 @@ From the repo root, workspace scripts can be run with `npm run <script> --worksp
 
 ## Completed Items
 
-**Is a Database Update Required:** `YES`
+**Is a Database Update Required:** `NO`
+
+### Released 2026-09-05
 
 - Phase 4 of password recovery
   - `simpleEmail.ts` finished up
