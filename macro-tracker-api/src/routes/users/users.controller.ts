@@ -17,6 +17,7 @@ import type {
 import { User } from "@macro-tracker/macro-tracker-shared";
 import crypto from "node:crypto";
 import sendSimpleEmail from "../../Utilities/simpleEmail.js";
+import { isAwsSesEnabled } from "../../Utilities/featureFlags.js";
 
 export async function createNewUser(
   req: Request<{}, {}, UserCreateRequest>,
@@ -127,27 +128,33 @@ export async function setPasswordRecovery(req: Request, res: Response) {
   const token = crypto.randomInt(100000, 1000000).toString();
   const resetExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
+  if (!isAwsSesEnabled() && process.env.NODE_ENV !== "TEST") {
+    log(loggingLevels.ERROR, "AWS SES is not enabled");
+    res.status(500).send();
+    return;
+  }
+
   try {
     const emailAddress = await upsertPasswordRecoveryToken(
       username,
       token,
       resetExpires,
     );
-    // Send email to user with token
+
     await sendSimpleEmail(
       emailAddress,
       "Password Recovery",
       `Your password recovery token is ${token}`,
     );
-    res.status(200).send();
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     log(loggingLevels.ERROR, `setPasswordRecovery: ${message}`, {
       username,
       resetExpires,
     });
-    res.status(500).send(formatResponse());
   }
+
+  res.status(200).send();
 }
 
 export async function postVerificationToken(req: Request, res: Response) {

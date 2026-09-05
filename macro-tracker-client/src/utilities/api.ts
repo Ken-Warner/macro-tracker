@@ -578,7 +578,9 @@ export async function postMealComposed(meal: CreateComposedMealRequest) {
 export async function getPasswordRecovery(
   username: string,
 ): Promise<APIResult<null>> {
-  const apiResult = await fetch(`/api/users/passwordRecovery/${username}`);
+  const apiResult = await fetch(`/api/users/passwordRecovery/${username}`, {
+    method: "POST",
+  });
   if (apiResult.ok) {
     return {
       ok: true,

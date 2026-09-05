@@ -68,7 +68,7 @@ export async function upsertPasswordRecoveryToken(
   const upsertPasswordRecoveryTokenQuery = {
     text: `INSERT INTO user_password_tokens (username, token, reset_expires)
       VALUES ($1, crypt($2, gen_salt('bf')), $3)
-      ON CONFLICT (username) DO UPDATE SET token = crypt($2, gen_salt('bf')), reset_expires = $3;`,
+      ON CONFLICT (username) DO UPDATE SET token = crypt($2, gen_salt('bf')), reset_expires = $3, verification_uuid = NULL;`,
     params: [username, token, resetExpires],
   };
 
@@ -119,9 +119,15 @@ export async function selectPasswordRecoveryVerificationUuid(
   username: string,
   verificationUuid: string,
 ): Promise<boolean> {
+  const now = new Date();
+
   const selectPasswordRecoveryVerificationUuidQuery = {
-    text: "SELECT EXISTS (SELECT 1 FROM user_password_tokens WHERE username = $1 AND verification_uuid = $2);",
-    params: [username, verificationUuid],
+    text: `SELECT EXISTS 
+    (SELECT 1 FROM user_password_tokens 
+    WHERE username = $1 
+    AND verification_uuid = $2
+    AND reset_expires > $3);`,
+    params: [username, verificationUuid, now],
   };
 
   const result = await query(selectPasswordRecoveryVerificationUuidQuery);
@@ -187,7 +193,9 @@ async function updateMarkPasswordVerificationExpired(
   username: string,
 ): Promise<void> {
   const updateMarkPasswordVerificationExpiredQuery = {
-    text: `UPDATE user_password_tokens SET reset_expires = $1 WHERE username = $2;`,
+    text: `UPDATE user_password_tokens SET reset_expires = $1, 
+    verification_uuid = NULL 
+    WHERE username = $2;`,
     params: [new Date(), username],
   };
 
