@@ -17,6 +17,11 @@ services:
       NODE_ENV: ${NODE_ENV}
       SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-}
       INGREDIENT_OCR_ENABLED: ${INGREDIENT_OCR_ENABLED:-false}
+      AWS_SES_ENABLED: ${AWS_SES_ENABLED:-false}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_REGION: ${AWS_REGION:-}
+      FROM_EMAIL_ADDRESS: ${FROM_EMAIL_ADDRESS:-}
     depends_on:
       db:
         condition: service_healthy

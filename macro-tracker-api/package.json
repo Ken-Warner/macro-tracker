@@ -26,6 +26,7 @@
     "typescript": "^6.0.2"
   },
   "dependencies": {
+    "@aws-sdk/client-sesv2": "^3.1127.0",
     "@macro-tracker/macro-tracker-shared": "file:../macro-tracker-shared",
     "@techstark/opencv-js": "^5.0.0-release.1",
     "body-parser": "^2.2.2",
