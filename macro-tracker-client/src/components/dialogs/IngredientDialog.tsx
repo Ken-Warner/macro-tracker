@@ -120,7 +120,7 @@ export default function IngredientDialog({
             </button>
             <button
               type="button"
-              className="button"
+              className="button button-danger"
               onClick={() => void handleDelete()}
             >
               Delete

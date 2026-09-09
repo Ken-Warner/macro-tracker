@@ -224,9 +224,6 @@ From the repo root, workspace scripts can be run with `npm run <script> --worksp
 - Update scrollbar on long dialog windows
 - Meal history search
   - Should this just search what is currently loaded? or open up a dialog with results that match from entire history?
-- Clicking an ingredient in the recipe tab should clear the search box there too.
-- Check ingredients dialog: delete button should be red.
-  - Maybe check other modal windows as well.
 - In pantry mode for a new meal it should show the current calculated macros for what you have selected.
 
 ## Completed Items
@@ -234,6 +231,9 @@ From the repo root, workspace scripts can be run with `npm run <script> --worksp
 **Is a Database Update Required:** `NO`
 
 - Return focus to text fields after ingredient clicked. (check other similar form elements for the same UX)
+- Clicking an ingredient in the recipe tab should clear the search box there too.
+- Check ingredients dialog: delete button should be red.
+  - Maybe check other modal windows as well.
 
 ### Released 2026-09-05
 

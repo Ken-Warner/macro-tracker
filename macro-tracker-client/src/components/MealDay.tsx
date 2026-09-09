@@ -92,7 +92,9 @@ export default function MealDay({
       </button>
       <div
         className={
-          isExpanded ? "accordion-body accordion-body-expanded" : "accordion-body"
+          isExpanded
+            ? "accordion-body accordion-body-expanded"
+            : "accordion-body"
         }
       >
         <div className="accordion-body-inner">
@@ -271,7 +273,7 @@ function MealItem({
                 Close
               </button>
               <button
-                className="button"
+                className="button button-danger"
                 type="button"
                 onClick={handleDeleteMeal}
               >
