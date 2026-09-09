@@ -832,6 +832,7 @@ form label {
 }
 .accordion-item:hover {
   background-color: hsl(from var(--bg-primary) h s calc(l + 5));
+  cursor: pointer;
 }
 .accordion-item-title {
   display: flex;

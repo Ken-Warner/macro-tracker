@@ -228,11 +228,12 @@ From the repo root, workspace scripts can be run with `npm run <script> --worksp
 - Check ingredients dialog: delete button should be red.
   - Maybe check other modal windows as well.
 - In pantry mode for a new meal it should show the current calculated macros for what you have selected.
-- Return focus to text fields after ingredient clicked. (check other similar form elements for the same UX)
 
 ## Completed Items
 
 **Is a Database Update Required:** `NO`
+
+- Return focus to text fields after ingredient clicked. (check other similar form elements for the same UX)
 
 ### Released 2026-09-05
 

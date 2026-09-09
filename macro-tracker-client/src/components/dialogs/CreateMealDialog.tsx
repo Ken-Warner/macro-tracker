@@ -80,6 +80,7 @@ export default function CreateMealDialog({
   const [ingredientsLoading, setIngredientsLoading] = useState(false);
   const [ingredientsError, setIngredientsError] = useState<string | null>(null);
   const [pantrySearch, setPantrySearch] = useState("");
+  const pantrySearchInputRef = useRef<HTMLInputElement>(null);
   const [selectedIngredients, setSelectedIngredients] = useState(
     () => new Map<number, { portionSize: number }>(),
   );
@@ -88,6 +89,7 @@ export default function CreateMealDialog({
   const [recipesLoading, setRecipesLoading] = useState(false);
   const [recipesError, setRecipesError] = useState<string | null>(null);
   const [recipeSearch, setRecipeSearch] = useState("");
+  const recipeSearchInputRef = useRef<HTMLInputElement>(null);
   const [selectedRecipes, setSelectedRecipes] = useState(
     () => new Map<number, { amount: number }>(),
   );
@@ -198,6 +200,7 @@ export default function CreateMealDialog({
       return next;
     });
     setPantrySearch("");
+    queueMicrotask(() => pantrySearchInputRef.current?.focus());
   }, []);
 
   const adjustPortion = useCallback((id: number, delta: number) => {
@@ -238,6 +241,7 @@ export default function CreateMealDialog({
       return next;
     });
     setRecipeSearch("");
+    queueMicrotask(() => recipeSearchInputRef.current?.focus());
   }, []);
 
   const adjustRecipeAmount = useCallback((id: number, delta: number) => {
@@ -516,6 +520,7 @@ export default function CreateMealDialog({
                     Search ingredients
                   </label>
                   <input
+                    ref={pantrySearchInputRef}
                     id="pantry-search-create-meal"
                     className="input"
                     type="search"
@@ -577,6 +582,7 @@ export default function CreateMealDialog({
                     Search recipes
                   </label>
                   <input
+                    ref={recipeSearchInputRef}
                     id="recipe-search-create-meal"
                     className="input"
                     type="search"

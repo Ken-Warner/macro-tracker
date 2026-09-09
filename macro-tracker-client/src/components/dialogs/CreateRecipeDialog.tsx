@@ -51,6 +51,7 @@ export default function CreateRecipeDialog({
   const [ingredientsLoading, setIngredientsLoading] = useState(false);
   const [ingredientsError, setIngredientsError] = useState<string | null>(null);
   const [pantrySearch, setPantrySearch] = useState("");
+  const pantrySearchInputRef = useRef<HTMLInputElement>(null);
   const [selectedIngredients, setSelectedIngredients] = useState(
     () => new Map<number, { defaultAmount: number }>(),
   );
@@ -75,9 +76,7 @@ export default function CreateRecipeDialog({
       const result = await getIngredients();
       if (cancelled) return;
       if (result.ok) {
-        setPantryIngredients(
-          result.body.filter((row) => !row.is_deleted),
-        );
+        setPantryIngredients(result.body.filter((row) => !row.is_deleted));
       } else {
         setIngredientsError(result.errorMessage);
         setPantryIngredients([]);
@@ -95,12 +94,12 @@ export default function CreateRecipeDialog({
     setSelectedIngredients((prev) => {
       const next = new Map(prev);
       const existing = next.get(row.id);
-      const defaultAmount = existing
-        ? existing.defaultAmount + 1
-        : 1;
+      const defaultAmount = existing ? existing.defaultAmount + 1 : 1;
       next.set(row.id, { defaultAmount: snapPortion(defaultAmount) });
       return next;
     });
+    setPantrySearch("");
+    queueMicrotask(() => pantrySearchInputRef.current?.focus());
   }, []);
 
   const adjustAmount = useCallback((id: number, delta: number) => {
@@ -132,7 +131,9 @@ export default function CreateRecipeDialog({
     });
   }, []);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
+  async function handleSubmit(
+    event: FormEvent<HTMLFormElement>,
+  ): Promise<void> {
     event.preventDefault();
     const trimmedName = name.trim();
     if (trimmedName === "") {
@@ -178,9 +179,7 @@ export default function CreateRecipeDialog({
   const filteredPantry =
     q === ""
       ? pantryIngredients
-      : pantryIngredients.filter((row) =>
-          row.name.toLowerCase().includes(q),
-        );
+      : pantryIngredients.filter((row) => row.name.toLowerCase().includes(q));
 
   function ingredientNameForId(id: number) {
     const row = pantryIngredients.find((r) => r.id === id);
@@ -342,6 +341,7 @@ export default function CreateRecipeDialog({
 
             <label htmlFor="recipe-pantry-search">Search ingredients</label>
             <input
+              ref={pantrySearchInputRef}
               id="recipe-pantry-search"
               className="input"
               type="search"
@@ -406,10 +406,7 @@ export default function CreateRecipeDialog({
 
             {[...selectedIngredients.entries()].map(([id, data]) => (
               <div key={id} className="create-meal-portion-row">
-                <span
-                  className="portion-name"
-                  title={ingredientNameForId(id)}
-                >
+                <span className="portion-name" title={ingredientNameForId(id)}>
                   {ingredientNameForId(id)}
                 </span>
                 <div className="create-meal-portion-controls">

@@ -59,11 +59,7 @@ export default function IngredientDialog({
       : null;
 
   return (
-    <dialog
-      className="container-item"
-      onClose={onClose}
-      ref={dialogRef}
-    >
+    <dialog className="container-item" onClose={onClose} ref={dialogRef}>
       <div className="container-item-header">Ingredient</div>
       {bannerMessage != null ? (
         <MessageBanner
@@ -114,13 +110,19 @@ export default function IngredientDialog({
             ))}
           </ul>
           {deleteError != null ? (
-            <p style={{ margin: "8px", color: "var(--bg-error)" }}>{deleteError}</p>
+            <p style={{ margin: "8px", color: "var(--bg-error)" }}>
+              {deleteError}
+            </p>
           ) : null}
           <div className="modal-button-container">
             <button type="button" className="button" onClick={onClose}>
               Close
             </button>
-            <button type="button" className="button" onClick={() => void handleDelete()}>
+            <button
+              type="button"
+              className="button"
+              onClick={() => void handleDelete()}
+            >
               Delete
             </button>
           </div>
