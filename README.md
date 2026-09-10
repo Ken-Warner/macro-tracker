@@ -225,6 +225,7 @@ From the repo root, workspace scripts can be run with `npm run <script> --worksp
 - Meal history search
   - Should this just search what is currently loaded? or open up a dialog with results that match from entire history?
 - In pantry mode for a new meal it should show the current calculated macros for what you have selected.
+- Add separate toggle for console logging password update code instead of environment toggle.
 
 ## Completed Items
 
