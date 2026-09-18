@@ -17,7 +17,10 @@ import type {
 import { User } from "@macro-tracker/macro-tracker-shared";
 import crypto from "node:crypto";
 import sendSimpleEmail from "../../Utilities/simpleEmail.js";
-import { isAwsSesEnabled } from "../../Utilities/featureFlags.js";
+import {
+  isAwsSesEnabled,
+  isConsoleOutputRecoveryCodeEnabled,
+} from "../../Utilities/featureFlags.js";
 
 export async function createNewUser(
   req: Request<{}, {}, UserCreateRequest>,
@@ -128,7 +131,7 @@ export async function setPasswordRecovery(req: Request, res: Response) {
   const token = crypto.randomInt(100000, 1000000).toString();
   const resetExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
-  if (!isAwsSesEnabled() && process.env.NODE_ENV !== "TEST") {
+  if (!isAwsSesEnabled() && !isConsoleOutputRecoveryCodeEnabled()) {
     log(loggingLevels.ERROR, "AWS SES is not enabled");
     res.status(500).send();
     return;

@@ -1,6 +1,9 @@
 import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
 import { log, loggingLevels } from "./logger.js";
-import { isAwsSesEnabled } from "./featureFlags.js";
+import {
+  isAwsSesEnabled,
+  isConsoleOutputRecoveryCodeEnabled,
+} from "./featureFlags.js";
 
 const sesClient = new SESv2Client({
   region: process.env.AWS_REGION || ("us-east-1" as string),
@@ -11,7 +14,7 @@ export default async function sendSimpleEmail(
   subject: string,
   body: string,
 ) {
-  if (process.env.NODE_ENV === "TEST") {
+  if (isConsoleOutputRecoveryCodeEnabled()) {
     console.log("====================================");
     console.log(`Sending email to ${to}`);
     console.log(`Subject: ${subject}`);

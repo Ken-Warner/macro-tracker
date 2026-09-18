@@ -82,7 +82,7 @@ For TypeScript reload during development, use `npm run dev --workspace=macro-tra
 
 ## Environment variables
 
-Ingredient-from-image OCR and Amazon SES (password-recovery email) are **off** unless their flags are the string `true`. Any other value (including unset) leaves them disabled.
+Ingredient-from-image OCR, Amazon SES (password-recovery email), and console recovery-code output are **off** unless their flags are the string `true`. Any other value (including unset) leaves them disabled.
 
 ### Shared (repo-root `.env`, used by Compose for API and Postgres)
 
@@ -100,23 +100,24 @@ These live in the root `.env`. Compose interpolates them into both the `api` and
 
 Set these in the root `.env` for Docker, or in the API process environment for a host run. Docker Compose forwards each of them into the `api` container (except `PORT`, which is also used in the host port mapping).
 
-| Variable                 | Purpose                                                                                                                                                                              |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `PORT`                   | Port the API listens on (default `80`). Compose maps host `80` to this container port.                                                                                               |
-| `DB_HOST`                | Postgres hostname. Use `db` (the Compose service name) in Docker. Defaults to `127.0.0.1` if unset.                                                                                  |
-| `DB_PORT`                | Postgres port (default `5432`).                                                                                                                                                      |
-| `DB_USER`                | See [Shared](#shared-repo-root-env-used-by-compose-for-api-and-postgres). Default `postgres`.                                                                                        |
-| `DB_PASSWORD`            | See [Shared](#shared-repo-root-env-used-by-compose-for-api-and-postgres). Default `test123`.                                                                                         |
-| `DB_DATABASE`            | See [Shared](#shared-repo-root-env-used-by-compose-for-api-and-postgres). Default `postgres`.                                                                                        |
-| `SESSION_SECRET`         | Secret for signing session cookies. Falls back to a hardcoded default if unset; set a long random value.                                                                             |
-| `SESSION_COOKIE_SECURE`  | Session cookie `secure` flag. `true` / `false` force the value. If unset, cookies are secure only when `NODE_ENV` is `PROD`.                                                         |
-| `NODE_ENV`               | `PROD` uses JSON logs (no `pino-pretty`) and defaults secure cookies on. `TEST` logs password-recovery email to the console instead of sending it. Any other value uses pretty logs. |
-| `INGREDIENT_OCR_ENABLED` | OCR **runtime** flag. Must be the string `true` to allow `POST /api/ingredients/fromImage`; otherwise the endpoint returns 403.                                                      |
-| `AWS_SES_ENABLED`        | Amazon SES **runtime** flag for the password-recovery workflow. Must be the string `true` to enable SES. Any other value (including unset) leaves it disabled.                       |
-| `AWS_ACCESS_KEY_ID`      | IAM access key for Amazon SES. Required when sending password-recovery email through SES.                                                                                            |
-| `AWS_SECRET_ACCESS_KEY`  | IAM secret key for Amazon SES. Required when sending password-recovery email through SES.                                                                                            |
-| `AWS_REGION`             | AWS region for the SES client (for example `us-east-1`). Required when sending password-recovery email through SES.                                                                  |
-| `FROM_EMAIL_ADDRESS`     | Verified SES sender address used as the From field for password-recovery email. Required when sending through SES.                                                                   |
+| Variable                               | Purpose                                                                                                                                                                                     |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PORT`                                 | Port the API listens on (default `80`). Compose maps host `80` to this container port.                                                                                                      |
+| `DB_HOST`                              | Postgres hostname. Use `db` (the Compose service name) in Docker. Defaults to `127.0.0.1` if unset.                                                                                         |
+| `DB_PORT`                              | Postgres port (default `5432`).                                                                                                                                                             |
+| `DB_USER`                              | See [Shared](#shared-repo-root-env-used-by-compose-for-api-and-postgres). Default `postgres`.                                                                                               |
+| `DB_PASSWORD`                          | See [Shared](#shared-repo-root-env-used-by-compose-for-api-and-postgres). Default `test123`.                                                                                                |
+| `DB_DATABASE`                          | See [Shared](#shared-repo-root-env-used-by-compose-for-api-and-postgres). Default `postgres`.                                                                                               |
+| `SESSION_SECRET`                       | Secret for signing session cookies. Falls back to a hardcoded default if unset; set a long random value.                                                                                    |
+| `SESSION_COOKIE_SECURE`                | Session cookie `secure` flag. `true` / `false` force the value. If unset, cookies are secure only when `NODE_ENV` is `PROD`.                                                                |
+| `NODE_ENV`                             | `PROD` uses JSON logs (no `pino-pretty`) and defaults secure cookies on. Any other value uses pretty logs.                                                                                  |
+| `INGREDIENT_OCR_ENABLED`               | OCR **runtime** flag. Must be the string `true` to allow `POST /api/ingredients/fromImage`; otherwise the endpoint returns 403.                                                             |
+| `AWS_SES_ENABLED`                      | Amazon SES **runtime** flag for the password-recovery workflow. Must be the string `true` to enable SES. Any other value (including unset) leaves it disabled.                              |
+| `CONSOLE_OUTPUT_RECOVERY_CODE_ENABLED` | Password-recovery **runtime** flag. Must be the string `true` to log recovery email to the console instead of sending it. Any other value (including unset) leaves console output disabled. |
+| `AWS_ACCESS_KEY_ID`                    | IAM access key for Amazon SES. Required when sending password-recovery email through SES.                                                                                                   |
+| `AWS_SECRET_ACCESS_KEY`                | IAM secret key for Amazon SES. Required when sending password-recovery email through SES.                                                                                                   |
+| `AWS_REGION`                           | AWS region for the SES client (for example `us-east-1`). Required when sending password-recovery email through SES.                                                                         |
+| `FROM_EMAIL_ADDRESS`                   | Verified SES sender address used as the From field for password-recovery email. Required when sending through SES.                                                                          |
 
 **OCR on the API — local:** set `INGREDIENT_OCR_ENABLED=true` in the environment used by `npm run dev` / `npm start` in `macro-tracker-api`. Unset or any other value disables the endpoint (403).
 
@@ -125,6 +126,10 @@ Set these in the root `.env` for Docker, or in the API process environment for a
 **SES on the API — local:** set `AWS_SES_ENABLED=true` plus `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, and `FROM_EMAIL_ADDRESS` in the environment used by `npm run dev` / `npm start` in `macro-tracker-api`. Unset or any other value for the flag leaves SES disabled.
 
 **SES on the API — production / Docker:** set `AWS_SES_ENABLED=true`, the three AWS credentials, and `FROM_EMAIL_ADDRESS` in the host `.env` next to Compose (or export them) before `docker compose up`. `compose.yaml` passes them into the `api` service (Compose default `false` for the flag if omitted). Recreate or restart the API container after changing them. No image rebuild is required.
+
+**Console recovery codes — local:** set `CONSOLE_OUTPUT_RECOVERY_CODE_ENABLED=true` in the environment used by `npm run dev` / `npm start` in `macro-tracker-api`. Unset or any other value leaves console output disabled. When this flag is `true`, password-recovery email is logged to the console and is not sent through SES.
+
+**Console recovery codes — production / Docker:** set `CONSOLE_OUTPUT_RECOVERY_CODE_ENABLED=true` in the host `.env` next to Compose (or export it) before `docker compose up`. `compose.yaml` passes it into the `api` service (Compose default `false` if omitted). Recreate or restart the API container after changing it. No image rebuild is required.
 
 ### Client (`macro-tracker-client`)
 
@@ -153,6 +158,7 @@ NODE_ENV=TEST
 SESSION_COOKIE_SECURE=false
 INGREDIENT_OCR_ENABLED=false
 AWS_SES_ENABLED=false
+CONSOLE_OUTPUT_RECOVERY_CODE_ENABLED=true
 AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=
 AWS_REGION=us-east-1
@@ -224,17 +230,18 @@ From the repo root, workspace scripts can be run with `npm run <script> --worksp
 - Meal history search
   - Should this just search what is currently loaded? or open up a dialog with results that match from entire history?
 - In pantry mode for a new meal it should show the current calculated macros for what you have selected.
-- Add separate toggle for console logging password update code instead of environment toggle.
 
 ## Completed Items
 
 **Is a Database Update Required:** `NO`
+**Update docker compose file with new env for console logging email**
 
 - Return focus to text fields after ingredient clicked. (check other similar form elements for the same UX)
 - Clicking an ingredient in the recipe tab should clear the search box there too.
 - Check ingredients dialog: delete button should be red.
   - Maybe check other modal windows as well.
 - Meals can be created for tomorrow that don't show up but prevent daily macros from loading.
+- Add separate toggle for console logging password update code instead of environment toggle.
 
 ### Released 2026-09-05
 
