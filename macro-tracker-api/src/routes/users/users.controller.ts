@@ -69,7 +69,10 @@ export async function createNewUser(
     res.status(201).send(JSON.stringify(user.toJSON()));
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
-    log(loggingLevels.ERROR, `createNewUser: ${message}`, req.body);
+    log(loggingLevels.ERROR, `createNewUser: ${message}`, {
+      username: req.body.username,
+      emailAddress: req.body.emailAddress,
+    });
     res.status(500).send(formatResponse());
   }
 }
@@ -113,7 +116,9 @@ export async function logUserIn(
     res.status(200).send(JSON.stringify(user.toJSON()));
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
-    log(loggingLevels.ERROR, `logUserIn: ${message}`, req.body);
+    log(loggingLevels.ERROR, `logUserIn: ${message}`, {
+      username: req.body.username,
+    });
     res.status(500).send(formatResponse());
   }
 }

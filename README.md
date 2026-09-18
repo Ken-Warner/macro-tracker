@@ -218,7 +218,6 @@ From the repo root, workspace scripts can be run with `npm run <script> --worksp
 ## Todos
 
 - Logout button takes 2 clicks for some reason.
-- Password logged in creation request in production, needs to be omitted.
 - Clean up password recovery workflow.
 - Some meal deletions don't delete from the UI but are deleted on the backend.
   - I might just need to do a meal history rework.
@@ -241,6 +240,7 @@ From the repo root, workspace scripts can be run with `npm run <script> --worksp
   - Maybe check other modal windows as well.
 - Meals can be created for tomorrow that don't show up but prevent daily macros from loading.
 - Add separate toggle for console logging password update code instead of environment toggle.
+- Password logged in creation request in production, needs to be omitted.
 
 ### Released 2026-09-05
 

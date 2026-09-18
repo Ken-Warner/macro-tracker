@@ -32,7 +32,8 @@ const logger = pino(
 );
 
 function log(level: LoggingLevel, message: string, payload?: unknown) {
-  const method = levelToMethod[level.name as keyof typeof levelToMethod] ?? "info";
+  const method =
+    levelToMethod[level.name as keyof typeof levelToMethod] ?? "info";
   logger[method]({ payload }, message);
 }
 
