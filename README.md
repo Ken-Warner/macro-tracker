@@ -231,7 +231,8 @@ From the repo root, workspace scripts can be run with `npm run <script> --worksp
 ## Completed Items
 
 **Is a Database Update Required:** `NO`
-**Update docker compose file with new env for console logging email**
+
+### Released 2026-09-18
 
 - In pantry mode for a new meal, show the current calculated macros for what you have selected.
 - Return focus to text fields after ingredient clicked. (check other similar form elements for the same UX)
