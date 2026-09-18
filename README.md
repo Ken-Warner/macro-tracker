@@ -220,7 +220,6 @@ From the repo root, workspace scripts can be run with `npm run <script> --worksp
   - It is possible to delete all items from the meal history for a day and then when it reselects the meals
     for that day it will reselect all the recurring ones again and maintain your macros and so you can continually
     delete until your macros are negative. (This may be fixed with the recurring bug fix though).
-- Meals can be created for tomorrow that don't show up but prevent daily macros from loading.
 - Update scrollbar on long dialog windows
 - Meal history search
   - Should this just search what is currently loaded? or open up a dialog with results that match from entire history?
@@ -235,6 +234,7 @@ From the repo root, workspace scripts can be run with `npm run <script> --worksp
 - Clicking an ingredient in the recipe tab should clear the search box there too.
 - Check ingredients dialog: delete button should be red.
   - Maybe check other modal windows as well.
+- Meals can be created for tomorrow that don't show up but prevent daily macros from loading.
 
 ### Released 2026-09-05
 

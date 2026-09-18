@@ -379,6 +379,14 @@ export default function CreateMealDialog({
     return row?.division_mode === "per_ounce" ? "Ounces" : "Portions";
   }
 
+  function getTodayDate() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
   return (
     <>
       {isToastDisplayed && (
@@ -446,6 +454,7 @@ export default function CreateMealDialog({
                 id="date"
                 className="input"
                 value={formData.date}
+                max={getTodayDate()}
                 onChange={handleChange}
               />
               <label htmlFor="time">Time</label>
