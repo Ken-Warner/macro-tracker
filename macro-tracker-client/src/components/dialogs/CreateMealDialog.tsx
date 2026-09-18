@@ -3,6 +3,7 @@ import {
   useState,
   useEffect,
   useCallback,
+  useMemo,
   type ChangeEvent,
   type FormEvent,
 } from "react";
@@ -33,10 +34,69 @@ type CreateMealDialogProps = {
 
 type MealCreationTab = "manual" | "composed";
 
+type SelectedMacros = {
+  calories: number;
+  protein: number;
+  carbohydrates: number;
+  fats: number;
+};
+
 function snapPortion(n: number): number {
   if (!Number.isFinite(n)) return MIN_PORTION;
   const snapped = Math.round(n / PORTION_STEP) * PORTION_STEP;
   return Math.max(MIN_PORTION, snapped);
+}
+
+function emptyMacros(): SelectedMacros {
+  return { calories: 0, protein: 0, carbohydrates: 0, fats: 0 };
+}
+
+function addScaledMacros(
+  totals: SelectedMacros,
+  macros: {
+    calories?: number | null;
+    protein?: number | null;
+    carbohydrates?: number | null;
+    fats?: number | null;
+  },
+  multiplier: number,
+) {
+  totals.calories += (macros.calories ?? 0) * multiplier;
+  totals.protein += (macros.protein ?? 0) * multiplier;
+  totals.carbohydrates += (macros.carbohydrates ?? 0) * multiplier;
+  totals.fats += (macros.fats ?? 0) * multiplier;
+}
+
+function tallySelectedMealMacros(
+  selectedIngredients: Map<number, { portionSize: number }>,
+  selectedRecipes: Map<number, { amount: number }>,
+  pantryIngredients: IngredientRow[],
+  recipes: RecipeRow[],
+): SelectedMacros {
+  const totals = emptyMacros();
+  const ingredientsById = new Map(
+    pantryIngredients.map((row) => [row.id, row]),
+  );
+  const recipesById = new Map(recipes.map((row) => [row.id, row]));
+
+  for (const [id, { portionSize }] of selectedIngredients) {
+    const row = ingredientsById.get(id);
+    if (!row) continue;
+    addScaledMacros(totals, row, portionSize);
+  }
+
+  for (const [id, { amount }] of selectedRecipes) {
+    const row = recipesById.get(id);
+    if (!row) continue;
+    addScaledMacros(totals, row.macros_per_unit, amount);
+  }
+
+  return {
+    calories: Math.round(totals.calories),
+    protein: Math.round(totals.protein),
+    carbohydrates: Math.round(totals.carbohydrates),
+    fats: Math.round(totals.fats),
+  };
 }
 
 function getDateTime(mealToCopy?: Meal): { date: string; time: string } {
@@ -352,6 +412,17 @@ export default function CreateMealDialog({
     }
   }
 
+  const selectedMacros = useMemo(
+    () =>
+      tallySelectedMealMacros(
+        selectedIngredients,
+        selectedRecipes,
+        pantryIngredients,
+        recipes,
+      ),
+    [selectedIngredients, selectedRecipes, pantryIngredients, recipes],
+  );
+
   const q = pantrySearch.trim().toLowerCase();
   const filteredPantry =
     q === ""
@@ -467,6 +538,26 @@ export default function CreateMealDialog({
                 value={formData.time}
                 onChange={handleChange}
               />
+
+              {activeTab === "composed" ? (
+                <div className="recipe-macro-row">
+                  <div className="recipe-macro-row-label">Selected macros</div>
+                  <div className="accordion-item-macro-grid recipe-macro-summary">
+                    <div className="calories color-calories">
+                      {formatMacro(selectedMacros.calories)}
+                    </div>
+                    <div className="protein color-protein">
+                      {formatMacro(selectedMacros.protein)}
+                    </div>
+                    <div className="carbohydrates color-carbohydrates">
+                      {formatMacro(selectedMacros.carbohydrates)}
+                    </div>
+                    <div className="fats color-fats">
+                      {formatMacro(selectedMacros.fats)}
+                    </div>
+                  </div>
+                </div>
+              ) : null}
 
               {activeTab === "manual" ? (
                 <>
