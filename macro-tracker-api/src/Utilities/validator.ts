@@ -1,7 +1,7 @@
 const validator = () => {
   const usernames = /^[a-zA-Z0-9_]{4,20}$/;
   const passwords = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,20}$/;
-  const dates = /^(20)\d{2}-(0[1-9]|1[1-2])-(0[1-9]|[1-2]\d|3[0-1])$/;
+  const dates = /^(20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[1-2]\d|3[0-1])$/;
   const numbers = /^\d+$/;
   //This could probably be more robust
   const emailAddresses = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
